@@ -132,6 +132,7 @@ const RANKINGS = [
     minKey: "投球回_計算用",
     minValue: 20,
     columns: ["投球回", "防御率", "奪三振", "勝利", "敗戦"],
+    filter: (row) => isLikelyStarter(row),
   },
   {
     id: "pitcher-qualified",
@@ -153,6 +154,7 @@ const RANKINGS = [
     minKey: "登板",
     minValue: 5,
     columns: ["登板", "防御率", "奪三振", "セーブ", "ＨＰ", "投球回"],
+    filter: (row) => isLikelyReliever(row),
   },
   {
     id: "pitcher-young",
@@ -240,6 +242,24 @@ function parseInnings(value) {
   const outs = { "0": 0, "1": 1, "2": 2 }[fraction.slice(0, 1)];
   if (outs === undefined) return toNumber(text);
   return toInt(whole) + outs / 3;
+}
+
+function inningsPerGame(row) {
+  const games = toInt(row["登板"]);
+  if (games <= 0) return 0;
+  return parseInnings(row["投球回"]) / games;
+}
+
+function isLikelyReliever(row) {
+  const games = toInt(row["登板"]);
+  const saves = toInt(row["セーブ"]);
+  const holds = toInt(row["ＨＰ"]);
+  if (games < 5) return false;
+  return saves + holds > 0 || inningsPerGame(row) <= 2.2;
+}
+
+function isLikelyStarter(row) {
+  return !isLikelyReliever(row) && inningsPerGame(row) >= 3;
 }
 
 function ageFromBirthdate(value) {
