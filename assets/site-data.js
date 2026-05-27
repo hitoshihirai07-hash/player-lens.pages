@@ -25,6 +25,20 @@
   const FULL_TO_TEAM = Object.fromEntries(Object.entries(TEAM_TO_FULL).map(([short, full]) => [full, short]));
   const CENTRAL_TEAMS = ["巨人", "阪神", "DeNA", "広島", "ヤクルト", "中日"];
   const PACIFIC_TEAMS = ["オリックス", "ソフトバンク", "ロッテ", "楽天", "西武", "日本ハム"];
+  const TEAM_SLUGS = {
+    "巨人": "giants",
+    "阪神": "tigers",
+    "DeNA": "baystars",
+    "広島": "carp",
+    "ヤクルト": "swallows",
+    "中日": "dragons",
+    "オリックス": "buffaloes",
+    "ソフトバンク": "hawks",
+    "ロッテ": "marines",
+    "楽天": "eagles",
+    "西武": "lions",
+    "日本ハム": "fighters",
+  };
 
   const RANKINGS = [
     { id: "batter-overall", label: "打者総合", type: "batter", scoreKey: "打者総合スコア", minKey: "打席", minValue: 20 },
@@ -132,6 +146,10 @@
 
     const headers = rows.shift() || [];
     return rows.map((values) => Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ""])));
+  }
+
+  function dataPath(path) {
+    return `${rootPath()}${String(path).replace(/^\.\//, "")}`;
   }
 
   async function loadCsv(path, optional = false) {
@@ -362,21 +380,27 @@
 
   function playerUrl(row, type) {
     const params = new URLSearchParams({ type, team: row["チーム"], name: row["選手名"] });
-    return `./player.html?${params.toString()}`;
+    return `${rootPath()}player.html?${params.toString()}`;
   }
 
   function teamUrl(team) {
+    const slug = TEAM_SLUGS[team];
+    if (slug) return `${rootPath()}teams/${slug}.html`;
     const params = new URLSearchParams({ team });
-    return `./team.html?${params.toString()}`;
+    return `${rootPath()}team.html?${params.toString()}`;
+  }
+
+  function rootPath() {
+    return location.pathname.includes("/teams/") ? "../" : "./";
   }
 
   async function loadData() {
     const [battersRaw, pitchersRaw, masterRaw, batterSplitsRaw, pitcherSplitsRaw] = await Promise.all([
-      loadCsv(DATA_FILES.batters),
-      loadCsv(DATA_FILES.pitchers),
-      loadCsv(DATA_FILES.master),
-      loadCsv(DATA_FILES.batterSplits, true),
-      loadCsv(DATA_FILES.pitcherSplits, true),
+      loadCsv(dataPath(DATA_FILES.batters)),
+      loadCsv(dataPath(DATA_FILES.pitchers)),
+      loadCsv(dataPath(DATA_FILES.master)),
+      loadCsv(dataPath(DATA_FILES.batterSplits), true),
+      loadCsv(dataPath(DATA_FILES.pitcherSplits), true),
     ]);
     const indexes = buildMasterIndexes(masterRaw);
     const batters = mergeBatterSplits(enrichRows(battersRaw, indexes), batterSplitsRaw).map(addBatterScores);
@@ -388,6 +412,7 @@
   window.PlayerLensData = {
     RANKINGS,
     TEAM_TO_FULL,
+    TEAM_SLUGS,
     escapeHtml,
     formatValue,
     loadData,

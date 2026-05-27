@@ -24,6 +24,20 @@ const TEAM_TO_FULL = {
 const FULL_TO_TEAM = Object.fromEntries(Object.entries(TEAM_TO_FULL).map(([short, full]) => [full, short]));
 const CENTRAL_TEAMS = ["巨人", "阪神", "DeNA", "広島", "ヤクルト", "中日"];
 const PACIFIC_TEAMS = ["オリックス", "ソフトバンク", "ロッテ", "楽天", "西武", "日本ハム"];
+const TEAM_SLUGS = {
+  "巨人": "giants",
+  "阪神": "tigers",
+  "DeNA": "baystars",
+  "広島": "carp",
+  "ヤクルト": "swallows",
+  "中日": "dragons",
+  "オリックス": "buffaloes",
+  "ソフトバンク": "hawks",
+  "ロッテ": "marines",
+  "楽天": "eagles",
+  "西武": "lions",
+  "日本ハム": "fighters",
+};
 
 const RANKINGS = [
   {
@@ -190,6 +204,7 @@ const els = {
   teamFilter: document.getElementById("teamFilter"),
   searchInput: document.getElementById("searchInput"),
   summaryCards: document.getElementById("summaryCards"),
+  dailyFocus: document.getElementById("dailyFocus"),
   rankingGroup: document.getElementById("rankingGroup"),
   rankingTitle: document.getElementById("rankingTitle"),
   resultCount: document.getElementById("resultCount"),
@@ -259,6 +274,7 @@ function playerDetailUrl(row, type) {
 }
 
 function teamDetailUrl(team) {
+  if (TEAM_SLUGS[team]) return `./teams/${TEAM_SLUGS[team]}.html`;
   const params = new URLSearchParams({ team });
   return `./team.html?${params.toString()}`;
 }
@@ -575,6 +591,47 @@ function renderSummary() {
   if (oneGun === 0) return;
 }
 
+function topFocusRow(type, rankingId) {
+  const ranking = RANKINGS.find((item) => item.id === rankingId);
+  const rows = type === "batter" ? state.batters : state.pitchers;
+  return rows
+    .filter((row) => state.league === "all" || row["リーグ"] === state.league)
+    .filter((row) => state.team === "all" || row["チーム"] === state.team)
+    .filter((row) => toNumber(row[ranking.minKey]) >= ranking.minValue)
+    .filter((row) => !ranking.filter || ranking.filter(row))
+    .sort((a, b) => toNumber(b[ranking.scoreKey]) - toNumber(a[ranking.scoreKey]))[0];
+}
+
+function renderDailyFocus() {
+  if (!els.dailyFocus) return;
+  const scope = state.team !== "all" ? state.team : state.league !== "all" ? `${state.league}・リーグ` : "全体";
+  const cards = [
+    ["注目打者", "batter", "batter-overall", "打者総合スコア"],
+    ["注目投手", "pitcher", "pitcher-overall", "投手総合スコア"],
+    ["規定打席", "batter", "batter-qualified", "打者総合スコア"],
+    ["若手注目", "batter", "batter-young", "若手スコア"],
+  ].map(([label, type, rankingId, scoreKey]) => {
+    const row = topFocusRow(type, rankingId);
+    if (!row) {
+      return `<article class="focus-card"><span>${escapeHtml(label)}</span><strong>該当なし</strong><small>${escapeHtml(scope)}</small></article>`;
+    }
+    return `
+      <article class="focus-card">
+        <span>${escapeHtml(label)}</span>
+        <strong><a href="${playerDetailUrl(row, type)}">${escapeHtml(row["選手名"])}</a></strong>
+        <small><a href="${teamDetailUrl(row["チーム"])}">${escapeHtml(row["チーム"])}</a> / ${formatValue(row[scoreKey], "スコア")}</small>
+      </article>
+    `;
+  });
+  els.dailyFocus.innerHTML = `
+    <div class="focus-heading">
+      <div><p class="eyebrow">Today's Focus</p><h2>今日の注目</h2></div>
+      <span>${escapeHtml(scope)}</span>
+    </div>
+    <div class="focus-grid">${cards.join("")}</div>
+  `;
+}
+
 function renderTable(rows, ranking) {
   const columns = ["順位", "選手名", "チーム", "年齢", "ポジション", "スコア", ...ranking.columns.filter((column) => !["年齢"].includes(column))];
   els.rankingHead.innerHTML = `<tr>${columns.map((column) => `<th>${escapeHtml(column)}</th>`).join("")}</tr>`;
@@ -703,6 +760,7 @@ function render() {
 
   renderRankingButtons();
   renderSummary();
+  renderDailyFocus();
   els.rankingGroup.textContent = ranking.group;
   els.rankingTitle.textContent = ranking.label;
   els.resultCount.textContent = `${rows.length.toLocaleString("ja-JP")}件`;

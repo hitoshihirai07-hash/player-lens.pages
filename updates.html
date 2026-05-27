@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Player Lensのデータ更新履歴です。プロ野球2026ランキングの更新状況を確認できます。">
+  <title>更新履歴 | Player Lens</title>
+  <link rel="icon" href="./assets/player-lens-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/styles.css">
+</head>
+<body>
+  <header class="page-header">
+    <a class="brand-mini" href="./index.html"><img src="./assets/player-lens-icon.svg" alt="">Player Lens</a>
+    <h1>更新履歴</h1>
+    <p>Player Lensで使っているデータの更新状況を確認できます。成績は更新タイミングにより、実際の最新情報と差が出る場合があります。</p>
+  </header>
+  <nav class="site-nav" aria-label="サイト内メニュー">
+    <a href="./index.html">ランキング</a>
+    <a href="./teams.html">チーム別</a>
+    <a href="./guide.html">見方</a>
+    <a href="./updates.html" aria-current="page">更新履歴</a>
+    <a href="./resources.html">楽しみ方</a>
+    <a href="./about.html">このサイトについて</a>
+  </nav>
+  <main class="content-shell">
+    <section class="summary-grid" id="updateSummary"></section>
+    <section class="content-card">
+      <h2>データ更新状況</h2>
+      <div class="compact-table-wrap">
+        <table class="compact-table">
+          <thead><tr><th>項目</th><th>件数</th><th>データ内更新日</th><th>配信日時</th></tr></thead>
+          <tbody id="updateRows"><tr><td colspan="4">データ読込中</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    <section class="content-card soft-callout">
+      <h2>次に見るなら</h2>
+      <p>更新後は、規定打席・規定投球回、若手ランキング、左右別成績を見ると変化を見つけやすくなります。</p>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <a href="./index.html">ランキングへ戻る</a>
+    <a href="./privacy.html">プライバシーポリシー</a>
+    <a href="./disclaimer.html">免責事項</a>
+    <a href="./contact.html">お問い合わせ</a>
+  </footer>
+  <script src="./assets/updates.js"></script>
+</body>
+</html>

@@ -1,7 +1,8 @@
 (async function () {
   const D = window.PlayerLensData;
   const params = new URLSearchParams(location.search);
-  const team = params.get("team") || "阪神";
+  const root = location.pathname.includes("/teams/") ? "../" : "./";
+  const team = document.body.dataset.team || params.get("team") || "阪神";
   const teamTitle = document.getElementById("teamTitle");
   const teamLead = document.getElementById("teamLead");
   const summary = document.getElementById("teamSummary");
@@ -33,7 +34,7 @@
       <article class="content-card">
         <div class="section-heading">
           <h2>${D.escapeHtml(title)}</h2>
-          <a href="./guide.html">見方</a>
+          <a href="${root}guide.html">見方</a>
         </div>
         ${table(rows, type, scoreKey, columns)}
       </article>
