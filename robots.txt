@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://player-lens-pages.pages.dev/sitemap.xml

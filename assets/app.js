@@ -221,6 +221,16 @@ function playerKey(row) {
   return `${normalizeName(row["選手名"])}|${row["チーム"]}`;
 }
 
+function playerDetailUrl(row, type) {
+  const params = new URLSearchParams({ type, team: row["チーム"], name: row["選手名"] });
+  return `./player.html?${params.toString()}`;
+}
+
+function teamDetailUrl(team) {
+  const params = new URLSearchParams({ team });
+  return `./team.html?${params.toString()}`;
+}
+
 function parseCsv(text) {
   const rows = [];
   let row = [];
@@ -515,6 +525,8 @@ function renderTable(rows, ranking) {
       const cells = columns.map((column) => {
         if (column === "順位") return `<td class="rank">${index + 1}</td>`;
         if (column === "スコア") return `<td class="bar-cell">${scoreBar(row[ranking.scoreKey], maxScore)}</td>`;
+        if (column === "選手名") return `<td><a href="${playerDetailUrl(row, ranking.type)}">${escapeHtml(row[column])}</a></td>`;
+        if (column === "チーム") return `<td><a href="${teamDetailUrl(row[column])}">${escapeHtml(row[column])}</a></td>`;
         return `<td>${escapeHtml(formatValue(row[column], column))}</td>`;
       });
       return `<tr data-key="${escapeHtml(key)}" class="${key === state.selectedKey ? "is-selected" : ""}">${cells.join("")}</tr>`;
@@ -522,7 +534,8 @@ function renderTable(rows, ranking) {
     .join("");
 
   els.rankingBody.querySelectorAll("tr[data-key]").forEach((rowEl) => {
-    rowEl.addEventListener("click", () => {
+    rowEl.addEventListener("click", (event) => {
+      if (event.target.closest("a")) return;
       state.selectedKey = rowEl.dataset.key;
       render();
     });
@@ -576,9 +589,10 @@ function renderDetail(rows, ranking) {
 
   els.detailPanel.innerHTML = `
     <div class="detail-head">
-      <p class="eyebrow">${escapeHtml(selected["チーム"])}</p>
+      <p class="eyebrow"><a href="${teamDetailUrl(selected["チーム"])}">${escapeHtml(selected["チーム"])}</a></p>
       <h3>${escapeHtml(selected["選手名"])}</h3>
       <div class="detail-meta">${escapeHtml([selected["年齢"] ? `${selected["年齢"]}歳` : "", selected["ポジション"], selected["投"] && selected["打"] ? `${selected["投"]}投${selected["打"]}打` : ""].filter(Boolean).join(" / "))}</div>
+      <a class="detail-link" href="${playerDetailUrl(selected, ranking.type)}">選手詳細を見る</a>
     </div>
     <div class="metric-grid">
       ${metrics.map(([label, value]) => `<div class="metric"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value ?? "")}</strong></div>`).join("")}
