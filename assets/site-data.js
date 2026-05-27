@@ -23,6 +23,8 @@
   };
 
   const FULL_TO_TEAM = Object.fromEntries(Object.entries(TEAM_TO_FULL).map(([short, full]) => [full, short]));
+  const CENTRAL_TEAMS = ["巨人", "阪神", "DeNA", "広島", "ヤクルト", "中日"];
+  const PACIFIC_TEAMS = ["オリックス", "ソフトバンク", "ロッテ", "楽天", "西武", "日本ハム"];
 
   const RANKINGS = [
     { id: "batter-overall", label: "打者総合", type: "batter", scoreKey: "打者総合スコア", minKey: "打席", minValue: 20 },
@@ -82,6 +84,12 @@
 
   function shortTeam(team) {
     return FULL_TO_TEAM[team] || team;
+  }
+
+  function leagueOfTeam(team) {
+    if (CENTRAL_TEAMS.includes(team)) return "セ";
+    if (PACIFIC_TEAMS.includes(team)) return "パ";
+    return "";
   }
 
   function playerKey(row) {
@@ -161,6 +169,7 @@
         ...row,
         選手名: name,
         チーム: team,
+        リーグ: leagueOfTeam(team),
         年齢: master?.["年齢"] ?? "",
         投: master?.["投"] ?? "",
         打: master?.["打"] ?? "",
@@ -385,6 +394,7 @@
     playerKey,
     playerUrl,
     rankRows,
+    leagueOfTeam,
     shortTeam,
     teamUrl,
     toNumber,

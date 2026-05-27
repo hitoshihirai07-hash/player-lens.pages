@@ -19,6 +19,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -393,6 +397,16 @@ input {
   gap: 14px;
 }
 
+.league-team-list {
+  display: grid;
+  gap: 20px;
+}
+
+.league-section {
+  display: grid;
+  gap: 12px;
+}
+
 .team-card {
   display: grid;
   gap: 14px;
@@ -565,6 +579,79 @@ input {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.58);
   font-weight: 700;
+}
+
+.admin-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-login-row,
+.admin-controls,
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+  margin-top: 12px;
+}
+
+.admin-controls label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+textarea {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  color: var(--ink);
+  font: inherit;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.check-list,
+.post-candidates {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.check-item,
+.candidate-card {
+  display: grid;
+  gap: 3px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.check-item strong,
+.candidate-card strong {
+  color: var(--ink);
+}
+
+.check-item span,
+.candidate-card span,
+.candidate-card small {
+  color: var(--muted);
+}
+
+.check-item.is-ok {
+  border-color: #acd7d0;
+  background: var(--accent-soft);
+}
+
+.check-item.is-warn {
+  border-color: #ecd28f;
+  background: var(--gold-soft);
 }
 
 .workspace {

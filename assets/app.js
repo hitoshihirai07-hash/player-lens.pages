@@ -22,6 +22,8 @@ const TEAM_TO_FULL = {
 };
 
 const FULL_TO_TEAM = Object.fromEntries(Object.entries(TEAM_TO_FULL).map(([short, full]) => [full, short]));
+const CENTRAL_TEAMS = ["巨人", "阪神", "DeNA", "広島", "ヤクルト", "中日"];
+const PACIFIC_TEAMS = ["オリックス", "ソフトバンク", "ロッテ", "楽天", "西武", "日本ハム"];
 
 const RANKINGS = [
   {
@@ -173,6 +175,7 @@ const RANKINGS = [
 
 const state = {
   rankingId: "batter-overall",
+  league: "all",
   team: "all",
   query: "",
   selectedKey: "",
@@ -183,6 +186,7 @@ const state = {
 const els = {
   status: document.getElementById("status"),
   rankingButtons: document.getElementById("rankingButtons"),
+  leagueFilter: document.getElementById("leagueFilter"),
   teamFilter: document.getElementById("teamFilter"),
   searchInput: document.getElementById("searchInput"),
   summaryCards: document.getElementById("summaryCards"),
@@ -237,6 +241,12 @@ function ageFromBirthdate(value) {
 
 function shortTeam(team) {
   return FULL_TO_TEAM[team] || team;
+}
+
+function leagueOfTeam(team) {
+  if (CENTRAL_TEAMS.includes(team)) return "セ";
+  if (PACIFIC_TEAMS.includes(team)) return "パ";
+  return "";
 }
 
 function playerKey(row) {
@@ -331,8 +341,9 @@ function enrichRows(rows, indexes) {
     return {
       ...row,
       選手名: name,
-      チーム: team,
-      年齢: master?.["年齢"] ?? "",
+        チーム: team,
+        リーグ: leagueOfTeam(team),
+        年齢: master?.["年齢"] ?? "",
       投: master?.["投"] ?? "",
       打: master?.["打"] ?? "",
       ポジション: master?.["ポジション"] ?? "",
@@ -506,6 +517,7 @@ function rowsForRanking(ranking) {
   const rows = ranking.type === "batter" ? state.batters : state.pitchers;
   const query = normalizeName(state.query).toLowerCase();
   return rows
+    .filter((row) => state.league === "all" || row["リーグ"] === state.league)
     .filter((row) => state.team === "all" || row["チーム"] === state.team)
     .filter((row) => !query || normalizeName(row["選手名"]).toLowerCase().includes(query))
     .filter((row) => toNumber(row[ranking.minKey]) >= ranking.minValue)
@@ -530,23 +542,29 @@ function renderRankingButtons() {
 }
 
 function renderTeamFilter() {
-  const teams = Object.keys(TEAM_TO_FULL);
+  const teams = Object.keys(TEAM_TO_FULL).filter((team) => state.league === "all" || leagueOfTeam(team) === state.league);
+  if (state.team !== "all" && !teams.includes(state.team)) {
+    state.team = "all";
+  }
+  const allLabel = state.league === "all" ? "全12球団" : `${state.league}・リーグ全体`;
   els.teamFilter.innerHTML = [
-    `<option value="all">全12球団</option>`,
+    `<option value="all">${escapeHtml(allLabel)}</option>`,
     ...teams.map((team) => `<option value="${escapeHtml(team)}">${escapeHtml(team)}</option>`),
   ].join("");
   els.teamFilter.value = state.team;
 }
 
 function renderSummary() {
-  const batterTeams = new Set(state.batters.map((row) => row["チーム"]));
-  const pitcherTeams = new Set(state.pitchers.map((row) => row["チーム"]));
-  const oneGun = [...state.batters, ...state.pitchers].filter((row) => row["一軍"] === "TRUE").length;
-  const splitRows = state.batters.filter((row) => row["対右打率"] || row["対左打率"]).length + state.pitchers.filter((row) => row["対右被打率"] || row["対左被打率"]).length;
-  const qualifiedRows = state.batters.filter((row) => row["規定打席到達"] === "到達").length + state.pitchers.filter((row) => row["規定投球回到達"] === "到達").length;
+  const batters = state.batters.filter((row) => (state.league === "all" || row["リーグ"] === state.league) && (state.team === "all" || row["チーム"] === state.team));
+  const pitchers = state.pitchers.filter((row) => (state.league === "all" || row["リーグ"] === state.league) && (state.team === "all" || row["チーム"] === state.team));
+  const batterTeams = new Set(batters.map((row) => row["チーム"]));
+  const pitcherTeams = new Set(pitchers.map((row) => row["チーム"]));
+  const oneGun = [...batters, ...pitchers].filter((row) => row["一軍"] === "TRUE").length;
+  const splitRows = batters.filter((row) => row["対右打率"] || row["対左打率"]).length + pitchers.filter((row) => row["対右被打率"] || row["対左被打率"]).length;
+  const qualifiedRows = batters.filter((row) => row["規定打席到達"] === "到達").length + pitchers.filter((row) => row["規定投球回到達"] === "到達").length;
   const items = [
-    ["打者", state.batters.length],
-    ["投手", state.pitchers.length],
+    ["打者", batters.length],
+    ["投手", pitchers.length],
     ["球団", new Set([...batterTeams, ...pitcherTeams]).size],
     ["規定到達", qualifiedRows],
     ["左右成績", splitRows],
@@ -684,6 +702,7 @@ function render() {
   const rows = rowsForRanking(ranking);
 
   renderRankingButtons();
+  renderSummary();
   els.rankingGroup.textContent = ranking.group;
   els.rankingTitle.textContent = ranking.label;
   els.resultCount.textContent = `${rows.length.toLocaleString("ja-JP")}件`;
@@ -716,7 +735,6 @@ async function boot() {
     addQualificationFlags(state.batters, state.pitchers);
 
     renderTeamFilter();
-    renderSummary();
     render();
 
     els.status.textContent = "データ読込完了";
@@ -727,6 +745,13 @@ async function boot() {
     els.rankingBody.innerHTML = `<tr><td class="empty-state">${escapeHtml(error.message)}</td></tr>`;
   }
 }
+
+els.leagueFilter.addEventListener("change", (event) => {
+  state.league = event.target.value;
+  state.selectedKey = "";
+  renderTeamFilter();
+  render();
+});
 
 els.teamFilter.addEventListener("change", (event) => {
   state.team = event.target.value;

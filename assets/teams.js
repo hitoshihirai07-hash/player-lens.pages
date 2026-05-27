@@ -14,7 +14,7 @@
     const pitcherRanking = D.RANKINGS.find((ranking) => ranking.id === "pitcher-overall");
     const youngRanking = D.RANKINGS.find((ranking) => ranking.id === "batter-young");
 
-    grid.innerHTML = data.teams.map((team) => {
+    function teamCard(team) {
       const topBatter = D.rankRows(data.batters, batterRanking, team, 1)[0];
       const topPitcher = D.rankRows(data.pitchers, pitcherRanking, team, 1)[0];
       const topYoung = D.rankRows(data.batters, youngRanking, team, 1)[0];
@@ -39,7 +39,21 @@
           <a class="text-link" href="${D.teamUrl(team)}">詳しく見る</a>
         </article>
       `;
-    }).join("");
+    }
+
+    const centralTeams = data.teams.filter((team) => D.leagueOfTeam(team) === "セ");
+    const pacificTeams = data.teams.filter((team) => D.leagueOfTeam(team) === "パ");
+
+    grid.innerHTML = `
+      <section class="league-section">
+        <div class="section-heading"><h2>セ・リーグ</h2><span>${centralTeams.length}球団</span></div>
+        <div class="team-grid">${centralTeams.map(teamCard).join("")}</div>
+      </section>
+      <section class="league-section">
+        <div class="section-heading"><h2>パ・リーグ</h2><span>${pacificTeams.length}球団</span></div>
+        <div class="team-grid">${pacificTeams.map(teamCard).join("")}</div>
+      </section>
+    `;
   } catch (error) {
     grid.innerHTML = `<article class="content-card">${D.escapeHtml(error.message)}</article>`;
   }
