@@ -45,6 +45,17 @@ const RANKINGS = [
     columns: ["打席", "長打率", "OPS", "本塁打", "打点"],
   },
   {
+    id: "batter-qualified",
+    label: "規定打席",
+    group: "打者",
+    type: "batter",
+    scoreKey: "打者総合スコア",
+    minKey: "打席",
+    minValue: 0,
+    columns: ["打席", "規定打席目安", "打率", "OPS", "本塁打", "打点", "安打"],
+    filter: (row) => row["規定打席到達"] === "到達",
+  },
+  {
     id: "batter-young",
     label: "25歳以下",
     group: "打者",
@@ -105,6 +116,17 @@ const RANKINGS = [
     minKey: "投球回_計算用",
     minValue: 20,
     columns: ["投球回", "防御率", "奪三振", "勝利", "敗戦"],
+  },
+  {
+    id: "pitcher-qualified",
+    label: "規定投球回",
+    group: "投手",
+    type: "pitcher",
+    scoreKey: "投手総合スコア",
+    minKey: "投球回_計算用",
+    minValue: 0,
+    columns: ["投球回", "規定投球回目安", "防御率", "奪三振", "勝利", "敗戦"],
+    filter: (row) => row["規定投球回到達"] === "到達",
   },
   {
     id: "reliever",
@@ -443,6 +465,31 @@ function splitPitcherScore(row, side) {
   return Math.max(0, 0.38 - avg) * 900 * reliability + strikeouts * 2.2 + Math.min(ab, 110) * 0.6 - hits * 0.8 - hr * 7 - walks * 1.2;
 }
 
+function addQualificationFlags(batters, pitchers) {
+  const teamGames = new Map();
+
+  for (const row of batters) {
+    const team = row["チーム"];
+    const games = toInt(row["試合"]);
+    teamGames.set(team, Math.max(teamGames.get(team) || 0, games));
+  }
+
+  for (const row of batters) {
+    const games = teamGames.get(row["チーム"]) || 0;
+    const threshold = Math.floor(games * 3.1);
+    row["チーム試合数目安"] = games;
+    row["規定打席目安"] = threshold;
+    row["規定打席到達"] = toInt(row["打席"]) >= threshold && threshold > 0 ? "到達" : "未到達";
+  }
+
+  for (const row of pitchers) {
+    const games = teamGames.get(row["チーム"]) || 0;
+    row["チーム試合数目安"] = games;
+    row["規定投球回目安"] = games;
+    row["規定投球回到達"] = toNumber(row["投球回_計算用"]) >= games && games > 0 ? "到達" : "未到達";
+  }
+}
+
 function round1(value) {
   return Math.round(value * 10) / 10;
 }
@@ -496,10 +543,12 @@ function renderSummary() {
   const pitcherTeams = new Set(state.pitchers.map((row) => row["チーム"]));
   const oneGun = [...state.batters, ...state.pitchers].filter((row) => row["一軍"] === "TRUE").length;
   const splitRows = state.batters.filter((row) => row["対右打率"] || row["対左打率"]).length + state.pitchers.filter((row) => row["対右被打率"] || row["対左被打率"]).length;
+  const qualifiedRows = state.batters.filter((row) => row["規定打席到達"] === "到達").length + state.pitchers.filter((row) => row["規定投球回到達"] === "到達").length;
   const items = [
     ["打者", state.batters.length],
     ["投手", state.pitchers.length],
     ["球団", new Set([...batterTeams, ...pitcherTeams]).size],
+    ["規定到達", qualifiedRows],
     ["左右成績", splitRows],
   ];
   els.summaryCards.innerHTML = items
@@ -664,6 +713,7 @@ async function boot() {
     const indexes = buildMasterIndexes(masterRaw);
     state.batters = mergeBatterSplits(enrichRows(battersRaw, indexes), batterSplitsRaw).map(addBatterScores);
     state.pitchers = mergePitcherSplits(enrichRows(pitchersRaw, indexes), pitcherSplitsRaw).map(addPitcherScores);
+    addQualificationFlags(state.batters, state.pitchers);
 
     renderTeamFilter();
     renderSummary();

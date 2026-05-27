@@ -27,12 +27,14 @@
   const RANKINGS = [
     { id: "batter-overall", label: "打者総合", type: "batter", scoreKey: "打者総合スコア", minKey: "打席", minValue: 20 },
     { id: "batter-power", label: "長打", type: "batter", scoreKey: "長打スコア", minKey: "打席", minValue: 20 },
+    { id: "batter-qualified", label: "規定打席", type: "batter", scoreKey: "打者総合スコア", minKey: "打席", minValue: 0, filter: (row) => row["規定打席到達"] === "到達" },
     { id: "batter-young", label: "25歳以下打者", type: "batter", scoreKey: "若手スコア", minKey: "打席", minValue: 10, filter: (row) => toNumber(row["年齢"]) <= 25 },
     { id: "batter-hidden", label: "穴場打者", type: "batter", scoreKey: "穴場スコア", minKey: "打席", minValue: 10, filter: (row) => toNumber(row["打席"]) <= 90 },
     { id: "batter-vs-right", label: "対右打者", type: "batter", scoreKey: "対右スコア", minKey: "対右打数", minValue: 10 },
     { id: "batter-vs-left", label: "対左打者", type: "batter", scoreKey: "対左スコア", minKey: "対左打数", minValue: 8 },
     { id: "pitcher-overall", label: "投手総合", type: "pitcher", scoreKey: "投手総合スコア", minKey: "投球回_計算用", minValue: 5 },
     { id: "starter", label: "先発", type: "pitcher", scoreKey: "先発スコア", minKey: "投球回_計算用", minValue: 20 },
+    { id: "pitcher-qualified", label: "規定投球回", type: "pitcher", scoreKey: "投手総合スコア", minKey: "投球回_計算用", minValue: 0, filter: (row) => row["規定投球回到達"] === "到達" },
     { id: "reliever", label: "救援", type: "pitcher", scoreKey: "救援スコア", minKey: "登板", minValue: 5 },
     { id: "pitcher-young", label: "若手投手", type: "pitcher", scoreKey: "若手投手スコア", minKey: "投球回_計算用", minValue: 3, filter: (row) => toNumber(row["年齢"]) <= 25 },
     { id: "pitcher-vs-right", label: "対右投手", type: "pitcher", scoreKey: "対右投球スコア", minKey: "対右被打数", minValue: 10 },
@@ -295,6 +297,31 @@
     };
   }
 
+  function addQualificationFlags(batters, pitchers) {
+    const teamGames = new Map();
+
+    for (const row of batters) {
+      const team = row["チーム"];
+      const games = toInt(row["試合"]);
+      teamGames.set(team, Math.max(teamGames.get(team) || 0, games));
+    }
+
+    for (const row of batters) {
+      const games = teamGames.get(row["チーム"]) || 0;
+      const threshold = Math.floor(games * 3.1);
+      row["チーム試合数目安"] = games;
+      row["規定打席目安"] = threshold;
+      row["規定打席到達"] = toInt(row["打席"]) >= threshold && threshold > 0 ? "到達" : "未到達";
+    }
+
+    for (const row of pitchers) {
+      const games = teamGames.get(row["チーム"]) || 0;
+      row["チーム試合数目安"] = games;
+      row["規定投球回目安"] = games;
+      row["規定投球回到達"] = toNumber(row["投球回_計算用"]) >= games && games > 0 ? "到達" : "未到達";
+    }
+  }
+
   function rankRows(rows, ranking, team = "all", limit = 10) {
     return rows
       .filter((row) => team === "all" || row["チーム"] === team)
@@ -345,6 +372,7 @@
     const indexes = buildMasterIndexes(masterRaw);
     const batters = mergeBatterSplits(enrichRows(battersRaw, indexes), batterSplitsRaw).map(addBatterScores);
     const pitchers = mergePitcherSplits(enrichRows(pitchersRaw, indexes), pitcherSplitsRaw).map(addPitcherScores);
+    addQualificationFlags(batters, pitchers);
     return { batters, pitchers, teams: Object.keys(TEAM_TO_FULL) };
   }
 
