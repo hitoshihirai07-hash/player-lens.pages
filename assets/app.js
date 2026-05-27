@@ -263,7 +263,7 @@ async function loadCsv(path, optional = false) {
   const response = await fetch(path, { cache: "no-store" });
   if (!response.ok) {
     if (optional) return [];
-    throw new Error(`${path} を読み込めません`);
+    throw new Error("データを読み込めませんでした");
   }
   return parseCsv(await response.text());
 }
@@ -655,10 +655,10 @@ async function boot() {
     renderSummary();
     render();
 
-    els.status.textContent = "CSV読込完了";
+    els.status.textContent = "データ読込完了";
     els.status.classList.add("is-ready");
   } catch (error) {
-    els.status.textContent = "CSV読込エラー";
+    els.status.textContent = "データ読込エラー";
     els.status.classList.add("is-error");
     els.rankingBody.innerHTML = `<tr><td class="empty-state">${escapeHtml(error.message)}</td></tr>`;
   }

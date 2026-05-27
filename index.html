@@ -3,16 +3,31 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>NPB 2026 Player Lens</title>
+  <meta name="description" content="2026年のプロ野球選手成績を、打者・投手・若手・左右別などの切り口で見やすくまとめたデータランキングサイトです。">
+  <title>Player Lens | プロ野球データランキング</title>
+  <link rel="icon" href="./assets/player-lens-icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./assets/styles.css">
 </head>
 <body>
   <header class="topbar">
-    <div>
-      <p class="eyebrow">NPB 2026</p>
-      <h1>Player Lens</h1>
+    <div class="brand-block">
+      <img class="site-icon" src="./assets/player-lens-icon.svg" alt="" aria-hidden="true">
+      <div>
+        <p class="eyebrow">NPB 2026</p>
+        <h1>Player Lens</h1>
+        <p class="lead">
+          2026年のプロ野球選手成績をもとに、打者・投手・若手・左右別の強さをランキングで見られるサイトです。
+          気になる選手を探したり、球団ごとの注目選手を比べたりできます。
+        </p>
+        <div class="topic-list" aria-label="掲載している内容">
+          <span>打者ランキング</span>
+          <span>投手ランキング</span>
+          <span>若手選手</span>
+          <span>左右別成績</span>
+        </div>
+      </div>
     </div>
-    <div class="status" id="status">CSV読込中</div>
+    <div class="status" id="status">データ読込中</div>
   </header>
 
   <main class="shell">

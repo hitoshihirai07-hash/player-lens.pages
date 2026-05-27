@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Player Lens icon">
+  <rect width="128" height="128" rx="28" fill="#f8fafc"/>
+  <path d="M64 14 114 64 64 114 14 64 64 14Z" fill="#e4f4f1" stroke="#0f766e" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M64 34 94 64 64 94 34 64 64 34Z" fill="#ffffff" stroke="#9fb4c7" stroke-width="4" stroke-linejoin="round"/>
+  <circle cx="59" cy="58" r="23" fill="#ffffff" stroke="#0f766e" stroke-width="8"/>
+  <path d="M78 77 100 99" stroke="#0b5f59" stroke-width="12" stroke-linecap="round"/>
+  <path d="M47 48c7 4 16 4 23 0M47 68c7-4 16-4 23 0" fill="none" stroke="#b42318" stroke-width="4" stroke-linecap="round"/>
+</svg>
