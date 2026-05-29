@@ -293,6 +293,7 @@
     renderPositionRanking();
     renderRookieList();
     renderMultiPositionList();
+    D.enhanceCompactTables(document.querySelector("main"));
   }
 
   try {

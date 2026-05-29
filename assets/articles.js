@@ -303,6 +303,7 @@
     if (article === "recent") renderRecent();
     if (article === "outfield") renderOutfield();
     if (article === "position") renderPosition();
+    D.enhanceCompactTables(mainEl);
   } catch (error) {
     mainEl.innerHTML = `<article class="content-card">${D.escapeHtml(error.message)}</article>`;
   }

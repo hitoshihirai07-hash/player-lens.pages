@@ -1245,6 +1245,77 @@ tbody tr.is-selected {
     display: none;
   }
 
+  .compact-table-wrap.has-card-table {
+    overflow: visible;
+    border: 0;
+  }
+
+  .compact-table.is-card-table {
+    display: block;
+    min-width: 0;
+    background: transparent;
+  }
+
+  .compact-table.is-card-table thead {
+    display: none;
+  }
+
+  .compact-table.is-card-table tbody {
+    display: grid;
+    gap: 10px;
+  }
+
+  .compact-table.is-card-table tr {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+  }
+
+  .compact-table.is-card-table tr:hover {
+    background: #fff;
+  }
+
+  .compact-table.is-card-table td {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    text-align: right;
+    white-space: normal;
+    font-size: 13px;
+  }
+
+  .compact-table.is-card-table td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    color: var(--muted);
+    font-weight: 800;
+    text-align: left;
+  }
+
+  .compact-table.is-card-table td:nth-child(2) {
+    display: block;
+    padding-bottom: 7px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+  }
+
+  .compact-table.is-card-table td:nth-child(2)::before {
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .compact-table.is-card-table td:nth-child(2) a {
+    color: var(--ink);
+    font-size: 18px;
+    font-weight: 800;
+  }
+
   .ranking-cards {
     display: grid;
     gap: 10px;

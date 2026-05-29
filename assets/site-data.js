@@ -474,6 +474,20 @@
     return `${rootPath()}team.html?${params.toString()}`;
   }
 
+  function enhanceCompactTables(root = document) {
+    root.querySelectorAll(".compact-table").forEach((table) => {
+      const headers = Array.from(table.querySelectorAll("thead th")).map((cell) => cell.textContent.trim());
+      if (!headers.length) return;
+      table.classList.add("is-card-table");
+      table.closest(".compact-table-wrap")?.classList.add("has-card-table");
+      table.querySelectorAll("tbody tr").forEach((row) => {
+        Array.from(row.children).forEach((cell, index) => {
+          cell.dataset.label = headers[index] || "";
+        });
+      });
+    });
+  }
+
   function rootPath() {
     return location.pathname.includes("/teams/") ? "../" : "./";
   }
@@ -515,6 +529,7 @@
     TEAM_SLUGS,
     escapeHtml,
     formatValue,
+    enhanceCompactTables,
     loadData,
     loadInsightData,
     playerKey,

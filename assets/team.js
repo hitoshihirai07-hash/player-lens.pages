@@ -68,6 +68,7 @@
       rankingSection("対右に強い打者", D.rankRows(data.batters, byId["batter-vs-right"], team, 8), "batter", "対右スコア", ["対右打数", "対右打率", "対右本塁打"]),
       rankingSection("対左に強い打者", D.rankRows(data.batters, byId["batter-vs-left"], team, 8), "batter", "対左スコア", ["対左打数", "対左打率", "対左本塁打"]),
     ].join("");
+    D.enhanceCompactTables(sections);
   } catch (error) {
     sections.innerHTML = `<article class="content-card">${D.escapeHtml(error.message)}</article>`;
   }
