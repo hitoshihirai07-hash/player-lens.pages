@@ -913,6 +913,128 @@ tbody tr.is-selected {
   background: var(--accent);
 }
 
+.ranking-cards {
+  display: none;
+}
+
+.ranking-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.ranking-card.is-selected {
+  border-color: #acd7d0;
+  background: var(--accent-soft);
+}
+
+.ranking-card-head {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.mobile-rank {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800;
+}
+
+.ranking-player {
+  display: inline-block;
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.ranking-meta {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mobile-score {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.mobile-score > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.ranking-card-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.ranking-card-stats div,
+.split-mobile-card dl div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.ranking-card-stats dt,
+.split-mobile-card dt {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ranking-card-stats dd,
+.split-mobile-card dd {
+  margin: 0;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.split-mobile-cards {
+  display: none;
+}
+
+.split-mobile-card {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.split-mobile-card > strong {
+  color: var(--accent-dark);
+  font-size: 16px;
+}
+
+.split-mobile-card dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
 .detail-panel {
   position: sticky;
   top: 16px;
@@ -1116,10 +1238,75 @@ tbody tr.is-selected {
   .panel-heading {
     align-items: start;
     flex-direction: column;
+    padding: 14px;
+  }
+
+  .ranking-panel .table-wrap {
+    display: none;
+  }
+
+  .ranking-cards {
+    display: grid;
+    gap: 10px;
+    padding: 0 10px 12px;
+  }
+
+  .ranking-card {
+    padding: 12px;
+  }
+
+  .ranking-card-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mobile-score .bar {
+    grid-template-columns: minmax(0, 1fr) 54px;
   }
 
   .metric-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .metric {
+    padding: 10px;
+  }
+
+  .metric strong {
+    font-size: 18px;
+  }
+
+  .player-score {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    min-width: 0;
+    text-align: left;
+  }
+
+  .player-score strong {
+    font-size: 30px;
+  }
+
+  .player-split-wrap {
+    overflow: visible;
+    border: 0;
+  }
+
+  .player-split-wrap .compact-table,
+  .split-block .split-table {
+    display: none;
+  }
+
+  .split-mobile-cards {
+    display: grid;
+    gap: 10px;
+  }
+
+  .split-mobile-card dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .term-list div {

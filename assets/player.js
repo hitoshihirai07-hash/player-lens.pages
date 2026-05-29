@@ -14,8 +14,33 @@
     `).join("")}</div>`;
   }
 
+  function splitCards(columns, rows) {
+    return `
+      <div class="split-mobile-cards">
+        ${rows.map((values) => `
+          <article class="split-mobile-card">
+            <strong>${D.escapeHtml(values[0])}</strong>
+            <dl>
+              ${columns.slice(1).map((column, index) => `
+                <div>
+                  <dt>${D.escapeHtml(column)}</dt>
+                  <dd>${D.escapeHtml(values[index + 1] ?? "")}</dd>
+                </div>
+              `).join("")}
+            </dl>
+          </article>
+        `).join("")}
+      </div>
+    `;
+  }
+
   function splitTable(row, isBatter) {
     if (isBatter) {
+      const columns = ["区分", "打数", "打率", "安打", "本塁打", "打点"];
+      const rows = [
+        ["対右", row["対右打数"] || "", D.formatValue(row["対右打率"], "対右打率"), row["対右安打"] || "", row["対右本塁打"] || "", row["対右打点"] || ""],
+        ["対左", row["対左打数"] || "", D.formatValue(row["対左打率"], "対左打率"), row["対左安打"] || "", row["対左本塁打"] || "", row["対左打点"] || ""],
+      ];
       return `
         <table class="compact-table">
           <thead><tr><th>区分</th><th>打数</th><th>打率</th><th>安打</th><th>本塁打</th><th>打点</th></tr></thead>
@@ -24,8 +49,14 @@
             <tr><td>対左</td><td>${D.escapeHtml(row["対左打数"] || "")}</td><td>${D.formatValue(row["対左打率"], "対左打率")}</td><td>${D.escapeHtml(row["対左安打"] || "")}</td><td>${D.escapeHtml(row["対左本塁打"] || "")}</td><td>${D.escapeHtml(row["対左打点"] || "")}</td></tr>
           </tbody>
         </table>
+        ${splitCards(columns, rows)}
       `;
     }
+    const columns = ["区分", "被打数", "被打率", "被安打", "被本塁打", "奪三振", "与四球"];
+    const rows = [
+      ["対右", row["対右被打数"] || "", D.formatValue(row["対右被打率"], "対右被打率"), row["対右被安打"] || "", row["対右被本塁打"] || "", row["対右奪三振"] || "", row["対右与四球"] || ""],
+      ["対左", row["対左被打数"] || "", D.formatValue(row["対左被打率"], "対左被打率"), row["対左被安打"] || "", row["対左被本塁打"] || "", row["対左奪三振"] || "", row["対左与四球"] || ""],
+    ];
     return `
       <table class="compact-table">
         <thead><tr><th>区分</th><th>被打数</th><th>被打率</th><th>被安打</th><th>被本塁打</th><th>奪三振</th><th>与四球</th></tr></thead>
@@ -34,6 +65,7 @@
           <tr><td>対左</td><td>${D.escapeHtml(row["対左被打数"] || "")}</td><td>${D.formatValue(row["対左被打率"], "対左被打率")}</td><td>${D.escapeHtml(row["対左被安打"] || "")}</td><td>${D.escapeHtml(row["対左被本塁打"] || "")}</td><td>${D.escapeHtml(row["対左奪三振"] || "")}</td><td>${D.escapeHtml(row["対左与四球"] || "")}</td></tr>
         </tbody>
       </table>
+      ${splitCards(columns, rows)}
     `;
   }
 
@@ -101,7 +133,7 @@
 
       <section class="content-card">
         <h2>左右別成績</h2>
-        <div class="compact-table-wrap">${splitTable(row, isBatter)}</div>
+        <div class="compact-table-wrap player-split-wrap">${splitTable(row, isBatter)}</div>
       </section>
 
       <section class="content-card soft-callout">

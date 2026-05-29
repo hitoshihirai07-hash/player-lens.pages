@@ -652,6 +652,69 @@ function renderDailyFocus() {
   `;
 }
 
+function ensureRankingCards() {
+  let cards = document.getElementById("rankingCards");
+  if (cards) return cards;
+  cards = document.createElement("div");
+  cards.id = "rankingCards";
+  cards.className = "ranking-cards";
+  const tableWrap = els.rankingBody.closest(".table-wrap");
+  tableWrap.insertAdjacentElement("afterend", cards);
+  return cards;
+}
+
+function renderRankingCards(rows, ranking, maxScore) {
+  const cards = ensureRankingCards();
+  const visibleRows = rows.slice(0, 60);
+  const statColumns = ranking.columns.filter((column) => !["年齢"].includes(column)).slice(0, 6);
+
+  if (!visibleRows.length) {
+    cards.innerHTML = `<div class="empty-state">該当データなし</div>`;
+    return;
+  }
+
+  cards.innerHTML = visibleRows
+    .map((row, index) => {
+      const key = playerKey(row);
+      const meta = [row["チーム"], row["年齢"] ? `${row["年齢"]}歳` : "", row["ポジション"]].filter(Boolean).join(" / ");
+      const stats = statColumns
+        .map((column) => `
+          <div>
+            <dt>${escapeHtml(column)}</dt>
+            <dd>${escapeHtml(formatValue(row[column], column))}</dd>
+          </div>
+        `)
+        .join("");
+      return `
+        <article class="ranking-card ${key === state.selectedKey ? "is-selected" : ""}" data-key="${escapeHtml(key)}">
+          <div class="ranking-card-head">
+            <span class="mobile-rank">${index + 1}</span>
+            <div>
+              <a class="ranking-player" href="${playerDetailUrl(row, ranking.type)}">${escapeHtml(row["選手名"])}</a>
+              <div class="ranking-meta">
+                <a href="${teamDetailUrl(row["チーム"])}">${escapeHtml(row["チーム"])}</a>${escapeHtml(meta.replace(row["チーム"], ""))}
+              </div>
+            </div>
+          </div>
+          <div class="mobile-score">
+            <span>スコア</span>
+            ${scoreBar(row[ranking.scoreKey], maxScore)}
+          </div>
+          <dl class="ranking-card-stats">${stats}</dl>
+        </article>
+      `;
+    })
+    .join("");
+
+  cards.querySelectorAll(".ranking-card[data-key]").forEach((card) => {
+    card.addEventListener("click", (event) => {
+      if (event.target.closest("a")) return;
+      state.selectedKey = card.dataset.key;
+      render();
+    });
+  });
+}
+
 function renderTable(rows, ranking) {
   const columns = ["順位", "選手名", "チーム", "年齢", "ポジション", "スコア", ...ranking.columns.filter((column) => !["年齢"].includes(column))];
   els.rankingHead.innerHTML = `<tr>${columns.map((column) => `<th>${escapeHtml(column)}</th>`).join("")}</tr>`;
@@ -660,6 +723,7 @@ function renderTable(rows, ranking) {
 
   if (!visibleRows.length) {
     els.rankingBody.innerHTML = `<tr><td colspan="${columns.length}" class="empty-state">該当データなし</td></tr>`;
+    renderRankingCards([], ranking, maxScore);
     return;
   }
 
@@ -684,6 +748,7 @@ function renderTable(rows, ranking) {
       render();
     });
   });
+  renderRankingCards(rows, ranking, maxScore);
 }
 
 function scoreBar(score, maxScore) {
@@ -758,6 +823,31 @@ function splitMarkup(row, isBatter) {
   return splitTable(columns, [right, left]);
 }
 
+function splitCardsMarkup(columns, rows) {
+  return `
+    <div class="split-mobile-cards">
+      ${rows
+        .map((row) => `
+          <article class="split-mobile-card">
+            <strong>${escapeHtml(row[0] ?? "")}</strong>
+            <dl>
+              ${columns
+                .slice(1)
+                .map((column, index) => `
+                  <div>
+                    <dt>${escapeHtml(column)}</dt>
+                    <dd>${escapeHtml(row[index + 1] ?? "")}</dd>
+                  </div>
+                `)
+                .join("")}
+            </dl>
+          </article>
+        `)
+        .join("")}
+    </div>
+  `;
+}
+
 function splitTable(columns, rows) {
   const hasAny = rows.some((row) => row.slice(1).some((value) => value !== undefined && value !== ""));
   if (!hasAny) return `<div class="notice">左右成績なし</div>`;
@@ -770,6 +860,7 @@ function splitTable(columns, rows) {
           ${rows.map((row) => `<tr>${row.map((value) => `<td>${escapeHtml(value ?? "")}</td>`).join("")}</tr>`).join("")}
         </tbody>
       </table>
+      ${splitCardsMarkup(columns, rows)}
     </div>
   `;
 }
