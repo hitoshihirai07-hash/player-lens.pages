@@ -34,7 +34,10 @@
   };
 
   let loadedData = null;
+  let loadedInsight = null;
   let fileReports = [];
+  let batterMap = new Map();
+  let pitcherMap = new Map();
 
   async function sha256(text) {
     const buffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
@@ -110,6 +113,37 @@
       .slice(0, limit);
   }
 
+  function rowType(row) {
+    return row["ポジション"] === "投手" ? "pitcher" : "batter";
+  }
+
+  function seasonRow(row, type = rowType(row)) {
+    return type === "pitcher" ? pitcherMap.get(D.playerKey(row)) : batterMap.get(D.playerKey(row));
+  }
+
+  function scoreKey(type) {
+    return type === "pitcher" ? "投手総合スコア" : "打者総合スコア";
+  }
+
+  function rowsForRecent(type, league, limit = 5) {
+    const rows = type === "pitcher" ? loadedInsight.recentPitchers : loadedInsight.recentBatters;
+    return rows
+      .filter((row) => league === "all" || row["リーグ"] === league)
+      .filter((row) => type === "pitcher" ? D.toNumber(row["投球アウト数"]) >= 3 : D.toNumber(row["打数"]) >= 4)
+      .sort((a, b) => D.toNumber(b["直近スコア"]) - D.toNumber(a["直近スコア"]))
+      .slice(0, limit);
+  }
+
+  function rowsForRookies(type, league, limit = 5) {
+    return loadedInsight.rookies
+      .filter((row) => rowType(row) === type)
+      .filter((row) => league === "all" || row["リーグ"] === league)
+      .map((row) => ({ row, season: seasonRow(row, type) }))
+      .filter((item) => item.season)
+      .sort((a, b) => D.toNumber(b.season[scoreKey(type)]) - D.toNumber(a.season[scoreKey(type)]))
+      .slice(0, limit);
+  }
+
   function renderSummary() {
     const qualifiedBatters = loadedData.batters.filter((row) => row["規定打席到達"] === "到達").length;
     const qualifiedPitchers = loadedData.pitchers.filter((row) => row["規定投球回到達"] === "到達").length;
@@ -145,15 +179,34 @@
       "qualified-pitcher": ["pitcher", "pitcher-qualified", "規定投球回到達トップ3", "投手総合スコア"],
       young: ["batter", "batter-young", "若手打者トップ3", "若手スコア"],
     };
-    const [type, rankingId, title, scoreKey] = map[theme];
-    const rows = rowsForRanking(type, rankingId, league, 3);
-    const lines = rows.map((row, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}）${D.formatValue(row[scoreKey], "スコア")}`);
+
+    let title;
+    let lines;
+    let url = SITE_URL;
+
+    if (theme === "recent-batter" || theme === "recent-pitcher") {
+      const type = theme === "recent-pitcher" ? "pitcher" : "batter";
+      title = type === "pitcher" ? "直近6日 投手トップ5" : "直近6日 野手トップ5";
+      lines = rowsForRecent(type, league, 5).map((row, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}/${row["ポジション"]}）${D.formatValue(row["直近スコア"], "スコア")}`);
+      url = `${SITE_URL}insights.html`;
+    } else if (theme === "rookie-batter" || theme === "rookie-pitcher") {
+      const type = theme === "rookie-pitcher" ? "pitcher" : "batter";
+      title = type === "pitcher" ? "新人王候補 投手トップ5" : "新人王候補 野手トップ5";
+      lines = rowsForRookies(type, league, 5).map(({ row, season }, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}/${row["ポジション"]}）${D.formatValue(season[scoreKey(type)], "スコア")}`);
+      url = `${SITE_URL}insights.html`;
+    } else {
+      const [type, rankingId, rankingTitle, rankingScoreKey] = map[theme];
+      title = rankingTitle;
+      const rows = rowsForRanking(type, rankingId, league, 3);
+      lines = rows.map((row, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}）${D.formatValue(row[rankingScoreKey], "スコア")}`);
+    }
+
     els.tweetOutput.value = [
       `【Player Lens】${leagueText} ${title}`,
       ...lines,
       "",
       "プロ野球2026データランキング",
-      SITE_URL,
+      url,
     ].join("\n");
   }
 
@@ -199,15 +252,29 @@
       if (!row) return "";
       return `<article class="candidate-card"><span>${D.escapeHtml(label)}</span><strong>${D.escapeHtml(row["選手名"])}</strong><small>${D.escapeHtml(row["チーム"])} / ${D.formatValue(row[scoreKey], "スコア")}</small></article>`;
     }).filter(Boolean);
-    els.postCandidates.innerHTML = candidates.join("");
+    const extraCandidates = [
+      ["直近野手", rowsForRecent("batter", "all", 1)[0], "直近スコア"],
+      ["直近投手", rowsForRecent("pitcher", "all", 1)[0], "直近スコア"],
+      ["新人王候補野手", rowsForRookies("batter", "all", 1)[0], "打者総合スコア"],
+      ["新人王候補投手", rowsForRookies("pitcher", "all", 1)[0], "投手総合スコア"],
+    ].map(([label, item, key]) => {
+      if (!item) return "";
+      const row = item.row || item;
+      const scoreSource = item.season || item;
+      return `<article class="candidate-card"><span>${D.escapeHtml(label)}</span><strong>${D.escapeHtml(row["選手名"])}</strong><small>${D.escapeHtml(row["チーム"])} / ${D.formatValue(scoreSource[key], "スコア")}</small></article>`;
+    }).filter(Boolean);
+    els.postCandidates.innerHTML = candidates.concat(extraCandidates).join("");
   }
 
   async function loadAdmin() {
     els.updateRows.innerHTML = `<tr><td colspan="4">読込中</td></tr>`;
-    [loadedData, fileReports] = await Promise.all([
+    [loadedData, loadedInsight, fileReports] = await Promise.all([
       D.loadData(),
+      D.loadInsightData(),
       Promise.all(FILES.map(fetchReport)),
     ]);
+    batterMap = new Map(loadedData.batters.map((row) => [D.playerKey(row), row]));
+    pitcherMap = new Map(loadedData.pitchers.map((row) => [D.playerKey(row), row]));
     renderSummary();
     renderUpdateRows();
     renderChecks();

@@ -50,9 +50,7 @@
     { key: "(二)", label: "二塁手", type: "batter" },
     { key: "(三)", label: "三塁手", type: "batter" },
     { key: "(遊)", label: "遊撃手", type: "batter" },
-    { key: "(左)", label: "左翼手", type: "batter" },
-    { key: "(中)", label: "中堅手", type: "batter" },
-    { key: "(右)", label: "右翼手", type: "batter" },
+    { key: "outfield", keys: ["(左)", "(中)", "(右)"], label: "外野手", type: "batter" },
     { key: "(指)", label: "指名打者", type: "batter" },
   ];
 

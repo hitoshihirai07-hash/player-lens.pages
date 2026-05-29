@@ -160,6 +160,11 @@
     return D.START_POSITIONS.find((item) => item.key === positionKey)?.type || "batter";
   }
 
+  function startsForPosition(row, position) {
+    const keys = position.keys || [position.key];
+    return keys.reduce((sum, key) => sum + D.toInt(row[key]), 0);
+  }
+
   function renderPositionButtons() {
     els.positionButtons.innerHTML = D.START_POSITIONS.map((position) => `
       <button type="button" data-position="${D.escapeHtml(position.key)}" aria-pressed="${position.key === state.position ? "true" : "false"}">${D.escapeHtml(position.label)}</button>
@@ -178,7 +183,7 @@
     const rows = insight.starterPositions
       .filter(scoped)
       .map((row) => {
-        const starts = D.toInt(row[position.key]);
+        const starts = startsForPosition(row, position);
         const season = seasonRow(row, type);
         return { row, starts, season };
       })
@@ -200,11 +205,11 @@
   }
 
   function positionCount(row) {
-    return D.START_POSITIONS.filter((position) => D.toInt(row[position.key]) > 0).length;
+    return D.START_POSITIONS.filter((position) => startsForPosition(row, position) > 0).length;
   }
 
   function totalStarts(row) {
-    return D.START_POSITIONS.reduce((sum, position) => sum + D.toInt(row[position.key]), 0);
+    return D.START_POSITIONS.reduce((sum, position) => sum + startsForPosition(row, position), 0);
   }
 
   function renderRookieList() {
@@ -235,7 +240,7 @@
         const count = positionCount(row);
         const type = row["ポジション"] === "投手" ? "pitcher" : "batter";
         const season = seasonRow(row, type);
-        const positions = D.START_POSITIONS.filter((position) => D.toInt(row[position.key]) > 0).map((position) => position.label).join("・");
+        const positions = D.START_POSITIONS.filter((position) => startsForPosition(row, position) > 0).map((position) => position.label).join("・");
         return { row, count, type, season, positions, starts: totalStarts(row) };
       })
       .filter((item) => item.count >= 2 && item.season)
