@@ -286,6 +286,13 @@ h3 {
   gap: 16px;
 }
 
+.article-shell {
+  display: grid;
+  gap: 16px;
+  width: min(1160px, calc(100% - 32px));
+  margin: 22px auto 56px;
+}
+
 .content-card {
   padding: 20px;
   border: 1px solid var(--line);
@@ -301,6 +308,21 @@ h3 {
 
 .content-card h2 + p {
   margin-top: 8px;
+}
+
+.article-body {
+  background:
+    linear-gradient(135deg, rgba(15, 118, 110, 0.08), transparent 58%),
+    var(--paper);
+}
+
+.article-body h2 {
+  max-width: 880px;
+  font-size: clamp(24px, 3vw, 34px);
+}
+
+.article-body p {
+  max-width: 940px;
 }
 
 .compact-heading {
@@ -451,6 +473,24 @@ input {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
   margin-bottom: 16px;
+}
+
+.article-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.article-grid .content-card {
+  min-width: 0;
+}
+
+.article-grid .content-card:first-child {
+  grid-column: 1 / -1;
+}
+
+.article-grid h2 {
+  font-size: clamp(20px, 2vw, 24px);
 }
 
 .split-ranking {
@@ -983,6 +1023,11 @@ tbody tr.is-selected {
     margin-top: 12px;
   }
 
+  .article-shell {
+    width: min(100% - 20px, 1160px);
+    margin-top: 12px;
+  }
+
   .brand-block {
     grid-template-columns: 56px minmax(0, 1fr);
     gap: 12px;
@@ -1013,6 +1058,7 @@ tbody tr.is-selected {
 
   .team-grid,
   .team-detail-grid,
+  .article-grid,
   .resource-grid,
   .insight-grid {
     grid-template-columns: 1fr;
