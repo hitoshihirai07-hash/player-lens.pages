@@ -5,6 +5,10 @@
     master: "./data/current_player_master.csv",
     batterSplits: "./data/2026_batter_left_and_right_stats.csv",
     pitcherSplits: "./data/2026_pitcher_left_and_right_stats.csv",
+    rookieCandidates: "./data/rookie_candidates.csv",
+    starterPositions: "./data/starter_positions.csv",
+    recentBatters: "./data/recent_batter_6days.csv",
+    recentPitchers: "./data/recent_pitcher_6days.csv",
   };
 
   const TEAM_TO_FULL = {
@@ -39,6 +43,18 @@
     "西武": "lions",
     "日本ハム": "fighters",
   };
+  const START_POSITIONS = [
+    { key: "(投)", label: "投手", type: "pitcher" },
+    { key: "(捕)", label: "捕手", type: "batter" },
+    { key: "(一)", label: "一塁手", type: "batter" },
+    { key: "(二)", label: "二塁手", type: "batter" },
+    { key: "(三)", label: "三塁手", type: "batter" },
+    { key: "(遊)", label: "遊撃手", type: "batter" },
+    { key: "(左)", label: "左翼手", type: "batter" },
+    { key: "(中)", label: "中堅手", type: "batter" },
+    { key: "(右)", label: "右翼手", type: "batter" },
+    { key: "(指)", label: "指名打者", type: "batter" },
+  ];
 
   const RANKINGS = [
     { id: "batter-overall", label: "打者総合", type: "batter", scoreKey: "打者総合スコア", minKey: "打席", minValue: 20 },
@@ -49,9 +65,9 @@
     { id: "batter-vs-right", label: "対右打者", type: "batter", scoreKey: "対右スコア", minKey: "対右打数", minValue: 10 },
     { id: "batter-vs-left", label: "対左打者", type: "batter", scoreKey: "対左スコア", minKey: "対左打数", minValue: 8 },
     { id: "pitcher-overall", label: "投手総合", type: "pitcher", scoreKey: "投手総合スコア", minKey: "投球回_計算用", minValue: 5 },
-    { id: "starter", label: "先発", type: "pitcher", scoreKey: "先発スコア", minKey: "投球回_計算用", minValue: 20 },
+    { id: "starter", label: "先発", type: "pitcher", scoreKey: "先発スコア", minKey: "投球回_計算用", minValue: 20, filter: (row) => isLikelyStarter(row) },
     { id: "pitcher-qualified", label: "規定投球回", type: "pitcher", scoreKey: "投手総合スコア", minKey: "投球回_計算用", minValue: 0, filter: (row) => row["規定投球回到達"] === "到達" },
-    { id: "reliever", label: "救援", type: "pitcher", scoreKey: "救援スコア", minKey: "登板", minValue: 5 },
+    { id: "reliever", label: "救援", type: "pitcher", scoreKey: "救援スコア", minKey: "登板", minValue: 5, filter: (row) => isLikelyReliever(row) },
     { id: "pitcher-young", label: "若手投手", type: "pitcher", scoreKey: "若手投手スコア", minKey: "投球回_計算用", minValue: 3, filter: (row) => toNumber(row["年齢"]) <= 25 },
     { id: "pitcher-vs-right", label: "対右投手", type: "pitcher", scoreKey: "対右投球スコア", minKey: "対右被打数", minValue: 10 },
     { id: "pitcher-vs-left", label: "対左投手", type: "pitcher", scoreKey: "対左投球スコア", minKey: "対左被打数", minValue: 10 },
@@ -82,6 +98,24 @@
     return toInt(whole) + outs / 3;
   }
 
+  function inningsPerGame(row) {
+    const games = toInt(row["登板"]);
+    if (games <= 0) return 0;
+    return parseInnings(row["投球回"]) / games;
+  }
+
+  function isLikelyReliever(row) {
+    const games = toInt(row["登板"]);
+    const saves = toInt(row["セーブ"]);
+    const holds = toInt(row["ＨＰ"]);
+    if (games < 5) return false;
+    return saves + holds > 0 || inningsPerGame(row) <= 2.2;
+  }
+
+  function isLikelyStarter(row) {
+    return !isLikelyReliever(row) && inningsPerGame(row) >= 3;
+  }
+
   function ageFromBirthdate(value) {
     const text = String(value ?? "").trim();
     const match = text.match(/^(\d{4})[./-](\d{1,2})[./-](\d{1,2})$/);
@@ -108,6 +142,10 @@
 
   function playerKey(row) {
     return `${normalizeName(row["選手名"])}|${row["チーム"]}`;
+  }
+
+  function normalizedTeam(row) {
+    return shortTeam(row["チーム"] || row["球団"] || row["球団名"] || "");
   }
 
   function parseCsv(text) {
@@ -324,6 +362,54 @@
     };
   }
 
+  function recentBatterScore(row) {
+    const ab = toInt(row["打数"]);
+    const ops = toNumber(row["OPS"]);
+    const hits = toInt(row["安打"]);
+    const doubles = toInt(row["二塁打"]);
+    const triples = toInt(row["三塁打"]);
+    const hr = toInt(row["本塁打"]);
+    const rbi = toInt(row["打点"]);
+    const runs = toInt(row["得点"]);
+    const walks = toInt(row["四球"]);
+    const strikeouts = toInt(row["三振"]);
+    const steals = toInt(row["盗塁"]);
+    const reliability = ab > 0 ? Math.min(1, ab / 16) : 0;
+    return round1(ops * 520 * reliability + hits * 4 + doubles * 3 + triples * 5 + hr * 14 + rbi * 2.2 + runs * 1.6 + walks * 1.2 + steals * 3 - strikeouts * 0.5);
+  }
+
+  function recentPitcherScore(row) {
+    const outs = toInt(row["投球アウト数"]);
+    const ip = outs / 3;
+    const era = toNumber(row["防御率"], 9.99);
+    const whip = toNumber(row["WHIP"], 3);
+    const strikeouts = toInt(row["奪三振"]);
+    const walks = toInt(row["与四球"]);
+    const hitByPitch = toInt(row["与死球"]);
+    const hits = toInt(row["被安打"]);
+    const hr = toInt(row["被本塁打"]);
+    const earnedRuns = toInt(row["自責点"]);
+    const reliability = outs > 0 ? Math.min(1, outs / 12) : 0;
+    return round1(Math.max(0, 5 - era) * 18 * reliability + Math.max(0, 2 - whip) * 16 * reliability + ip * 7 + strikeouts * 3.5 - walks * 2 - hitByPitch - hits * 0.6 - hr * 5 - earnedRuns * 3.5);
+  }
+
+  function normalizeInsightRows(rows) {
+    return rows.map((row) => ({
+      ...row,
+      選手名: normalizeName(row["選手名"]),
+      チーム: normalizedTeam(row),
+      リーグ: leagueOfTeam(normalizedTeam(row)),
+    }));
+  }
+
+  function addRecentBatterScores(rows) {
+    return normalizeInsightRows(rows).map((row) => ({ ...row, 直近スコア: recentBatterScore(row) }));
+  }
+
+  function addRecentPitcherScores(rows) {
+    return normalizeInsightRows(rows).map((row) => ({ ...row, 直近スコア: recentPitcherScore(row), 投球回_直近: round3(toInt(row["投球アウト数"]) / 3) }));
+  }
+
   function addQualificationFlags(batters, pitchers) {
     const teamGames = new Map();
 
@@ -409,19 +495,37 @@
     return { batters, pitchers, teams: Object.keys(TEAM_TO_FULL) };
   }
 
+  async function loadInsightData() {
+    const [rookieRows, positionRows, recentBatterRows, recentPitcherRows] = await Promise.all([
+      loadCsv(dataPath(DATA_FILES.rookieCandidates), true),
+      loadCsv(dataPath(DATA_FILES.starterPositions), true),
+      loadCsv(dataPath(DATA_FILES.recentBatters), true),
+      loadCsv(dataPath(DATA_FILES.recentPitchers), true),
+    ]);
+    return {
+      rookies: normalizeInsightRows(rookieRows),
+      starterPositions: normalizeInsightRows(positionRows),
+      recentBatters: addRecentBatterScores(recentBatterRows),
+      recentPitchers: addRecentPitcherScores(recentPitcherRows),
+    };
+  }
+
   window.PlayerLensData = {
     RANKINGS,
+    START_POSITIONS,
     TEAM_TO_FULL,
     TEAM_SLUGS,
     escapeHtml,
     formatValue,
     loadData,
+    loadInsightData,
     playerKey,
     playerUrl,
     rankRows,
     leagueOfTeam,
     shortTeam,
     teamUrl,
+    toInt,
     toNumber,
   };
 })();

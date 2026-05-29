@@ -108,6 +108,7 @@
         <h2>関連して見る</h2>
         <div class="resource-grid">
           <a href="${D.teamUrl(row["チーム"])}">${D.escapeHtml(row["チーム"])}のチーム別ランキング</a>
+          <a href="./insights.html">注目データ</a>
           <a href="./guide.html">ランキングの見方</a>
           <a href="./index.html">全体ランキングへ戻る</a>
         </div>

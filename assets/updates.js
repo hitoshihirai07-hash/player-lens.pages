@@ -5,6 +5,10 @@
     { label: "選手マスター", path: "./data/current_player_master.csv" },
     { label: "打者左右成績", path: "./data/2026_batter_left_and_right_stats.csv" },
     { label: "投手左右成績", path: "./data/2026_pitcher_left_and_right_stats.csv" },
+    { label: "新人王候補", path: "./data/rookie_candidates.csv" },
+    { label: "スタメン守備位置", path: "./data/starter_positions.csv" },
+    { label: "直近6日野手", path: "./data/recent_batter_6days.csv" },
+    { label: "直近6日投手", path: "./data/recent_pitcher_6days.csv" },
   ];
 
   const rowsEl = document.getElementById("updateRows");
@@ -65,7 +69,7 @@
     const response = await fetch(file.path, { cache: "no-store" });
     if (!response.ok) return { ...file, ok: false, rowCount: 0, dataDate: "", servedAt: "" };
     const rows = parseCsv(await response.text());
-    const dates = rows.map((row) => row["更新日"]).filter(Boolean).sort();
+    const dates = rows.map((row) => row["更新日"] || row["期間"]).filter(Boolean).sort();
     return {
       ...file,
       ok: true,

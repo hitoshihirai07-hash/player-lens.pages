@@ -303,6 +303,10 @@ h3 {
   margin-top: 8px;
 }
 
+.compact-heading {
+  margin-bottom: 0;
+}
+
 .plain-list {
   margin: 10px 0 0;
   padding-left: 1.2em;
@@ -440,6 +444,38 @@ input {
 
 .summary-card strong {
   font-size: 26px;
+}
+
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.split-ranking {
+  display: grid;
+  gap: 16px;
+}
+
+.mini-ranking {
+  display: grid;
+  gap: 10px;
+}
+
+.mini-ranking h3 {
+  color: #253244;
+}
+
+.position-switch {
+  margin: 6px 0 14px;
+}
+
+.table-meta {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .team-grid {
@@ -908,7 +944,8 @@ tbody tr.is-selected {
   }
 
   .team-grid,
-  .team-detail-grid {
+  .team-detail-grid,
+  .insight-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -976,7 +1013,8 @@ tbody tr.is-selected {
 
   .team-grid,
   .team-detail-grid,
-  .resource-grid {
+  .resource-grid,
+  .insight-grid {
     grid-template-columns: 1fr;
   }
 
