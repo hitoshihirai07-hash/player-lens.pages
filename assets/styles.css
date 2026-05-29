@@ -339,6 +339,32 @@ h3 {
   margin-top: 6px;
 }
 
+.term-list {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0 0;
+}
+
+.term-list div {
+  display: grid;
+  grid-template-columns: minmax(96px, 0.28fr) minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.term-list dt {
+  color: var(--accent-dark);
+  font-weight: 800;
+}
+
+.term-list dd {
+  margin: 0;
+  color: #344256;
+}
+
 .soft-callout {
   background: var(--gold-soft);
   border-color: #ecd28f;
@@ -1094,5 +1120,10 @@ tbody tr.is-selected {
 
   .metric-grid {
     grid-template-columns: 1fr;
+  }
+
+  .term-list div {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 }

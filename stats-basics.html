@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="プロ野球の成績を見る前に知っておきたい、規定打席、規定投球回、OPS、防御率、WHIP、Player Lensのスコアの読み方をまとめます。">
+  <title>野球成績の基礎知識 | Player Lens</title>
+  <link rel="icon" href="./assets/player-lens-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/styles.css">
+</head>
+<body>
+  <header class="page-header">
+    <a class="brand-mini" href="./index.html"><img src="./assets/player-lens-icon.svg" alt="">Player Lens</a>
+    <h1>野球成績の基礎知識</h1>
+    <p>ランキングを見る前に知っておくと便利な、打撃・投球・規定到達・サイト内スコアの読み方をまとめています。</p>
+  </header>
+  <nav class="site-nav" aria-label="サイト内メニュー">
+    <a href="./index.html">ランキング</a>
+    <a href="./teams.html">チーム別</a>
+    <a href="./insights.html">注目データ</a>
+    <a href="./guide.html">見方</a>
+    <a href="./updates.html">更新履歴</a>
+    <a href="./resources.html">楽しみ方</a>
+    <a href="./about.html">このサイトについて</a>
+  </nav>
+  <main class="article-shell">
+    <article class="content-card article-body">
+      <p class="eyebrow">Baseball Stats Guide</p>
+      <h2>数字の意味がわかると、ランキングはもっと見やすくなる</h2>
+      <p>野球の成績は、同じ「打率」や「防御率」でも、出場量や役割によって意味が変わります。まずは基本用語を知っておくと、選手を比べる時に迷いにくくなります。</p>
+      <p>Player Lensのスコアは、公式の評価指標ではありません。成績を比べる入口として、今どの選手に注目すると面白いかを探しやすくするための目安です。</p>
+    </article>
+
+    <section class="summary-grid" aria-label="この記事の要点">
+      <article class="summary-card">
+        <span>規定打席</span>
+        <strong>試合数×3.1</strong>
+      </article>
+      <article class="summary-card">
+        <span>規定投球回</span>
+        <strong>試合数×1</strong>
+      </article>
+      <article class="summary-card">
+        <span>OPS</span>
+        <strong>出塁率+長打率</strong>
+      </article>
+      <article class="summary-card">
+        <span>スコア</span>
+        <strong>目安</strong>
+      </article>
+    </section>
+
+    <section class="article-grid">
+      <article class="content-card">
+        <h2>規定打席とは</h2>
+        <p>規定打席は、打率や出塁率などのランキングで「十分に試合に出ている打者」を見るための基準です。一般的には、所属球団の試合数に3.1を掛けた打席数が目安になります。</p>
+        <p>たとえばチームが50試合を終えているなら、50×3.1で155打席が目安です。少ない打席で高打率の選手と、毎試合出て成績を残している選手を分けて見るために使います。</p>
+      </article>
+
+      <article class="content-card">
+        <h2>規定投球回とは</h2>
+        <p>規定投球回は、投手ランキングで「十分に投げている投手」を見るための基準です。一般的には、所属球団の試合数と同じ投球回が目安になります。</p>
+        <p>チームが50試合なら50投球回が目安です。防御率は少ない投球回だと大きく動くため、先発投手や長いイニングを投げる投手を比較しやすくするために使います。</p>
+      </article>
+
+      <article class="content-card">
+        <h2>打者成績の基本</h2>
+        <dl class="term-list">
+          <div>
+            <dt>打席</dt>
+            <dd>打者が打席に立った回数です。四球や死球、犠打なども含まれます。</dd>
+          </div>
+          <div>
+            <dt>打数</dt>
+            <dd>打率を計算する時の分母です。四球、死球、犠打などは基本的に含まれません。</dd>
+          </div>
+          <div>
+            <dt>打率</dt>
+            <dd>安打 ÷ 打数。ヒットを打つ確率を見る基本指標です。</dd>
+          </div>
+          <div>
+            <dt>出塁率</dt>
+            <dd>ヒットや四球などで、どれだけ塁に出ているかを見る指標です。</dd>
+          </div>
+          <div>
+            <dt>長打率</dt>
+            <dd>単打より二塁打、三塁打、本塁打を高く評価する指標です。</dd>
+          </div>
+          <div>
+            <dt>OPS</dt>
+            <dd>出塁率 + 長打率。塁に出る力と長打力をまとめて見る代表的な指標です。</dd>
+          </div>
+        </dl>
+      </article>
+
+      <article class="content-card">
+        <h2>投手成績の基本</h2>
+        <dl class="term-list">
+          <div>
+            <dt>防御率</dt>
+            <dd>9イニングあたり何点の自責点を取られるかを表します。低いほど良い数字です。</dd>
+          </div>
+          <div>
+            <dt>投球回</dt>
+            <dd>投げたイニング数です。0.1は1アウト、0.2は2アウトを表します。</dd>
+          </div>
+          <div>
+            <dt>WHIP</dt>
+            <dd>1イニングあたり何人の走者を出したかを見る指標です。低いほど安定している目安になります。</dd>
+          </div>
+          <div>
+            <dt>奪三振</dt>
+            <dd>三振を奪った数です。打球を前に飛ばさせない力を見る時に使えます。</dd>
+          </div>
+          <div>
+            <dt>与四球</dt>
+            <dd>四球を与えた数です。制球面を見る時の基本的な数字です。</dd>
+          </div>
+          <div>
+            <dt>被打率</dt>
+            <dd>投手が相手打者にどれだけヒットを打たれているかを表します。</dd>
+          </div>
+        </dl>
+      </article>
+
+      <article class="content-card">
+        <h2>よく出る記録用語</h2>
+        <dl class="term-list">
+          <div>
+            <dt>本塁打</dt>
+            <dd>ホームランの数です。長打力を見る時に重要な数字です。</dd>
+          </div>
+          <div>
+            <dt>打点</dt>
+            <dd>自分の打撃などによって味方走者を生還させた数です。得点にどれだけ絡んだかを見る目安になります。</dd>
+          </div>
+          <div>
+            <dt>得点</dt>
+            <dd>自分がホームを踏んだ数です。出塁や走塁、後続打者とのつながりも関係します。</dd>
+          </div>
+          <div>
+            <dt>盗塁</dt>
+            <dd>走者が次の塁へ進んだ記録です。走力や試合の流れを変える力を見る材料になります。</dd>
+          </div>
+          <div>
+            <dt>四球</dt>
+            <dd>ボールを見極めて出塁した記録です。出塁率に関係します。</dd>
+          </div>
+          <div>
+            <dt>勝率</dt>
+            <dd>勝利数を勝利数と敗戦数の合計で割った数字です。投手成績やチーム成績で使われます。</dd>
+          </div>
+        </dl>
+      </article>
+
+      <article class="content-card">
+        <h2>先発・救援・ホールド</h2>
+        <p>先発投手は試合の最初から投げる投手で、投球回や試合を作る安定感が見られます。救援投手は試合途中から投げる投手で、登板数、セーブ、ホールド、失点しにくさが見どころになります。</p>
+        <p>セーブはリードを守って試合を終えた投手に付く記録です。ホールドはリードした場面などで登板し、リードを保った救援投手に付く記録です。HPはホールドポイントを表す項目として使われます。</p>
+      </article>
+
+      <article class="content-card">
+        <h2>左右別成績</h2>
+        <p>左右別成績は、打者なら対右投手・対左投手、投手なら対右打者・対左打者で成績を分けたものです。同じ選手でも、相手の利き腕によって得意不得意が出ることがあります。</p>
+        <p>試合を見る時は、終盤の代打や継投で左右の相性が重要になる場面があります。Player Lensでは、左右別ランキングで相性の傾向を探せるようにしています。</p>
+      </article>
+
+      <article class="content-card">
+        <h2>Player Lensの打者スコア</h2>
+        <p>打者総合スコアは、OPS、本塁打、打点、安打、盗塁、打席数などを組み合わせています。少ない打席だけで極端に高い数字が出た選手が上がりすぎないよう、出場量も加味しています。</p>
+        <ul class="plain-list">
+          <li>長打スコアは、長打率、本塁打、打点を重視します。</li>
+          <li>若手スコアは、今季成績に年齢面の見どころを加えた目安です。</li>
+          <li>穴場スコアは、出場機会がまだ多すぎない選手の中から注目候補を探す切り口です。</li>
+          <li>対右・対左スコアは、相手投手の利き腕別成績を使います。</li>
+        </ul>
+      </article>
+
+      <article class="content-card">
+        <h2>Player Lensの投手スコア</h2>
+        <p>投手総合スコアは、防御率、奪三振、投球回、勝利、セーブ、ホールドなどを組み合わせています。投手は役割で数字の意味が変わるため、先発と救援は別の見方も用意しています。</p>
+        <ul class="plain-list">
+          <li>先発スコアは、防御率、奪三振、投球回、勝敗などを重視します。</li>
+          <li>救援スコアは、防御率、登板数、セーブ、ホールド、奪三振などを重視します。</li>
+          <li>若手投手スコアは、今季成績に年齢面の見どころを加えた目安です。</li>
+          <li>対右・対左投球スコアは、相手打者の左右別成績を使います。</li>
+        </ul>
+      </article>
+
+      <article class="content-card">
+        <h2>注目データの読み方</h2>
+        <p>新人王候補ランキングは、候補者の中だけで今季評価を比べるページです。新人王の受賞予想を断定するものではなく、候補選手の現在地を見やすくするためのランキングです。</p>
+        <p>直近6日間ランキングは、最近調子が上がっている選手を探すための短期成績です。短期間の数字は大きく変わりやすいため、通算成績と一緒に見るのがおすすめです。</p>
+        <p>守備位置別ランキングは、登録ポジションだけでなく、スタメンで出た守備位置をもとに見ます。外野手はレフト、センター、ライトを統合して表示しています。</p>
+      </article>
+
+      <article class="content-card soft-callout">
+        <h2>数字を見る時の注意点</h2>
+        <p>野球の数字は、試合数、打席数、投球回、役割、相手、球場などで意味が変わります。スコアが高い選手をそのまま「一番良い選手」と決めるのではなく、気になる選手を見つける入口として使うと楽しみやすくなります。</p>
+      </article>
+    </section>
+
+    <section class="content-card">
+      <h2>次に見るなら</h2>
+      <div class="resource-grid">
+        <a href="./guide.html">ランキングの見方</a>
+        <a href="./insights.html">注目データ</a>
+        <a href="./rookie-watch.html">新人王候補ランキング</a>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <a href="./guide.html">ランキングの見方</a>
+    <a href="./insights.html">注目データ</a>
+    <a href="./updates.html">更新履歴</a>
+    <a href="./privacy.html">プライバシーポリシー</a>
+    <a href="./disclaimer.html">免責事項</a>
+    <a href="./contact.html">お問い合わせ</a>
+  </footer>
+</body>
+</html>
