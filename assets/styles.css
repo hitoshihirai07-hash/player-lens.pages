@@ -184,6 +184,10 @@ h3 {
   color: #344256;
 }
 
+.article-promo {
+  margin-bottom: 16px;
+}
+
 .focus-band {
   display: grid;
   gap: 12px;
@@ -513,6 +517,10 @@ input {
 
 .article-grid .content-card:first-child {
   grid-column: 1 / -1;
+}
+
+.article-library .content-card:first-child {
+  grid-column: auto;
 }
 
 .article-grid h2 {

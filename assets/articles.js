@@ -291,6 +291,168 @@
     ].join("");
   }
 
+  function seasonRanking(type, league, rankingId, limit = 15) {
+    const ranking = D.RANKINGS.find((item) => item.id === rankingId);
+    const rows = type === "pitcher" ? data.pitchers : data.batters;
+    return rows
+      .filter((row) => row["リーグ"] === league)
+      .filter((row) => D.toNumber(row[ranking.minKey]) >= ranking.minValue)
+      .filter((row) => !ranking.filter || ranking.filter(row))
+      .sort((a, b) => D.toNumber(b[ranking.scoreKey]) - D.toNumber(a[ranking.scoreKey]))
+      .slice(0, limit);
+  }
+
+  function recentRanking(type, league, limit = 10) {
+    const rows = type === "pitcher" ? insight.recentPitchers : insight.recentBatters;
+    return rows
+      .filter((row) => row["リーグ"] === league)
+      .filter((row) => type === "pitcher" ? D.toNumber(row["投球アウト数"]) >= 3 : D.toNumber(row["打数"]) >= 4)
+      .sort((a, b) => D.toNumber(b["直近スコア"]) - D.toNumber(a["直近スコア"]))
+      .slice(0, limit);
+  }
+
+  function renderLeague(league, leagueLabel) {
+    const batters = seasonRanking("batter", league, "batter-overall");
+    const pitchers = seasonRanking("pitcher", league, "pitcher-overall");
+    const recentBatters = recentRanking("batter", league);
+    const recentPitchers = recentRanking("pitcher", league);
+    const qualifiedBatters = data.batters.filter((row) => row["リーグ"] === league && row["規定打席到達"] === "到達").length;
+    const qualifiedPitchers = data.pitchers.filter((row) => row["リーグ"] === league && row["規定投球回到達"] === "到達").length;
+    const topBatter = batters[0];
+    const topPitcher = pitchers[0];
+
+    summary([
+      ["対象球団", 6],
+      ["規定打席到達", qualifiedBatters],
+      ["規定投球回到達", qualifiedPitchers],
+      ["直近対象期間", periodLabel(insight.recentBatters)],
+    ]);
+
+    const batterRows = batters.map((row, index) => `
+      <tr>
+        <td class="rank">${index + 1}</td>
+        <td>${playerLink(row, "batter", row)}</td>
+        <td>${teamLink(row)}</td>
+        <td class="score">${D.formatValue(row["打者総合スコア"], "スコア")}</td>
+        <td>${D.escapeHtml(row["打席"])}</td>
+        <td>${D.formatValue(row["打率"], "打率")}</td>
+        <td>${D.formatValue(row["OPS"], "OPS")}</td>
+        <td>${D.escapeHtml(row["本塁打"])}</td>
+        <td>${D.escapeHtml(row["打点"])}</td>
+      </tr>
+    `);
+    const pitcherRows = pitchers.map((row, index) => `
+      <tr>
+        <td class="rank">${index + 1}</td>
+        <td>${playerLink(row, "pitcher", row)}</td>
+        <td>${teamLink(row)}</td>
+        <td class="score">${D.formatValue(row["投手総合スコア"], "スコア")}</td>
+        <td>${D.escapeHtml(row["投球回"])}</td>
+        <td>${D.formatValue(row["防御率"], "防御率")}</td>
+        <td>${D.escapeHtml(row["奪三振"])}</td>
+        <td>${D.escapeHtml(row["勝利"])}</td>
+        <td>${D.escapeHtml(row["セーブ"])}</td>
+      </tr>
+    `);
+    const recentBatterRows = recentBatters.map((row, index) => {
+      const season = seasonRow(row, "batter");
+      return `
+        <tr>
+          <td class="rank">${index + 1}</td>
+          <td>${playerLink(row, "batter", season)}</td>
+          <td>${teamLink(row)}</td>
+          <td class="score">${D.formatValue(row["直近スコア"], "スコア")}</td>
+          <td>${D.formatValue(row["打率"], "打率")}</td>
+          <td>${D.formatValue(row["OPS"], "OPS")}</td>
+          <td>${D.escapeHtml(row["本塁打"])}</td>
+          <td>${D.escapeHtml(row["打点"])}</td>
+        </tr>
+      `;
+    });
+    const recentPitcherRows = recentPitchers.map((row, index) => {
+      const season = seasonRow(row, "pitcher");
+      return `
+        <tr>
+          <td class="rank">${index + 1}</td>
+          <td>${playerLink(row, "pitcher", season)}</td>
+          <td>${teamLink(row)}</td>
+          <td class="score">${D.formatValue(row["直近スコア"], "スコア")}</td>
+          <td>${D.escapeHtml(row["投球回"])}</td>
+          <td>${D.formatValue(row["防御率"], "防御率")}</td>
+          <td>${D.escapeHtml(row["奪三振"])}</td>
+          <td>${D.escapeHtml(row["WHIP"])}</td>
+        </tr>
+      `;
+    });
+
+    const lead = topBatter && topPitcher
+      ? `<p>${leagueLabel}では、野手の上位に${D.escapeHtml(topBatter["選手名"])}、投手の上位に${D.escapeHtml(topPitcher["選手名"])}が入っています。</p>`
+      : `<p>${leagueLabel}の野手・投手ランキングをまとめています。</p>`;
+
+    mainEl.innerHTML = [
+      card("この記事の見どころ", `${lead}<p>今季通算と直近6日間を分けて見ると、安定して成績を残している選手と、最近状態を上げている選手を比べられます。球団をまたいで注目選手を探したい時に使えるまとめです。</p>`),
+      card(`${leagueLabel} 打者ランキング`, table(["順位", "選手", "球団", "評価", "打席", "打率", "OPS", "本塁打", "打点"], batterRows)),
+      card(`${leagueLabel} 投手ランキング`, table(["順位", "選手", "球団", "評価", "投球回", "防御率", "奪三振", "勝利", "セーブ"], pitcherRows)),
+      card(`${leagueLabel} 直近6日 野手ランキング`, table(["順位", "選手", "球団", "評価", "打率", "OPS", "本塁打", "打点"], recentBatterRows)),
+      card(`${leagueLabel} 直近6日 投手ランキング`, table(["順位", "選手", "球団", "評価", "投球回", "防御率", "奪三振", "WHIP"], recentPitcherRows)),
+    ].join("");
+  }
+
+  function renderQualified() {
+    const batters = data.batters
+      .filter((row) => row["規定打席到達"] === "到達")
+      .sort((a, b) => D.toNumber(b["打者総合スコア"]) - D.toNumber(a["打者総合スコア"]));
+    const pitchers = data.pitchers
+      .filter((row) => row["規定投球回到達"] === "到達")
+      .sort((a, b) => D.toNumber(b["投手総合スコア"]) - D.toNumber(a["投手総合スコア"]));
+    const topBatter = batters[0];
+    const topPitcher = pitchers[0];
+
+    summary([
+      ["規定打席到達", batters.length],
+      ["規定投球回到達", pitchers.length],
+      ["打者1位", topBatter ? topBatter["選手名"] : "-"],
+      ["投手1位", topPitcher ? topPitcher["選手名"] : "-"],
+    ]);
+
+    const batterRows = batters.map((row, index) => `
+      <tr>
+        <td class="rank">${index + 1}</td>
+        <td>${playerLink(row, "batter", row)}</td>
+        <td>${teamLink(row)}</td>
+        <td class="score">${D.formatValue(row["打者総合スコア"], "スコア")}</td>
+        <td>${D.escapeHtml(row["打席"])}</td>
+        <td>${D.escapeHtml(row["規定打席目安"])}</td>
+        <td>${D.formatValue(row["打率"], "打率")}</td>
+        <td>${D.formatValue(row["OPS"], "OPS")}</td>
+        <td>${D.escapeHtml(row["本塁打"])}</td>
+      </tr>
+    `);
+    const pitcherRows = pitchers.map((row, index) => `
+      <tr>
+        <td class="rank">${index + 1}</td>
+        <td>${playerLink(row, "pitcher", row)}</td>
+        <td>${teamLink(row)}</td>
+        <td class="score">${D.formatValue(row["投手総合スコア"], "スコア")}</td>
+        <td>${D.escapeHtml(row["投球回"])}</td>
+        <td>${D.escapeHtml(row["規定投球回目安"])}</td>
+        <td>${D.formatValue(row["防御率"], "防御率")}</td>
+        <td>${D.escapeHtml(row["奪三振"])}</td>
+        <td>${D.escapeHtml(row["勝利"])}</td>
+      </tr>
+    `);
+
+    const lead = topBatter && topPitcher
+      ? `<p>規定到達者の中では、打者の上位に${D.escapeHtml(topBatter["選手名"])}、投手の上位に${D.escapeHtml(topPitcher["選手名"])}が入っています。</p>`
+      : "<p>十分な出場量に達している選手をまとめています。</p>";
+
+    mainEl.innerHTML = [
+      card("この記事の見どころ", `${lead}<p>規定打席は球団の試合数目安×3.1、規定投球回は球団の試合数目安を基準にしています。出場量を満たした選手に絞ることで、継続して成績を残している選手を比較しやすくなります。</p>`),
+      card("規定打席到達者ランキング", table(["順位", "選手", "球団", "評価", "打席", "目安", "打率", "OPS", "本塁打"], batterRows)),
+      card("規定投球回到達者ランキング", table(["順位", "選手", "球団", "評価", "投球回", "目安", "防御率", "奪三振", "勝利"], pitcherRows)),
+    ].join("");
+  }
+
   try {
     data = await D.loadData();
     insight = await D.loadInsightData();
@@ -303,6 +465,9 @@
     if (article === "recent") renderRecent();
     if (article === "outfield") renderOutfield();
     if (article === "position") renderPosition();
+    if (article === "central") renderLeague("セ", "セ・リーグ");
+    if (article === "pacific") renderLeague("パ", "パ・リーグ");
+    if (article === "qualified") renderQualified();
     D.enhanceCompactTables(mainEl);
   } catch (error) {
     mainEl.innerHTML = `<article class="content-card">${D.escapeHtml(error.message)}</article>`;
