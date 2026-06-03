@@ -69,6 +69,35 @@
     `;
   }
 
+  function fieldingTable(rows) {
+    if (!rows.length) return "";
+    return `
+      <section class="content-card">
+        <h2>守備成績</h2>
+        <div class="compact-table-wrap">
+          <table class="compact-table">
+            <thead><tr><th>守備位置</th><th>守備評価</th><th>試合</th><th>守備率</th><th>守備機会</th><th>失策</th><th>補殺</th><th>併殺</th><th>盗塁阻止率</th></tr></thead>
+            <tbody>
+              ${rows.map((item) => `
+                <tr>
+                  <td>${D.escapeHtml(item["ポジション"])}</td>
+                  <td class="score">${D.formatValue(item["守備評価"], "スコア")}</td>
+                  <td>${D.escapeHtml(item["試合"])}</td>
+                  <td>${D.formatValue(item["守備率"], "守備率")}</td>
+                  <td>${D.escapeHtml(item["守備機会"])}</td>
+                  <td>${D.escapeHtml(item["失策"])}</td>
+                  <td>${D.escapeHtml(item["補殺"])}</td>
+                  <td>${D.escapeHtml(item["併殺"])}</td>
+                  <td>${item["盗塁阻止率"] === "" ? "-" : D.formatValue(item["盗塁阻止率"], "盗塁阻止率")}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    `;
+  }
+
   function teamRank(row, rows, ranking) {
     const ranked = D.rankRows(rows, ranking, row["チーム"], 999);
     const index = ranked.findIndex((candidate) => D.playerKey(candidate) === D.playerKey(row));
@@ -76,7 +105,7 @@
   }
 
   try {
-    const data = await D.loadData();
+    const [data, fieldingRows] = await Promise.all([D.loadData(), D.loadFieldingData()]);
     const rows = type === "pitcher" ? data.pitchers : data.batters;
     const row = rows.find((candidate) => candidate["チーム"] === team && candidate["選手名"] === name);
     if (!row) {
@@ -88,6 +117,9 @@
     const ranking = D.RANKINGS.find((item) => item.id === (isBatter ? "batter-overall" : "pitcher-overall"));
     const teamRows = isBatter ? data.batters : data.pitchers;
     const scoreKey = ranking.scoreKey;
+    const playerFielding = fieldingRows
+      .filter((item) => item["チーム"] === row["チーム"] && item["選手名"] === row["選手名"])
+      .sort((a, b) => D.toNumber(b["守備評価"]) - D.toNumber(a["守備評価"]));
 
     document.title = `${row["選手名"]} 2026成績 | Player Lens`;
     title.textContent = `${row["選手名"]} 2026成績`;
@@ -136,16 +168,20 @@
         <div class="compact-table-wrap player-split-wrap">${splitTable(row, isBatter)}</div>
       </section>
 
+      ${fieldingTable(playerFielding)}
+
       <section class="content-card soft-callout">
         <h2>関連して見る</h2>
         <div class="resource-grid">
           <a href="${D.teamUrl(row["チーム"])}">${D.escapeHtml(row["チーム"])}のチーム別ランキング</a>
           <a href="./insights.html">注目データ</a>
+          <a href="./defense.html">守備データ</a>
           <a href="./guide.html">ランキングの見方</a>
           <a href="./index.html">全体ランキングへ戻る</a>
         </div>
       </section>
     `;
+    D.enhanceCompactTables(content);
   } catch (error) {
     content.innerHTML = `<section class="content-card">${D.escapeHtml(error.message)}</section>`;
   }

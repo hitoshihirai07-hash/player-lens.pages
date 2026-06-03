@@ -9,6 +9,7 @@
     { label: "スタメン守備位置", path: "./data/starter_positions.csv" },
     { label: "直近6日野手", path: "./data/recent_batter_6days.csv" },
     { label: "直近6日投手", path: "./data/recent_pitcher_6days.csv" },
+    { label: "守備成績", path: "./data/fielding_summary.csv" },
   ];
 
   const rowsEl = document.getElementById("updateRows");

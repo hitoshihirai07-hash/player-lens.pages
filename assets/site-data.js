@@ -9,6 +9,7 @@
     starterPositions: "./data/starter_positions.csv",
     recentBatters: "./data/recent_batter_6days.csv",
     recentPitchers: "./data/recent_pitcher_6days.csv",
+    fielding: "./data/fielding_summary.csv",
   };
 
   const TEAM_TO_FULL = {
@@ -53,6 +54,7 @@
     { key: "outfield", keys: ["(左)", "(中)", "(右)"], label: "外野手", type: "batter" },
     { key: "(指)", label: "指名打者", type: "batter" },
   ];
+  const FIELDING_POSITIONS = ["捕手", "一塁手", "二塁手", "三塁手", "遊撃手", "外野手", "投手"];
 
   const RANKINGS = [
     { id: "batter-overall", label: "打者総合", type: "batter", scoreKey: "打者総合スコア", minKey: "打席", minValue: 20 },
@@ -408,6 +410,50 @@
     return normalizeInsightRows(rows).map((row) => ({ ...row, 直近スコア: recentPitcherScore(row), 投球回_直近: round3(toInt(row["投球アウト数"]) / 3) }));
   }
 
+  function fieldingScore(row) {
+    const position = row["ポジション"];
+    const games = toInt(row["試合"]);
+    const putouts = toInt(row["刺殺"]);
+    const assists = toInt(row["補殺"]);
+    const errors = toInt(row["失策"]);
+    const doublePlays = toInt(row["併殺"]);
+    const passedBalls = toInt(row["捕逸"]);
+    const chances = putouts + assists + errors;
+    const fieldingRate = row["守備率"] !== "" ? toNumber(row["守備率"]) : chances > 0 ? (chances - errors) / chances : 0;
+    const reliability = Math.min(1, games / 30) * 0.6 + Math.min(1, chances / 100) * 0.4;
+    const cleanScore = Math.max(0, fieldingRate - 0.94) * 900;
+    const activityScore = Math.log1p(chances) * 7;
+    const assistScore = games > 0 ? Math.min(assists / games, 6) * 3 : 0;
+    const doublePlayScore = games > 0 ? Math.min(doublePlays / games, 1.5) * 5 : 0;
+    const catcherScore = position === "捕手" && row["盗塁阻止率"] !== "" ? toNumber(row["盗塁阻止率"]) * 28 - passedBalls * 1.6 : 0;
+    return round1(Math.max(0, (cleanScore + activityScore + assistScore + doublePlayScore + catcherScore) * reliability - errors * 0.8));
+  }
+
+  function addFieldingMetrics(rows) {
+    return rows.map((row) => {
+      const team = normalizedTeam(row);
+      const putouts = toInt(row["刺殺"]);
+      const assists = toInt(row["補殺"]);
+      const errors = toInt(row["失策"]);
+      const chances = putouts + assists + errors;
+      const games = toInt(row["試合"]);
+      const fieldingRate = row["守備率"] !== "" ? toNumber(row["守備率"]) : chances > 0 ? (chances - errors) / chances : "";
+      const normalized = {
+        ...row,
+        選手名: normalizeName(row["選手"] || row["選手名"]),
+        チーム: team,
+        リーグ: row["リーグ"] || leagueOfTeam(team),
+        守備率: fieldingRate === "" ? "" : round3(fieldingRate),
+        守備機会: chances,
+        アウト関与: putouts + assists,
+        失策割合: chances > 0 ? round3((errors / chances) * 100) : "",
+        補殺_試合: games > 0 ? round3(assists / games) : "",
+        併殺_試合: games > 0 ? round3(toInt(row["併殺"]) / games) : "",
+      };
+      return { ...normalized, 守備評価: fieldingScore(normalized) };
+    }).filter((row) => row["選手名"] && row["チーム"]);
+  }
+
   function addQualificationFlags(batters, pitchers) {
     const teamGames = new Map();
 
@@ -445,6 +491,8 @@
   function formatValue(value, column = "") {
     if (value === undefined || value === null || value === "") return "";
     const rateColumns = new Set(["打率", "出塁率", "長打率", "OPS", "防御率", "勝率", "対右打率", "対左打率", "対右被打率", "対左被打率"]);
+    rateColumns.add("守備率");
+    rateColumns.add("盗塁阻止率");
     if (rateColumns.has(column)) {
       const number = toNumber(value);
       return number.toFixed(3).replace(/^0(?=\.)/, "");
@@ -522,15 +570,22 @@
     };
   }
 
+  async function loadFieldingData() {
+    const rows = await loadCsv(dataPath(DATA_FILES.fielding), true);
+    return addFieldingMetrics(rows);
+  }
+
   window.PlayerLensData = {
     RANKINGS,
     START_POSITIONS,
+    FIELDING_POSITIONS,
     TEAM_TO_FULL,
     TEAM_SLUGS,
     escapeHtml,
     formatValue,
     enhanceCompactTables,
     loadData,
+    loadFieldingData,
     loadInsightData,
     playerKey,
     playerUrl,

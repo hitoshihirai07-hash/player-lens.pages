@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="プロ野球の成績を見る前に知っておきたい、規定打席、規定投球回、OPS、防御率、WHIP、Player Lensのスコアの読み方をまとめます。">
+  <meta name="description" content="プロ野球の成績を見る前に知っておきたい、規定打席、規定投球回、OPS、防御率、WHIP、守備率、Player Lensのスコアの読み方をまとめます。">
   <title>野球成績の基礎知識 | Player Lens</title>
   <link rel="icon" href="./assets/player-lens-icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./assets/styles.css">
@@ -12,12 +12,13 @@
   <header class="page-header">
     <a class="brand-mini" href="./index.html"><img src="./assets/player-lens-icon.svg" alt="">Player Lens</a>
     <h1>野球成績の基礎知識</h1>
-    <p>ランキングを見る前に知っておくと便利な、打撃・投球・規定到達・サイト内スコアの読み方をまとめています。</p>
+    <p>ランキングを見る前に知っておくと便利な、打撃・投球・守備・規定到達・サイト内スコアの読み方をまとめています。</p>
   </header>
     <nav class="site-nav" aria-label="サイト内メニュー">
     <a href="./index.html">ランキング</a>
     <a href="./teams.html">チーム別</a>
     <a href="./insights.html">注目データ</a>
+    <a href="./defense.html">守備</a>
     <a href="./articles">読み物</a>
     <a href="./guide.html" aria-current="page">見方</a>
     <a href="./updates.html">更新履歴</a>
@@ -46,8 +47,8 @@
         <strong>出塁率+長打率</strong>
       </article>
       <article class="summary-card">
-        <span>スコア</span>
-        <strong>目安</strong>
+        <span>守備率</span>
+        <strong>無失策度</strong>
       </article>
     </section>
 
@@ -155,6 +156,36 @@
       </article>
 
       <article class="content-card">
+        <h2>守備成績の基本</h2>
+        <dl class="term-list">
+          <div>
+            <dt>守備率</dt>
+            <dd>守備機会のうち、失策しなかった割合です。高いほどミスが少ない目安になります。</dd>
+          </div>
+          <div>
+            <dt>刺殺</dt>
+            <dd>フライを捕る、送球を受けてアウトにするなど、直接アウトを取った記録です。</dd>
+          </div>
+          <div>
+            <dt>補殺</dt>
+            <dd>送球などでアウト成立を助けた記録です。内野手や外野手の守備参加を見る材料になります。</dd>
+          </div>
+          <div>
+            <dt>失策</dt>
+            <dd>守備側のミスによって打者や走者を生かした記録です。</dd>
+          </div>
+          <div>
+            <dt>併殺</dt>
+            <dd>ひとつのプレーで2つのアウトを取るプレーに関わった記録です。</dd>
+          </div>
+          <div>
+            <dt>盗塁阻止率</dt>
+            <dd>捕手が盗塁を試みた走者をアウトにした割合です。送球や投手との連携も関係します。</dd>
+          </div>
+        </dl>
+      </article>
+
+      <article class="content-card">
         <h2>先発・救援・ホールド</h2>
         <p>先発投手は試合の最初から投げる投手で、投球回や試合を作る安定感が見られます。救援投手は試合途中から投げる投手で、登板数、セーブ、ホールド、失点しにくさが見どころになります。</p>
         <p>セーブはリードを守って試合を終えた投手に付く記録です。ホールドはリードした場面などで登板し、リードを保った救援投手に付く記録です。HPはホールドポイントを表す項目として使われます。</p>
@@ -189,6 +220,12 @@
       </article>
 
       <article class="content-card">
+        <h2>Player Lensの守備評価</h2>
+        <p>守備評価は、守備率、守備機会、出場試合数、補殺、併殺への関与を組み合わせた参考スコアです。捕手は盗塁阻止率と捕逸も加味しています。</p>
+        <p>守備はポジションによって役割が大きく違うため、全体順位だけでなく、捕手、一塁手、二塁手、三塁手、遊撃手、外野手、投手のように守備位置別で見るのがおすすめです。</p>
+      </article>
+
+      <article class="content-card">
         <h2>注目データの読み方</h2>
         <p>新人王候補ランキングは、候補者の中だけで今季評価を比べるページです。新人王の受賞予想を断定するものではなく、候補選手の現在地を見やすくするためのランキングです。</p>
         <p>直近6日間ランキングは、最近調子が上がっている選手を探すための短期成績です。短期間の数字は大きく変わりやすいため、通算成績と一緒に見るのがおすすめです。</p>
@@ -207,12 +244,14 @@
         <a href="./guide.html">ランキングの見方</a>
         <a href="./insights.html">注目データ</a>
         <a href="./rookie-watch.html">新人王候補ランキング</a>
+        <a href="./defense.html">守備データ</a>
       </div>
     </section>
   </main>
   <footer class="site-footer">
     <a href="./guide.html">ランキングの見方</a>
     <a href="./insights.html">注目データ</a>
+    <a href="./defense.html">守備</a>
     <a href="./updates.html">更新履歴</a>
     <a href="./privacy.html">プライバシーポリシー</a>
     <a href="./disclaimer.html">免責事項</a>

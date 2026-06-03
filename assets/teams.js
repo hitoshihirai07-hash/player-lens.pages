@@ -9,7 +9,7 @@
   }
 
   try {
-    const data = await D.loadData();
+    const [data, fieldingRows] = await Promise.all([D.loadData(), D.loadFieldingData()]);
     const batterRanking = D.RANKINGS.find((ranking) => ranking.id === "batter-overall");
     const pitcherRanking = D.RANKINGS.find((ranking) => ranking.id === "pitcher-overall");
     const youngRanking = D.RANKINGS.find((ranking) => ranking.id === "batter-young");
@@ -18,8 +18,13 @@
       const topBatter = D.rankRows(data.batters, batterRanking, team, 1)[0];
       const topPitcher = D.rankRows(data.pitchers, pitcherRanking, team, 1)[0];
       const topYoung = D.rankRows(data.batters, youngRanking, team, 1)[0];
+      const topFielding = fieldingRows
+        .filter((row) => row["チーム"] === team)
+        .sort((a, b) => D.toNumber(b["守備評価"]) - D.toNumber(a["守備評価"]) || D.toNumber(b["守備機会"]) - D.toNumber(a["守備機会"]))[0];
       const batterCount = data.batters.filter((row) => row["チーム"] === team).length;
       const pitcherCount = data.pitchers.filter((row) => row["チーム"] === team).length;
+      const fieldingCount = fieldingRows.filter((row) => row["チーム"] === team).length;
+      const fieldingType = topFielding?.["ポジション"] === "投手" ? "pitcher" : "batter";
 
       return `
         <article class="team-card">
@@ -30,11 +35,13 @@
           <dl class="team-picks">
             <div><dt>打者</dt><dd>${metricLine(topBatter, "batter", "打者総合スコア")}</dd></div>
             <div><dt>投手</dt><dd>${metricLine(topPitcher, "pitcher", "投手総合スコア")}</dd></div>
+            <div><dt>守備</dt><dd>${metricLine(topFielding, fieldingType, "守備評価")}</dd></div>
             <div><dt>若手</dt><dd>${metricLine(topYoung, "batter", "若手スコア")}</dd></div>
           </dl>
           <div class="team-counts">
             <span>打者 ${batterCount}</span>
             <span>投手 ${pitcherCount}</span>
+            <span>守備 ${fieldingCount}</span>
           </div>
           <a class="text-link" href="${D.teamUrl(team)}">詳しく見る</a>
         </article>

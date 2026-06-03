@@ -11,6 +11,7 @@
     { label: "スタメン守備位置", path: "./data/starter_positions.csv" },
     { label: "直近6日野手", path: "./data/recent_batter_6days.csv" },
     { label: "直近6日投手", path: "./data/recent_pitcher_6days.csv" },
+    { label: "守備成績", path: "./data/fielding_summary.csv" },
   ];
 
   const D = window.PlayerLensData;
@@ -35,6 +36,7 @@
 
   let loadedData = null;
   let loadedInsight = null;
+  let loadedFielding = [];
   let fileReports = [];
   let batterMap = new Map();
   let pitcherMap = new Map();
@@ -144,6 +146,21 @@
       .slice(0, limit);
   }
 
+  function rowsForFielding(league, limit = 5) {
+    return loadedFielding
+      .filter((row) => league === "all" || row["リーグ"] === league)
+      .sort((a, b) => D.toNumber(b["守備評価"]) - D.toNumber(a["守備評価"]) || D.toNumber(b["守備機会"]) - D.toNumber(a["守備機会"]))
+      .slice(0, limit);
+  }
+
+  function rowsForCaughtStealing(league, limit = 5) {
+    return loadedFielding
+      .filter((row) => row["ポジション"] === "捕手" && row["盗塁阻止率"] !== "")
+      .filter((row) => league === "all" || row["リーグ"] === league)
+      .sort((a, b) => D.toNumber(b["盗塁阻止率"]) - D.toNumber(a["盗塁阻止率"]) || D.toNumber(b["試合"]) - D.toNumber(a["試合"]))
+      .slice(0, limit);
+  }
+
   function renderSummary() {
     const qualifiedBatters = loadedData.batters.filter((row) => row["規定打席到達"] === "到達").length;
     const qualifiedPitchers = loadedData.pitchers.filter((row) => row["規定投球回到達"] === "到達").length;
@@ -152,6 +169,7 @@
       ["打者", loadedData.batters.length],
       ["投手", loadedData.pitchers.length],
       ["規定到達", qualifiedBatters + qualifiedPitchers],
+      ["守備記録", loadedFielding.length],
       ["最新更新日", latest],
     ];
     els.summary.innerHTML = items.map(([label, value]) => `<article class="summary-card"><span>${D.escapeHtml(label)}</span><strong>${D.escapeHtml(value)}</strong></article>`).join("");
@@ -194,6 +212,14 @@
       title = type === "pitcher" ? "新人王候補 投手トップ5" : "新人王候補 野手トップ5";
       lines = rowsForRookies(type, league, 5).map(({ row, season }, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}/${row["ポジション"]}）${D.formatValue(season[scoreKey(type)], "スコア")}`);
       url = `${SITE_URL}insights.html`;
+    } else if (theme === "fielding") {
+      title = "守備評価トップ5";
+      lines = rowsForFielding(league, 5).map((row, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}/${row["ポジション"]}）${D.formatValue(row["守備評価"], "スコア")}`);
+      url = `${SITE_URL}defense.html`;
+    } else if (theme === "catcher-caught") {
+      title = "捕手盗塁阻止トップ5";
+      lines = rowsForCaughtStealing(league, 5).map((row, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}）${D.formatValue(row["盗塁阻止率"], "盗塁阻止率")} / ${row["試合"]}試合`);
+      url = `${SITE_URL}defense.html`;
     } else {
       const [type, rankingId, rankingTitle, rankingScoreKey] = map[theme];
       title = rankingTitle;
@@ -224,6 +250,7 @@
     const batterQualified = rowsForRanking("batter", "batter-qualified", "all", 999).length;
     const pitcherQualified = rowsForRanking("pitcher", "pitcher-qualified", "all", 999).length;
     const splitRows = loadedData.batters.filter((row) => row["対右打率"] || row["対左打率"]).length + loadedData.pitchers.filter((row) => row["対右被打率"] || row["対左被打率"]).length;
+    const fieldingRows = loadedFielding.length;
 
     checks.push(["ファイル読込", failedFiles === 0, failedFiles === 0 ? "全ファイルを読み込めています。" : `${failedFiles}件の読込に失敗しています。`]);
     checks.push(["球団数", teams.size === 12, `${teams.size}球団を認識しています。`]);
@@ -231,6 +258,7 @@
     checks.push(["年齢結合", missingAge === 0, missingAge === 0 ? "選手マスターとの結合に問題はありません。" : `${missingAge}件の年齢未取得があります。`]);
     checks.push(["規定到達", batterQualified > 0 && pitcherQualified > 0, `規定打席 ${batterQualified}人 / 規定投球回 ${pitcherQualified}人`]);
     checks.push(["左右成績", splitRows > 0, `${splitRows}件に左右別データがあります。`]);
+    checks.push(["守備成績", fieldingRows > 0, `${fieldingRows}件の守備記録があります。`]);
 
     els.checkList.innerHTML = checks.map(([title, ok, message]) => `
       <div class="check-item ${ok ? "is-ok" : "is-warn"}">
@@ -257,6 +285,7 @@
       ["直近投手", rowsForRecent("pitcher", "all", 1)[0], "直近スコア"],
       ["新人王候補野手", rowsForRookies("batter", "all", 1)[0], "打者総合スコア"],
       ["新人王候補投手", rowsForRookies("pitcher", "all", 1)[0], "投手総合スコア"],
+      ["守備評価", rowsForFielding("all", 1)[0], "守備評価"],
     ].map(([label, item, key]) => {
       if (!item) return "";
       const row = item.row || item;
@@ -268,9 +297,10 @@
 
   async function loadAdmin() {
     els.updateRows.innerHTML = `<tr><td colspan="4">読込中</td></tr>`;
-    [loadedData, loadedInsight, fileReports] = await Promise.all([
+    [loadedData, loadedInsight, loadedFielding, fileReports] = await Promise.all([
       D.loadData(),
       D.loadInsightData(),
+      D.loadFieldingData(),
       Promise.all(FILES.map(fetchReport)),
     ]);
     batterMap = new Map(loadedData.batters.map((row) => [D.playerKey(row), row]));
