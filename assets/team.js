@@ -5,6 +5,9 @@
   const team = document.body.dataset.team || params.get("team") || "阪神";
   const teamTitle = document.getElementById("teamTitle");
   const teamLead = document.getElementById("teamLead");
+  const overviewTitle = document.getElementById("teamOverviewTitle");
+  const overviewText = document.getElementById("teamOverviewText");
+  const highlights = document.getElementById("teamHighlights");
   const summary = document.getElementById("teamSummary");
   const sections = document.getElementById("teamSections");
 
@@ -38,6 +41,72 @@
         </div>
         ${table(rows, type, scoreKey, columns)}
       </article>
+    `;
+  }
+
+  function teamScopedUrl(page) {
+    const params = new URLSearchParams({ team });
+    return `${root}${page}?${params.toString()}`;
+  }
+
+  function scoreCard(label, row, type, scoreKey, meta = "") {
+    if (!row) {
+      return `<article class="team-highlight"><span>${D.escapeHtml(label)}</span><strong>該当なし</strong></article>`;
+    }
+    return `
+      <article class="team-highlight">
+        <span>${D.escapeHtml(label)}</span>
+        <strong><a href="${D.playerUrl(row, type)}">${D.escapeHtml(row["選手名"])}</a></strong>
+        <small>${D.escapeHtml(meta || row["ポジション"] || row["チーム"] || "")} / ${D.formatValue(row[scoreKey], "スコア")}</small>
+      </article>
+    `;
+  }
+
+  function renderHighlights(data, insight, fieldingRows, byId) {
+    if (!highlights) return;
+    const topBatter = D.rankRows(data.batters, byId["batter-overall"], team, 1)[0];
+    const topPitcher = D.rankRows(data.pitchers, byId["pitcher-overall"], team, 1)[0];
+    const topYoungBatter = D.rankRows(data.batters, byId["batter-young"], team, 1)[0];
+    const topYoungPitcher = D.rankRows(data.pitchers, byId["pitcher-young"], team, 1)[0];
+    const topYoung = [topYoungBatter, topYoungPitcher]
+      .filter(Boolean)
+      .sort((a, b) => D.toNumber(b["若手スコア"] || b["若手投手スコア"]) - D.toNumber(a["若手スコア"] || a["若手投手スコア"]))[0];
+    const topYoungType = topYoung?.["投手総合スコア"] !== undefined ? "pitcher" : "batter";
+    const topYoungScore = topYoungType === "pitcher" ? "若手投手スコア" : "若手スコア";
+    const topFielding = fieldingRows
+      .filter((row) => row["チーム"] === team)
+      .sort((a, b) => D.toNumber(b["守備評価"]) - D.toNumber(a["守備評価"]) || D.toNumber(b["守備機会"]) - D.toNumber(a["守備機会"]))[0];
+    const topFieldingType = topFielding?.["ポジション"] === "投手" ? "pitcher" : "batter";
+    const recentBatter = insight.recentBatters
+      .filter((row) => row["チーム"] === team && D.toNumber(row["打数"]) >= 4)
+      .sort((a, b) => D.toNumber(b["直近スコア"]) - D.toNumber(a["直近スコア"]))[0];
+    const recentPitcher = insight.recentPitchers
+      .filter((row) => row["チーム"] === team && D.toNumber(row["投球アウト数"]) >= 3)
+      .sort((a, b) => D.toNumber(b["直近スコア"]) - D.toNumber(a["直近スコア"]))[0];
+
+    highlights.innerHTML = `
+      <section class="content-card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Team Focus</p>
+            <h2>このチームの注目ポイント</h2>
+          </div>
+        </div>
+        <p class="small-note">打者、投手、守備、若手、直近成績から、チーム内で見ておきたい選手をまとめています。</p>
+        <div class="team-highlight-grid">
+          ${scoreCard("打者", topBatter, "batter", "打者総合スコア", "打者総合")}
+          ${scoreCard("投手", topPitcher, "pitcher", "投手総合スコア", "投手総合")}
+          ${scoreCard("守備", topFielding, topFieldingType, "守備評価", topFielding?.["ポジション"])}
+          ${scoreCard("若手", topYoung, topYoungType, topYoungScore, `${topYoung?.["年齢"] || "-"}歳`)}
+          ${scoreCard("直近野手", recentBatter, "batter", "直近スコア", "直近6日")}
+          ${scoreCard("直近投手", recentPitcher, "pitcher", "直近スコア", "直近6日")}
+        </div>
+        <div class="resource-grid compact-links">
+          <a href="${teamScopedUrl("insights.html")}">直近・新人王候補を見る</a>
+          <a href="${teamScopedUrl("defense.html")}">守備データを見る</a>
+          <a href="${root}guide.html">スコアの見方を見る</a>
+        </div>
+      </section>
     `;
   }
 
@@ -80,14 +149,17 @@
   }
 
   try {
-    const [data, fieldingRows] = await Promise.all([D.loadData(), D.loadFieldingData()]);
+    const [data, insight, fieldingRows] = await Promise.all([D.loadData(), D.loadInsightData(), D.loadFieldingData()]);
     const batters = data.batters.filter((row) => row["チーム"] === team);
     const pitchers = data.pitchers.filter((row) => row["チーム"] === team);
     const fielding = fieldingRows.filter((row) => row["チーム"] === team);
-    const fullTeam = D.TEAM_TO_FULL[team] || team;
+    const profile = D.teamProfile(team);
+    const fullTeam = profile.full;
     document.title = `${team} チーム別ランキング | Player Lens`;
     teamTitle.textContent = `${team} チーム別ランキング`;
     teamLead.textContent = `${fullTeam}の打者、投手、守備、若手、左右別の注目選手をまとめています。`;
+    if (overviewTitle) overviewTitle.textContent = `${fullTeam}をデータで見る`;
+    if (overviewText) overviewText.textContent = profile.description;
 
     summary.innerHTML = [
       ["打者", batters.length],
@@ -97,6 +169,7 @@
     ].map(([label, value]) => `<article class="summary-card"><span>${D.escapeHtml(label)}</span><strong>${value}</strong></article>`).join("");
 
     const byId = Object.fromEntries(D.RANKINGS.map((ranking) => [ranking.id, ranking]));
+    renderHighlights(data, insight, fieldingRows, byId);
     sections.innerHTML = [
       rankingSection("打者総合", D.rankRows(data.batters, byId["batter-overall"], team, 10), "batter", "打者総合スコア", ["打席", "OPS", "本塁打", "打点"]),
       rankingSection("規定打席到達", D.rankRows(data.batters, byId["batter-qualified"], team, 10), "batter", "打者総合スコア", ["打席", "規定打席目安", "OPS", "本塁打"]),

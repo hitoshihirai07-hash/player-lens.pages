@@ -582,6 +582,45 @@ input {
   font-size: 26px;
 }
 
+.team-overview {
+  margin-bottom: 16px;
+}
+
+.team-highlight-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.team-highlight {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.team-highlight span,
+.team-highlight small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.team-highlight strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 17px;
+}
+
+.compact-links a {
+  min-height: 44px;
+}
+
 .team-picks {
   display: grid;
   gap: 8px;
@@ -1214,6 +1253,7 @@ tbody tr.is-selected {
 
   .team-grid,
   .team-detail-grid,
+  .team-highlight-grid,
   .article-grid,
   .resource-grid,
   .insight-grid {

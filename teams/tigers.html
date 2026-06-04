@@ -1,16 +1,22 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="阪神タイガースの2026年チーム別成績ランキングです。打者、投手、若手、左右別の注目選手を確認できます。">
+  <meta name="description" content="阪神タイガースの打者、投手、守備、若手をまとめて確認できます。投手力や守備面の強みと、打線の注目選手をあわせて見られます。">
   <title>阪神 チーム別ランキング | Player Lens</title>
+  <link rel="canonical" href="https://player-lens-pages.pages.dev/teams/tigers">
   <link rel="icon" href="../assets/player-lens-icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="../assets/styles.css">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"阪神 チーム別ランキング","description":"阪神タイガースの打者、投手、守備、若手をまとめて確認できます。投手力や守備面の強みと、打線の注目選手をあわせて見られます。","url":"https://player-lens-pages.pages.dev/teams/tigers","isPartOf":{"@type":"WebSite","name":"Player Lens","url":"https://player-lens-pages.pages.dev/"},"about":{"@type":"SportsTeam","name":"阪神タイガース","sport":"Baseball"}}</script>
 </head>
 <body data-team="阪神">
-  <header class="page-header"><a class="brand-mini" href="../index.html"><img src="../assets/player-lens-icon.svg" alt="">Player Lens</a><h1 id="teamTitle">阪神 チーム別ランキング</h1><p id="teamLead">阪神タイガースの打者、投手、若手、左右別ランキングを確認できます。</p></header>
-    <nav class="site-nav" aria-label="サイト内メニュー">
+  <header class="page-header">
+    <a class="brand-mini" href="../index.html"><img src="../assets/player-lens-icon.svg" alt="">Player Lens</a>
+    <h1 id="teamTitle">阪神 チーム別ランキング</h1>
+    <p id="teamLead">阪神タイガースの打者、投手、守備、若手、直近成績を確認できます。</p>
+  </header>
+  <nav class="site-nav" aria-label="サイト内メニュー">
     <a href="../index.html">ランキング</a>
     <a href="../teams.html" aria-current="page">チーム別</a>
     <a href="../insights.html">注目データ</a>
@@ -21,8 +27,36 @@
     <a href="../resources.html">楽しみ方</a>
     <a href="../about.html">このサイトについて</a>
   </nav>
-  <main class="shell"><section class="summary-grid" id="teamSummary"></section><section class="team-detail-grid" id="teamSections"><article class="content-card">データ読込中</article></section></main>
-  <footer class="site-footer"><a href="../insights.html">注目データ</a><a href="../updates.html">更新履歴</a><a href="../resources.html">観戦・データの楽しみ方</a><a href="../privacy.html">プライバシーポリシー</a><a href="../disclaimer.html">免責事項</a><a href="../contact.html">お問い合わせ</a></footer>
-  <script src="../assets/site-data.js"></script><script src="../assets/team.js"></script>
+  <main class="shell">
+    <section class="content-card team-overview">
+      <p class="eyebrow">セ・リーグ</p>
+      <h2 id="teamOverviewTitle">阪神タイガースをデータで見る</h2>
+      <p id="teamOverviewText">阪神タイガースの打者、投手、守備、若手をまとめて確認できます。投手力や守備面の強みと、打線の注目選手をあわせて見られます。</p>
+      <div class="resource-grid compact-links">
+        <a href="../insights.html?team=%E9%98%AA%E7%A5%9E">直近・新人王候補</a>
+        <a href="../defense.html?team=%E9%98%AA%E7%A5%9E">守備データ</a>
+        <a href="../guide.html">スコアの見方</a>
+      </div>
+    </section>
+    <section id="teamHighlights">
+      <article class="content-card">データ読込中</article>
+    </section>
+    <section class="summary-grid" id="teamSummary"></section>
+    <section class="team-detail-grid" id="teamSections">
+      <article class="content-card">データ読込中</article>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <a href="../index.html">ランキング</a>
+    <a href="../teams.html">チーム別</a>
+    <a href="../insights.html">注目データ</a>
+    <a href="../defense.html">守備</a>
+    <a href="../articles">読み物</a>
+    <a href="../privacy.html">プライバシーポリシー</a>
+    <a href="../disclaimer.html">免責事項</a>
+    <a href="../contact.html">お問い合わせ</a>
+  </footer>
+  <script src="../assets/site-data.js"></script>
+  <script src="../assets/team.js"></script>
 </body>
 </html>

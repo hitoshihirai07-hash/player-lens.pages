@@ -1,6 +1,12 @@
 (async function () {
   const D = window.PlayerLensData;
-  const state = { league: "all", team: "all", position: "(捕)" };
+  const params = new URLSearchParams(location.search);
+  const initialTeam = params.get("team") || "all";
+  const state = {
+    league: initialTeam !== "all" && D.TEAM_TO_FULL[initialTeam] ? D.leagueOfTeam(initialTeam) : "all",
+    team: D.TEAM_TO_FULL[initialTeam] ? initialTeam : "all",
+    position: "(捕)",
+  };
   const els = {
     league: document.getElementById("insightLeague"),
     team: document.getElementById("insightTeam"),
@@ -282,6 +288,7 @@
       ...teams.map((team) => `<option value="${D.escapeHtml(team)}">${D.escapeHtml(team)}</option>`),
     ].join("");
     els.team.value = state.team;
+    els.league.value = state.league;
   }
 
   function render() {
