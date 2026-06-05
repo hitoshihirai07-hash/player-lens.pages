@@ -72,7 +72,7 @@
     const response = await fetch(file.path, { cache: "no-store" });
     if (!response.ok) return { ...file, ok: false, rowCount: 0, dataDate: "", servedAt: "" };
     const rows = parseCsv(await response.text());
-    const dates = rows.map((row) => row["更新日"] || row["期間"]).filter(Boolean).sort();
+    const dates = rows.map((row) => row["更新日"]).filter(Boolean).sort();
     return {
       ...file,
       ok: true,

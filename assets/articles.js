@@ -218,12 +218,11 @@
       .sort((a, b) => D.toNumber(b["交流戦スコア"]) - D.toNumber(a["交流戦スコア"]));
     const topBatter = batters[0];
     const topPitcher = pitchers[0];
-    const period = periodLabel(interleague.pitchers);
 
     summary([
-      ["対象期間", period],
       ["対象野手", batters.length],
       ["対象投手", pitchers.length],
+      ["対象球団", Object.keys(D.TEAM_TO_FULL).length],
       ["野手1位", topBatter ? topBatter["選手名"] : "-"],
     ]);
 

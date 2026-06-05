@@ -16,7 +16,6 @@
     lead: document.getElementById("interleagueRankingLead"),
     ranking: document.getElementById("interleagueRanking"),
     teamTops: document.getElementById("interleagueTeamTops"),
-    period: document.getElementById("interleaguePeriod"),
   };
   const sortOptions = {
     batter: [
@@ -98,20 +97,15 @@
     els.team.value = state.team;
   }
 
-  function periodLabel() {
-    const period = data.pitchers.find((row) => row["期間"])?.["期間"] || "";
-    return period ? period.replace("_", " - ") : "交流戦内集計";
-  }
-
   function renderSummary() {
     const batters = batterRows();
     const pitchers = pitcherRows();
     const topBatter = sortRows(batters, "batter")[0];
     const topPitcher = sortRows(pitchers, "pitcher")[0];
     const items = [
-      ["対象", periodLabel()],
       ["野手対象", batters.length],
       ["投手対象", pitchers.length],
+      ["対象球団", Object.keys(D.TEAM_TO_FULL).length],
       ["野手1位", topBatter ? topBatter["選手名"] : "-"],
       ["投手1位", topPitcher ? topPitcher["選手名"] : "-"],
     ];
@@ -187,7 +181,6 @@
     renderSummary();
     renderRanking();
     renderTeamTops();
-    els.period.textContent = periodLabel();
     D.enhanceCompactTables(document);
   }
 

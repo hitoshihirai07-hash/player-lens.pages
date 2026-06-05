@@ -89,7 +89,7 @@
     const response = await fetch(file.path, { cache: "no-store" });
     const text = response.ok ? await response.text() : "";
     const rows = text ? parseCsv(text) : [];
-    const dates = rows.map((row) => row["更新日"] || row["期間"]).filter(Boolean).sort();
+    const dates = rows.map((row) => row["更新日"]).filter(Boolean).sort();
     return {
       ...file,
       ok: response.ok,
