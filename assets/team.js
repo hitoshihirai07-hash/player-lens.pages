@@ -62,7 +62,7 @@
     `;
   }
 
-  function renderHighlights(data, insight, fieldingRows, byId) {
+  function renderHighlights(data, insight, fieldingRows, interleague, byId) {
     if (!highlights) return;
     const topBatter = D.rankRows(data.batters, byId["batter-overall"], team, 1)[0];
     const topPitcher = D.rankRows(data.pitchers, byId["pitcher-overall"], team, 1)[0];
@@ -83,6 +83,12 @@
     const recentPitcher = insight.recentPitchers
       .filter((row) => row["チーム"] === team && D.toNumber(row["投球アウト数"]) >= 3)
       .sort((a, b) => D.toNumber(b["直近スコア"]) - D.toNumber(a["直近スコア"]))[0];
+    const interleagueBatter = interleague.batters
+      .filter((row) => row["チーム"] === team && D.toNumber(row["打数"]) >= 8)
+      .sort((a, b) => D.toNumber(b["交流戦スコア"]) - D.toNumber(a["交流戦スコア"]))[0];
+    const interleaguePitcher = interleague.pitchers
+      .filter((row) => row["チーム"] === team && D.toNumber(row["投球アウト数"]) >= 6)
+      .sort((a, b) => D.toNumber(b["交流戦スコア"]) - D.toNumber(a["交流戦スコア"]))[0];
 
     highlights.innerHTML = `
       <section class="content-card">
@@ -92,7 +98,7 @@
             <h2>このチームの注目ポイント</h2>
           </div>
         </div>
-        <p class="small-note">打者、投手、守備、若手、直近成績から、チーム内で見ておきたい選手をまとめています。</p>
+        <p class="small-note">打者、投手、守備、若手、直近成績、交流戦から、チーム内で見ておきたい選手をまとめています。</p>
         <div class="team-highlight-grid">
           ${scoreCard("打者", topBatter, "batter", "打者総合スコア", "打者総合")}
           ${scoreCard("投手", topPitcher, "pitcher", "投手総合スコア", "投手総合")}
@@ -100,14 +106,21 @@
           ${scoreCard("若手", topYoung, topYoungType, topYoungScore, `${topYoung?.["年齢"] || "-"}歳`)}
           ${scoreCard("直近野手", recentBatter, "batter", "直近スコア", "直近6日")}
           ${scoreCard("直近投手", recentPitcher, "pitcher", "直近スコア", "直近6日")}
+          ${scoreCard("交流戦野手", interleagueBatter, "batter", "交流戦スコア", "交流戦")}
+          ${scoreCard("交流戦投手", interleaguePitcher, "pitcher", "交流戦スコア", "交流戦")}
         </div>
         <div class="resource-grid compact-links">
           <a href="${teamScopedUrl("insights.html")}">直近・新人王候補を見る</a>
+          <a href="${teamScopedUrl("interleague.html")}">交流戦ランキングを見る</a>
           <a href="${teamScopedUrl("defense.html")}">守備データを見る</a>
           <a href="${root}guide.html">スコアの見方を見る</a>
         </div>
       </section>
     `;
+  }
+
+  function interleagueSection(title, rows, type, columns) {
+    return rankingSection(title, rows, type, "交流戦スコア", columns);
   }
 
   function fieldingSection(rows) {
@@ -149,15 +162,23 @@
   }
 
   try {
-    const [data, insight, fieldingRows] = await Promise.all([D.loadData(), D.loadInsightData(), D.loadFieldingData()]);
+    const [data, insight, fieldingRows, interleague] = await Promise.all([D.loadData(), D.loadInsightData(), D.loadFieldingData(), D.loadInterleagueData()]);
     const batters = data.batters.filter((row) => row["チーム"] === team);
     const pitchers = data.pitchers.filter((row) => row["チーム"] === team);
     const fielding = fieldingRows.filter((row) => row["チーム"] === team);
+    const interleagueBatters = interleague.batters
+      .filter((row) => row["チーム"] === team && D.toNumber(row["打数"]) >= 8)
+      .sort((a, b) => D.toNumber(b["交流戦スコア"]) - D.toNumber(a["交流戦スコア"]))
+      .slice(0, 10);
+    const interleaguePitchers = interleague.pitchers
+      .filter((row) => row["チーム"] === team && D.toNumber(row["投球アウト数"]) >= 6)
+      .sort((a, b) => D.toNumber(b["交流戦スコア"]) - D.toNumber(a["交流戦スコア"]))
+      .slice(0, 10);
     const profile = D.teamProfile(team);
     const fullTeam = profile.full;
     document.title = `${team} チーム別ランキング | Player Lens`;
     teamTitle.textContent = `${team} チーム別ランキング`;
-    teamLead.textContent = `${fullTeam}の打者、投手、守備、若手、左右別の注目選手をまとめています。`;
+    teamLead.textContent = `${fullTeam}の打者、投手、守備、若手、左右別、交流戦の注目選手をまとめています。`;
     if (overviewTitle) overviewTitle.textContent = `${fullTeam}をデータで見る`;
     if (overviewText) overviewText.textContent = profile.description;
 
@@ -166,15 +187,18 @@
       ["投手", pitchers.length],
       ["25歳以下", batters.concat(pitchers).filter((row) => D.toNumber(row["年齢"]) <= 25).length],
       ["守備記録", fielding.length],
+      ["交流戦対象", interleagueBatters.length + interleaguePitchers.length],
     ].map(([label, value]) => `<article class="summary-card"><span>${D.escapeHtml(label)}</span><strong>${value}</strong></article>`).join("");
 
     const byId = Object.fromEntries(D.RANKINGS.map((ranking) => [ranking.id, ranking]));
-    renderHighlights(data, insight, fieldingRows, byId);
+    renderHighlights(data, insight, fieldingRows, interleague, byId);
     sections.innerHTML = [
       rankingSection("打者総合", D.rankRows(data.batters, byId["batter-overall"], team, 10), "batter", "打者総合スコア", ["打席", "OPS", "本塁打", "打点"]),
       rankingSection("規定打席到達", D.rankRows(data.batters, byId["batter-qualified"], team, 10), "batter", "打者総合スコア", ["打席", "規定打席目安", "OPS", "本塁打"]),
       rankingSection("投手総合", D.rankRows(data.pitchers, byId["pitcher-overall"], team, 10), "pitcher", "投手総合スコア", ["投球回", "防御率", "奪三振", "勝利"]),
       rankingSection("規定投球回到達", D.rankRows(data.pitchers, byId["pitcher-qualified"], team, 10), "pitcher", "投手総合スコア", ["投球回", "規定投球回目安", "防御率", "奪三振"]),
+      interleagueSection("交流戦 野手", interleagueBatters, "batter", ["打数", "OPS", "本塁打", "打点"]),
+      interleagueSection("交流戦 投手", interleaguePitchers, "pitcher", ["投球回_交流戦", "防御率", "奪三振", "WHIP"]),
       fieldingSection(fielding),
       rankingSection("25歳以下打者", D.rankRows(data.batters, byId["batter-young"], team, 10), "batter", "若手スコア", ["年齢", "打席", "OPS", "本塁打"]),
       rankingSection("若手投手", D.rankRows(data.pitchers, byId["pitcher-young"], team, 10), "pitcher", "若手投手スコア", ["年齢", "投球回", "防御率", "奪三振"]),

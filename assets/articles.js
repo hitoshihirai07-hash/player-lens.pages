@@ -5,6 +5,7 @@
   const mainEl = document.getElementById("articleMain");
   let data;
   let insight;
+  let interleague;
   let batterMap;
   let pitcherMap;
   let recentBatterMap;
@@ -205,6 +206,75 @@
       card("この記事の見どころ", `${lead}<p>短期成績は好不調の波を見つけるための入口です。通算成績の上位とは違う名前が出ることもあり、次に見る試合の注目選手を探しやすくなります。</p>`),
       card("直近6日 野手ランキング", table(["順位", "選手", "球団", "登録", "評価", "打率", "OPS", "本塁打", "打点"], batterRows)),
       card("直近6日 投手ランキング", table(["順位", "選手", "球団", "登録", "評価", "投球回", "防御率", "奪三振", "WHIP"], pitcherRows)),
+    ].join("");
+  }
+
+  function renderInterleague() {
+    const batters = interleague.batters
+      .filter((row) => D.toInt(row["打数"]) >= 8)
+      .sort((a, b) => D.toNumber(b["交流戦スコア"]) - D.toNumber(a["交流戦スコア"]));
+    const pitchers = interleague.pitchers
+      .filter((row) => D.toInt(row["投球アウト数"]) >= 6)
+      .sort((a, b) => D.toNumber(b["交流戦スコア"]) - D.toNumber(a["交流戦スコア"]));
+    const topBatter = batters[0];
+    const topPitcher = pitchers[0];
+    const period = periodLabel(interleague.pitchers);
+
+    summary([
+      ["対象期間", period],
+      ["対象野手", batters.length],
+      ["対象投手", pitchers.length],
+      ["野手1位", topBatter ? topBatter["選手名"] : "-"],
+    ]);
+
+    const batterRows = batters.slice(0, 20).map((row, index) => `
+      <tr>
+        <td class="rank">${index + 1}</td>
+        <td>${playerLink(row, "batter")}</td>
+        <td>${teamLink(row)}</td>
+        <td class="score">${D.formatValue(row["交流戦スコア"], "スコア")}</td>
+        <td>${D.escapeHtml(row["打数"])}</td>
+        <td>${D.formatValue(row["打率"], "打率")}</td>
+        <td>${D.formatValue(row["OPS"], "OPS")}</td>
+        <td>${D.escapeHtml(row["本塁打"])}</td>
+        <td>${D.escapeHtml(row["打点"])}</td>
+      </tr>
+    `);
+    const pitcherRows = pitchers.slice(0, 20).map((row, index) => `
+      <tr>
+        <td class="rank">${index + 1}</td>
+        <td>${playerLink(row, "pitcher")}</td>
+        <td>${teamLink(row)}</td>
+        <td class="score">${D.formatValue(row["交流戦スコア"], "スコア")}</td>
+        <td>${D.escapeHtml(row["投球回_交流戦"])}</td>
+        <td>${D.formatValue(row["防御率"], "防御率")}</td>
+        <td>${D.escapeHtml(row["奪三振"])}</td>
+        <td>${D.escapeHtml(row["WHIP"])}</td>
+      </tr>
+    `);
+    const teamRows = Object.keys(D.TEAM_TO_FULL).map((team) => {
+      const teamBatter = batters.find((row) => row["チーム"] === team);
+      const teamPitcher = pitchers.find((row) => row["チーム"] === team);
+      return `
+        <tr>
+          <td><a href="${D.teamUrl(team)}">${D.escapeHtml(team)}</a></td>
+          <td>${teamBatter ? playerLink(teamBatter, "batter") : "-"}</td>
+          <td>${teamBatter ? D.formatValue(teamBatter["交流戦スコア"], "スコア") : "-"}</td>
+          <td>${teamPitcher ? playerLink(teamPitcher, "pitcher") : "-"}</td>
+          <td>${teamPitcher ? D.formatValue(teamPitcher["交流戦スコア"], "スコア") : "-"}</td>
+        </tr>
+      `;
+    });
+
+    const lead = topBatter && topPitcher
+      ? `<p>交流戦内では、野手の上位に${D.escapeHtml(topBatter["選手名"])}、投手の上位に${D.escapeHtml(topPitcher["選手名"])}が入っています。</p>`
+      : "<p>交流戦内で一定以上出場した選手を対象にしています。</p>";
+
+    mainEl.innerHTML = [
+      card("この記事の見どころ", `${lead}<p>交流戦は対戦相手が普段と変わるため、通算ランキングとは違う名前が上位に出ることがあります。打撃はOPSや長打、投球は防御率、WHIP、奪三振を合わせて見ると、短期で目立つ選手を探しやすくなります。</p>`),
+      card("交流戦 野手ランキング", table(["順位", "選手", "球団", "評価", "打数", "打率", "OPS", "本塁打", "打点"], batterRows)),
+      card("交流戦 投手ランキング", table(["順位", "選手", "球団", "評価", "投球回", "防御率", "奪三振", "WHIP"], pitcherRows)),
+      card("球団別交流戦トップ", table(["球団", "野手1位", "野手評価", "投手1位", "投手評価"], teamRows)),
     ].join("");
   }
 
@@ -454,8 +524,7 @@
   }
 
   try {
-    data = await D.loadData();
-    insight = await D.loadInsightData();
+    [data, insight, interleague] = await Promise.all([D.loadData(), D.loadInsightData(), D.loadInterleagueData()]);
     batterMap = new Map(data.batters.map((row) => [D.playerKey(row), row]));
     pitcherMap = new Map(data.pitchers.map((row) => [D.playerKey(row), row]));
     recentBatterMap = new Map(insight.recentBatters.map((row) => [D.playerKey(row), row]));
@@ -468,6 +537,7 @@
     if (article === "central") renderLeague("セ", "セ・リーグ");
     if (article === "pacific") renderLeague("パ", "パ・リーグ");
     if (article === "qualified") renderQualified();
+    if (article === "interleague") renderInterleague();
     D.enhanceCompactTables(mainEl);
   } catch (error) {
     mainEl.innerHTML = `<article class="content-card">${D.escapeHtml(error.message)}</article>`;

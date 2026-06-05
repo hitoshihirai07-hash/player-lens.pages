@@ -9,7 +9,7 @@
   }
 
   try {
-    const [data, fieldingRows] = await Promise.all([D.loadData(), D.loadFieldingData()]);
+    const [data, fieldingRows, interleague] = await Promise.all([D.loadData(), D.loadFieldingData(), D.loadInterleagueData()]);
     const batterRanking = D.RANKINGS.find((ranking) => ranking.id === "batter-overall");
     const pitcherRanking = D.RANKINGS.find((ranking) => ranking.id === "pitcher-overall");
     const youngRanking = D.RANKINGS.find((ranking) => ranking.id === "batter-young");
@@ -21,9 +21,16 @@
       const topFielding = fieldingRows
         .filter((row) => row["チーム"] === team)
         .sort((a, b) => D.toNumber(b["守備評価"]) - D.toNumber(a["守備評価"]) || D.toNumber(b["守備機会"]) - D.toNumber(a["守備機会"]))[0];
+      const topInterleagueBatter = interleague.batters
+        .filter((row) => row["チーム"] === team && D.toNumber(row["打数"]) >= 8)
+        .sort((a, b) => D.toNumber(b["交流戦スコア"]) - D.toNumber(a["交流戦スコア"]))[0];
+      const topInterleaguePitcher = interleague.pitchers
+        .filter((row) => row["チーム"] === team && D.toNumber(row["投球アウト数"]) >= 6)
+        .sort((a, b) => D.toNumber(b["交流戦スコア"]) - D.toNumber(a["交流戦スコア"]))[0];
       const batterCount = data.batters.filter((row) => row["チーム"] === team).length;
       const pitcherCount = data.pitchers.filter((row) => row["チーム"] === team).length;
       const fieldingCount = fieldingRows.filter((row) => row["チーム"] === team).length;
+      const interleagueCount = interleague.batters.filter((row) => row["チーム"] === team && D.toNumber(row["打数"]) >= 8).length + interleague.pitchers.filter((row) => row["チーム"] === team && D.toNumber(row["投球アウト数"]) >= 6).length;
       const fieldingType = topFielding?.["ポジション"] === "投手" ? "pitcher" : "batter";
 
       return `
@@ -37,11 +44,14 @@
             <div><dt>投手</dt><dd>${metricLine(topPitcher, "pitcher", "投手総合スコア")}</dd></div>
             <div><dt>守備</dt><dd>${metricLine(topFielding, fieldingType, "守備評価")}</dd></div>
             <div><dt>若手</dt><dd>${metricLine(topYoung, "batter", "若手スコア")}</dd></div>
+            <div><dt>交流戦野手</dt><dd>${metricLine(topInterleagueBatter, "batter", "交流戦スコア")}</dd></div>
+            <div><dt>交流戦投手</dt><dd>${metricLine(topInterleaguePitcher, "pitcher", "交流戦スコア")}</dd></div>
           </dl>
           <div class="team-counts">
             <span>打者 ${batterCount}</span>
             <span>投手 ${pitcherCount}</span>
             <span>守備 ${fieldingCount}</span>
+            <span>交流戦 ${interleagueCount}</span>
           </div>
           <a class="text-link" href="${D.teamUrl(team)}">詳しく見る</a>
         </article>

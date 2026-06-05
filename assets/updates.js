@@ -10,6 +10,8 @@
     { label: "直近6日野手", path: "./data/recent_batter_6days.csv" },
     { label: "直近6日投手", path: "./data/recent_pitcher_6days.csv" },
     { label: "守備成績", path: "./data/fielding_summary.csv" },
+    { label: "交流戦野手", path: "./data/interleague_batters.csv" },
+    { label: "交流戦投手", path: "./data/interleague_pitchers.csv" },
   ];
 
   const rowsEl = document.getElementById("updateRows");

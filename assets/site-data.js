@@ -10,6 +10,8 @@
     recentBatters: "./data/recent_batter_6days.csv",
     recentPitchers: "./data/recent_pitcher_6days.csv",
     fielding: "./data/fielding_summary.csv",
+    interleagueBatters: "./data/interleague_batters.csv",
+    interleaguePitchers: "./data/interleague_pitchers.csv",
   };
 
   const TEAM_TO_FULL = {
@@ -45,18 +47,18 @@
     "日本ハム": "fighters",
   };
   const TEAM_PROFILES = {
-    "巨人": "読売ジャイアンツの打者、投手、守備、若手をまとめて確認できます。伝統あるチームの主力と新しい注目選手を、成績ランキングから探せます。",
-    "阪神": "阪神タイガースの打者、投手、守備、若手をまとめて確認できます。投手力や守備面の強みと、打線の注目選手をあわせて見られます。",
-    "DeNA": "横浜DeNAベイスターズの打者、投手、守備、若手をまとめて確認できます。長打力、出塁、投手成績、守備評価を並べて注目選手を探せます。",
-    "広島": "広島東洋カープの打者、投手、守備、若手をまとめて確認できます。機動力、守備、投手成績、若手の伸びしろをデータから追えます。",
-    "ヤクルト": "東京ヤクルトスワローズの打者、投手、守備、若手をまとめて確認できます。打撃の強みと投手・守備の注目ポイントを一緒に見られます。",
-    "中日": "中日ドラゴンズの打者、投手、守備、若手をまとめて確認できます。投手力、守備評価、若手野手の現在地をデータで整理しています。",
-    "オリックス": "オリックス・バファローズの打者、投手、守備、若手をまとめて確認できます。投手成績、守備、若手の注目度をチーム内で比べられます。",
-    "ソフトバンク": "福岡ソフトバンクホークスの打者、投手、守備、若手をまとめて確認できます。選手層の厚さを、打撃・投球・守備の各ランキングから見られます。",
-    "ロッテ": "千葉ロッテマリーンズの打者、投手、守備、若手をまとめて確認できます。投手成績、走攻守のバランス、直近で状態の良い選手を探せます。",
-    "楽天": "東北楽天ゴールデンイーグルスの打者、投手、守備、若手をまとめて確認できます。打線のつながり、投手成績、守備評価をチーム内で比べられます。",
-    "西武": "埼玉西武ライオンズの打者、投手、守備、若手をまとめて確認できます。若手の台頭、打撃成績、守備面の注目選手を探しやすくしています。",
-    "日本ハム": "北海道日本ハムファイターズの打者、投手、守備、若手をまとめて確認できます。若手、機動力、投手成績、守備評価の注目ポイントを追えます。",
+    "巨人": "読売ジャイアンツの打者、投手、守備、若手、交流戦をまとめて確認できます。伝統あるチームの主力と新しい注目選手を、成績ランキングから探せます。",
+    "阪神": "阪神タイガースの打者、投手、守備、若手、交流戦をまとめて確認できます。投手力や守備面の強みと、打線の注目選手をあわせて見られます。",
+    "DeNA": "横浜DeNAベイスターズの打者、投手、守備、若手、交流戦をまとめて確認できます。長打力、出塁、投手成績、守備評価を並べて注目選手を探せます。",
+    "広島": "広島東洋カープの打者、投手、守備、若手、交流戦をまとめて確認できます。機動力、守備、投手成績、若手の伸びしろをデータから追えます。",
+    "ヤクルト": "東京ヤクルトスワローズの打者、投手、守備、若手、交流戦をまとめて確認できます。打撃の強みと投手・守備の注目ポイントを一緒に見られます。",
+    "中日": "中日ドラゴンズの打者、投手、守備、若手、交流戦をまとめて確認できます。投手力、守備評価、若手野手の現在地をデータで整理しています。",
+    "オリックス": "オリックス・バファローズの打者、投手、守備、若手、交流戦をまとめて確認できます。投手成績、守備、若手の注目度をチーム内で比べられます。",
+    "ソフトバンク": "福岡ソフトバンクホークスの打者、投手、守備、若手、交流戦をまとめて確認できます。選手層の厚さを、打撃・投球・守備の各ランキングから見られます。",
+    "ロッテ": "千葉ロッテマリーンズの打者、投手、守備、若手、交流戦をまとめて確認できます。投手成績、走攻守のバランス、直近で状態の良い選手を探せます。",
+    "楽天": "東北楽天ゴールデンイーグルスの打者、投手、守備、若手、交流戦をまとめて確認できます。打線のつながり、投手成績、守備評価をチーム内で比べられます。",
+    "西武": "埼玉西武ライオンズの打者、投手、守備、若手、交流戦をまとめて確認できます。若手の台頭、打撃成績、守備面の注目選手を探しやすくしています。",
+    "日本ハム": "北海道日本ハムファイターズの打者、投手、守備、若手、交流戦をまとめて確認できます。若手、機動力、投手成績、守備評価の注目ポイントを追えます。",
   };
   const START_POSITIONS = [
     { key: "(投)", label: "投手", type: "pitcher" },
@@ -297,6 +299,13 @@
     return Math.round(value * 1000) / 1000;
   }
 
+  function inningsFromOuts(value) {
+    const outs = toInt(value);
+    const whole = Math.floor(outs / 3);
+    const rest = outs % 3;
+    return rest ? `${whole}.${rest}` : String(whole);
+  }
+
   function splitBatterScore(row, side) {
     const avg = toNumber(row[`${side}打率`]);
     const ab = toInt(row[`${side}打数`]);
@@ -424,6 +433,51 @@
     return normalizeInsightRows(rows).map((row) => ({ ...row, 直近スコア: recentPitcherScore(row), 投球回_直近: round3(toInt(row["投球アウト数"]) / 3) }));
   }
 
+  function interleagueBatterScore(row) {
+    const ab = toInt(row["打数"]);
+    const ops = toNumber(row["OPS"]);
+    const iso = toNumber(row["ISO"]);
+    const hits = toInt(row["安打"]);
+    const doubles = toInt(row["二塁打"]);
+    const triples = toInt(row["三塁打"]);
+    const hr = toInt(row["本塁打"]);
+    const rbi = toInt(row["打点"]);
+    const runs = toInt(row["得点"]);
+    const walks = toInt(row["四球"]);
+    const strikeouts = toInt(row["三振"]);
+    const steals = toInt(row["盗塁"]);
+    const errors = toInt(row["失策"]);
+    const reliability = ab > 0 ? Math.min(1, ab / 22) : 0;
+    return round1(ops * 460 * reliability + iso * 180 * reliability + hits * 3 + doubles * 2.4 + triples * 4 + hr * 15 + rbi * 2.2 + runs * 1.5 + walks * 1.2 + steals * 2.5 - strikeouts * 0.4 - errors * 0.8 + Math.min(ab, 50) * 0.35);
+  }
+
+  function interleaguePitcherScore(row) {
+    const outs = toInt(row["投球アウト数"]);
+    const ip = outs / 3;
+    const era = toNumber(row["防御率"], 9.99);
+    const whip = toNumber(row["WHIP"], 3);
+    const strikeouts = toInt(row["奪三振"]);
+    const walks = toInt(row["与四球"]);
+    const hitByPitch = toInt(row["与死球"]);
+    const hits = toInt(row["被安打"]);
+    const hr = toInt(row["被本塁打"]);
+    const earnedRuns = toInt(row["自責点"]);
+    const reliability = outs > 0 ? Math.min(1, outs / 18) : 0;
+    return round1(Math.max(0, 5 - era) * 18 * reliability + Math.max(0, 1.8 - whip) * 18 * reliability + ip * 6 + strikeouts * 3.2 - walks * 1.8 - hitByPitch - hits * 0.6 - hr * 5 - earnedRuns * 3.5);
+  }
+
+  function addInterleagueBatterScores(rows) {
+    return normalizeInsightRows(rows)
+      .map((row) => ({ ...row, 交流戦スコア: interleagueBatterScore(row) }))
+      .filter((row) => row["選手名"] && row["チーム"]);
+  }
+
+  function addInterleaguePitcherScores(rows) {
+    return normalizeInsightRows(rows)
+      .map((row) => ({ ...row, 交流戦スコア: interleaguePitcherScore(row), 投球回_交流戦: inningsFromOuts(row["投球アウト数"]) }))
+      .filter((row) => row["選手名"] && row["チーム"]);
+  }
+
   function fieldingScore(row) {
     const position = row["ポジション"];
     const games = toInt(row["試合"]);
@@ -543,7 +597,7 @@
       full,
       league: leagueOfTeam(team),
       slug: TEAM_SLUGS[team] || "",
-      description: TEAM_PROFILES[team] || `${full}の打者、投手、守備、若手をまとめて確認できます。`,
+      description: TEAM_PROFILES[team] || `${full}の打者、投手、守備、若手、交流戦をまとめて確認できます。`,
     };
   }
 
@@ -600,6 +654,17 @@
     return addFieldingMetrics(rows);
   }
 
+  async function loadInterleagueData() {
+    const [batterRows, pitcherRows] = await Promise.all([
+      loadCsv(dataPath(DATA_FILES.interleagueBatters), true),
+      loadCsv(dataPath(DATA_FILES.interleaguePitchers), true),
+    ]);
+    return {
+      batters: addInterleagueBatterScores(batterRows),
+      pitchers: addInterleaguePitcherScores(pitcherRows),
+    };
+  }
+
   window.PlayerLensData = {
     RANKINGS,
     START_POSITIONS,
@@ -608,10 +673,12 @@
     TEAM_SLUGS,
     escapeHtml,
     formatValue,
+    inningsFromOuts,
     enhanceCompactTables,
     loadData,
     loadFieldingData,
     loadInsightData,
+    loadInterleagueData,
     playerKey,
     playerUrl,
     rankRows,

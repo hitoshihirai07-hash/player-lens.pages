@@ -12,6 +12,8 @@
     { label: "直近6日野手", path: "./data/recent_batter_6days.csv" },
     { label: "直近6日投手", path: "./data/recent_pitcher_6days.csv" },
     { label: "守備成績", path: "./data/fielding_summary.csv" },
+    { label: "交流戦野手", path: "./data/interleague_batters.csv" },
+    { label: "交流戦投手", path: "./data/interleague_pitchers.csv" },
   ];
 
   const D = window.PlayerLensData;
@@ -37,6 +39,7 @@
   let loadedData = null;
   let loadedInsight = null;
   let loadedFielding = [];
+  let loadedInterleague = { batters: [], pitchers: [] };
   let fileReports = [];
   let batterMap = new Map();
   let pitcherMap = new Map();
@@ -153,6 +156,15 @@
       .slice(0, limit);
   }
 
+  function rowsForInterleague(type, league, limit = 5) {
+    const rows = type === "pitcher" ? loadedInterleague.pitchers : loadedInterleague.batters;
+    return rows
+      .filter((row) => league === "all" || row["リーグ"] === league)
+      .filter((row) => type === "pitcher" ? D.toNumber(row["投球アウト数"]) >= 6 : D.toNumber(row["打数"]) >= 8)
+      .sort((a, b) => D.toNumber(b["交流戦スコア"]) - D.toNumber(a["交流戦スコア"]))
+      .slice(0, limit);
+  }
+
   function rowsForCaughtStealing(league, limit = 5) {
     return loadedFielding
       .filter((row) => row["ポジション"] === "捕手" && row["盗塁阻止率"] !== "")
@@ -170,6 +182,7 @@
       ["投手", loadedData.pitchers.length],
       ["規定到達", qualifiedBatters + qualifiedPitchers],
       ["守備記録", loadedFielding.length],
+      ["交流戦対象", rowsForInterleague("batter", "all", 999).length + rowsForInterleague("pitcher", "all", 999).length],
       ["最新更新日", latest],
     ];
     els.summary.innerHTML = items.map(([label, value]) => `<article class="summary-card"><span>${D.escapeHtml(label)}</span><strong>${D.escapeHtml(value)}</strong></article>`).join("");
@@ -207,6 +220,11 @@
       title = type === "pitcher" ? "直近6日 投手トップ5" : "直近6日 野手トップ5";
       lines = rowsForRecent(type, league, 5).map((row, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}/${row["ポジション"]}）${D.formatValue(row["直近スコア"], "スコア")}`);
       url = `${SITE_URL}insights.html`;
+    } else if (theme === "interleague-batter" || theme === "interleague-pitcher") {
+      const type = theme === "interleague-pitcher" ? "pitcher" : "batter";
+      title = type === "pitcher" ? "交流戦 投手トップ5" : "交流戦 野手トップ5";
+      lines = rowsForInterleague(type, league, 5).map((row, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}/${row["ポジション"]}）${D.formatValue(row["交流戦スコア"], "スコア")}`);
+      url = `${SITE_URL}interleague.html`;
     } else if (theme === "rookie-batter" || theme === "rookie-pitcher") {
       const type = theme === "rookie-pitcher" ? "pitcher" : "batter";
       title = type === "pitcher" ? "新人王候補 投手トップ5" : "新人王候補 野手トップ5";
@@ -251,6 +269,7 @@
     const pitcherQualified = rowsForRanking("pitcher", "pitcher-qualified", "all", 999).length;
     const splitRows = loadedData.batters.filter((row) => row["対右打率"] || row["対左打率"]).length + loadedData.pitchers.filter((row) => row["対右被打率"] || row["対左被打率"]).length;
     const fieldingRows = loadedFielding.length;
+    const interleagueRows = loadedInterleague.batters.length + loadedInterleague.pitchers.length;
 
     checks.push(["ファイル読込", failedFiles === 0, failedFiles === 0 ? "全ファイルを読み込めています。" : `${failedFiles}件の読込に失敗しています。`]);
     checks.push(["球団数", teams.size === 12, `${teams.size}球団を認識しています。`]);
@@ -259,6 +278,7 @@
     checks.push(["規定到達", batterQualified > 0 && pitcherQualified > 0, `規定打席 ${batterQualified}人 / 規定投球回 ${pitcherQualified}人`]);
     checks.push(["左右成績", splitRows > 0, `${splitRows}件に左右別データがあります。`]);
     checks.push(["守備成績", fieldingRows > 0, `${fieldingRows}件の守備記録があります。`]);
+    checks.push(["交流戦成績", interleagueRows > 0, `${interleagueRows}件の交流戦記録があります。`]);
 
     els.checkList.innerHTML = checks.map(([title, ok, message]) => `
       <div class="check-item ${ok ? "is-ok" : "is-warn"}">
@@ -285,6 +305,8 @@
       ["直近投手", rowsForRecent("pitcher", "all", 1)[0], "直近スコア"],
       ["新人王候補野手", rowsForRookies("batter", "all", 1)[0], "打者総合スコア"],
       ["新人王候補投手", rowsForRookies("pitcher", "all", 1)[0], "投手総合スコア"],
+      ["交流戦野手", rowsForInterleague("batter", "all", 1)[0], "交流戦スコア"],
+      ["交流戦投手", rowsForInterleague("pitcher", "all", 1)[0], "交流戦スコア"],
       ["守備評価", rowsForFielding("all", 1)[0], "守備評価"],
     ].map(([label, item, key]) => {
       if (!item) return "";
@@ -297,10 +319,11 @@
 
   async function loadAdmin() {
     els.updateRows.innerHTML = `<tr><td colspan="4">読込中</td></tr>`;
-    [loadedData, loadedInsight, loadedFielding, fileReports] = await Promise.all([
+    [loadedData, loadedInsight, loadedFielding, loadedInterleague, fileReports] = await Promise.all([
       D.loadData(),
       D.loadInsightData(),
       D.loadFieldingData(),
+      D.loadInterleagueData(),
       Promise.all(FILES.map(fetchReport)),
     ]);
     batterMap = new Map(loadedData.batters.map((row) => [D.playerKey(row), row]));
