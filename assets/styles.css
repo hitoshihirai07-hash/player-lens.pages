@@ -781,6 +781,61 @@ input {
   font-weight: 700;
 }
 
+.watch-section {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.watch-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.watch-card {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.watch-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.watch-metrics div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.watch-metrics dt {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.watch-metrics dd {
+  margin: 0;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
 .admin-panel {
   display: grid;
   gap: 16px;
@@ -1256,6 +1311,7 @@ tbody tr.is-selected {
   .team-highlight-grid,
   .article-grid,
   .resource-grid,
+  .watch-grid,
   .insight-grid {
     grid-template-columns: 1fr;
   }
@@ -1375,6 +1431,10 @@ tbody tr.is-selected {
   }
 
   .ranking-card-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .watch-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

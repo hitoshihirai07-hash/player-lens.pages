@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="2026年プロ野球の相手球団別に、警戒したい野手・投手・交流戦注目・直近好調選手を既存データから確認できます。">
+  <title>対戦相手別 警戒選手 | Player Lens</title>
+  <link rel="canonical" href="https://player-lens-pages.pages.dev/opponent-watch">
+  <link rel="icon" href="./assets/player-lens-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/styles.css">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"対戦相手別 警戒選手 | Player Lens","url":"https://player-lens-pages.pages.dev/opponent-watch","description":"相手球団別に警戒したい野手、投手、交流戦注目、直近好調選手を確認できるページです。","isPartOf":{"@type":"WebSite","name":"Player Lens","url":"https://player-lens-pages.pages.dev/"}}</script>
+</head>
+<body>
+  <header class="page-header">
+    <a class="brand-mini" href="./index.html"><img src="./assets/player-lens-icon.svg" alt="">Player Lens</a>
+    <h1>対戦相手別 警戒選手</h1>
+    <p>相手球団を選ぶと、今季成績、交流戦、直近の動きから警戒したい選手をまとめて確認できます。</p>
+  </header>
+  <nav class="site-nav" aria-label="サイト内メニュー">
+    <a href="./index.html">ランキング</a>
+    <a href="./teams.html">チーム別</a>
+    <a href="./insights.html">注目データ</a>
+    <a href="./defense.html">守備</a>
+    <a href="./articles">読み物</a>
+    <a href="./guide.html">見方</a>
+    <a href="./updates.html">更新履歴</a>
+    <a href="./resources.html">楽しみ方</a>
+    <a href="./about.html">このサイトについて</a>
+  </nav>
+  <main class="content-shell">
+    <section class="intro-band">
+      <div>
+        <p class="eyebrow">Opponent Watch</p>
+        <h2>次の相手で、数字上目立つ選手を先に見る</h2>
+        <p>通算の上位だけでなく、交流戦や直近で評価が高い選手も並べることで、試合前に注目したい相手選手を探しやすくしています。</p>
+      </div>
+      <a class="text-link" href="./guide.html">スコアの見方</a>
+    </section>
+
+    <section class="control-band" aria-label="相手球団の選択">
+      <div class="filters">
+        <label>
+          <span>リーグ</span>
+          <select id="opponentLeague">
+            <option value="all">全リーグ</option>
+            <option value="セ">セ・リーグ</option>
+            <option value="パ">パ・リーグ</option>
+          </select>
+        </label>
+        <label>
+          <span>相手球団</span>
+          <select id="opponentTeam"></select>
+        </label>
+      </div>
+    </section>
+
+    <section class="summary-grid" id="opponentSummary" aria-label="相手球団サマリー"></section>
+
+    <section class="watch-section">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Batters</p>
+          <h2>警戒野手</h2>
+        </div>
+        <a href="./index.html">全体ランキング</a>
+      </div>
+      <div class="watch-grid" id="opponentBatters"></div>
+    </section>
+
+    <section class="watch-section">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Pitchers</p>
+          <h2>警戒投手</h2>
+        </div>
+        <a href="./index.html">全体ランキング</a>
+      </div>
+      <div class="watch-grid" id="opponentPitchers"></div>
+    </section>
+
+    <section class="watch-section">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Interleague</p>
+          <h2>交流戦で目立つ選手</h2>
+        </div>
+        <a href="./interleague.html">交流戦ランキング</a>
+      </div>
+      <div class="watch-grid" id="opponentInterleague"></div>
+    </section>
+
+    <section class="watch-section">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Recent Form</p>
+          <h2>直近で状態が良い選手</h2>
+        </div>
+        <a href="./insights.html">注目データ</a>
+      </div>
+      <div class="watch-grid" id="opponentRecent"></div>
+    </section>
+
+    <section class="content-card">
+      <h2>あわせて見る</h2>
+      <div class="resource-grid">
+        <a href="./teams.html">球団別ランキング</a>
+        <a href="./interleague.html">交流戦ランキング</a>
+        <a href="./recent-form.html">直近6日間ランキング</a>
+        <a href="./stats-basics.html">野球成績の基礎知識</a>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <a href="./index.html">ランキング</a>
+    <a href="./teams.html">チーム別</a>
+    <a href="./insights.html">注目データ</a>
+    <a href="./articles">読み物</a>
+    <a href="./privacy.html">プライバシーポリシー</a>
+    <a href="./disclaimer.html">免責事項</a>
+    <a href="./contact.html">お問い合わせ</a>
+  </footer>
+  <script src="./assets/site-data.js"></script>
+  <script src="./assets/opponent-watch.js"></script>
+</body>
+</html>

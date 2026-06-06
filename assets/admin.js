@@ -15,6 +15,23 @@
     { label: "交流戦野手", path: "./data/interleague_batters.csv" },
     { label: "交流戦投手", path: "./data/interleague_pitchers.csv" },
   ];
+  const SITE_CHECK_PAGES = [
+    ["トップ", "./index.html", "https://player-lens-pages.pages.dev/"],
+    ["チーム別", "./teams.html", "https://player-lens-pages.pages.dev/teams"],
+    ["注目データ", "./insights.html", "https://player-lens-pages.pages.dev/insights"],
+    ["守備", "./defense.html", "https://player-lens-pages.pages.dev/defense"],
+    ["交流戦", "./interleague.html", "https://player-lens-pages.pages.dev/interleague"],
+    ["対戦相手別", "./opponent-watch.html", "https://player-lens-pages.pages.dev/opponent-watch"],
+    ["読み物", "./articles.html", "https://player-lens-pages.pages.dev/articles"],
+    ["見方", "./guide.html", "https://player-lens-pages.pages.dev/guide"],
+    ["基礎知識", "./stats-basics.html", "https://player-lens-pages.pages.dev/stats-basics"],
+    ["更新履歴", "./updates.html", "https://player-lens-pages.pages.dev/updates"],
+    ["楽しみ方", "./resources.html", "https://player-lens-pages.pages.dev/resources"],
+    ["このサイトについて", "./about.html", "https://player-lens-pages.pages.dev/about"],
+    ["プライバシー", "./privacy.html", "https://player-lens-pages.pages.dev/privacy"],
+    ["免責事項", "./disclaimer.html", "https://player-lens-pages.pages.dev/disclaimer"],
+    ["お問い合わせ", "./contact.html", "https://player-lens-pages.pages.dev/contact"],
+  ];
 
   const D = window.PlayerLensData;
   const els = {
@@ -34,6 +51,7 @@
     copyTweet: document.getElementById("copyTweet"),
     copyMessage: document.getElementById("copyMessage"),
     checkList: document.getElementById("checkList"),
+    monetizationChecks: document.getElementById("monetizationChecks"),
     postCandidates: document.getElementById("postCandidates"),
   };
 
@@ -99,6 +117,11 @@
       dataDate: dates.at(-1) || "",
       servedAt: response.headers.get("last-modified") || "",
     };
+  }
+
+  async function fetchText(path) {
+    const response = await fetch(path, { cache: "no-store" });
+    return { ok: response.ok, text: response.ok ? await response.text() : "" };
   }
 
   function formatDate(value) {
@@ -313,6 +336,47 @@
     `).join("");
   }
 
+  async function renderMonetizationChecks() {
+    els.monetizationChecks.innerHTML = `<div class="check-item"><strong>確認中</strong><span>主要ページを確認しています。</span></div>`;
+    const pageResults = await Promise.all(SITE_CHECK_PAGES.map(async ([label, path, canonical]) => {
+      const result = await fetchText(path);
+      return {
+        label,
+        path,
+        canonical,
+        ...result,
+        hasCanonical: result.text.includes(`<link rel="canonical" href="${canonical}">`),
+        hasStructuredData: result.text.includes('application/ld+json'),
+      };
+    }));
+    const privacy = pageResults.find((page) => page.path === "./privacy.html");
+    const sitemap = await fetchText("./sitemap.xml");
+    const adminPage = await fetchText("./admin.html");
+    const sitemapLocs = [...sitemap.text.matchAll(/<loc>(.*?)<\/loc>/g)].map((match) => match[1]);
+    const sitemapSet = new Set(sitemapLocs);
+    const duplicatedLocs = sitemapLocs.filter((loc, index) => sitemapLocs.indexOf(loc) !== index);
+    const missingCanonical = pageResults.filter((page) => !page.hasCanonical);
+    const missingStructured = pageResults.filter((page) => !page.hasStructuredData);
+    const missingSitemap = pageResults
+      .map((page) => page.canonical)
+      .filter((canonical) => !sitemapSet.has(canonical));
+    const privacyReady = privacy?.text.includes("Google") && privacy.text.includes("Cookie") && privacy.text.includes("広告設定");
+    const checks = [
+      ["プライバシーポリシー", privacyReady, privacyReady ? "Google広告Cookieと広告設定への案内があります。" : "Google広告Cookieと広告設定の記載を確認してください。"],
+      ["canonical", missingCanonical.length === 0, missingCanonical.length === 0 ? "主要ページにcanonicalがあります。" : `${missingCanonical.map((page) => page.label).join("、")}を確認してください。`],
+      ["構造化データ", missingStructured.length === 0, missingStructured.length === 0 ? "主要ページに構造化データがあります。" : `${missingStructured.map((page) => page.label).join("、")}を確認してください。`],
+      ["sitemap", sitemap.ok && missingSitemap.length === 0 && duplicatedLocs.length === 0, sitemap.ok && missingSitemap.length === 0 && duplicatedLocs.length === 0 ? "主要ページがsitemapに入り、重複はありません。" : "sitemapのURLまたは重複を確認してください。"],
+      ["管理者ページ", adminPage.text.includes('name="robots" content="noindex,nofollow"'), adminPage.text.includes('name="robots" content="noindex,nofollow"') ? "管理者ページはnoindexです。" : "管理者ページのnoindexを確認してください。"],
+    ];
+
+    els.monetizationChecks.innerHTML = checks.map(([title, ok, message]) => `
+      <div class="check-item ${ok ? "is-ok" : "is-warn"}">
+        <strong>${D.escapeHtml(title)}</strong>
+        <span>${D.escapeHtml(message)}</span>
+      </div>
+    `).join("");
+  }
+
   function renderCandidates() {
     const candidates = [
       ["打者総合", "batter", "batter-overall", "打者総合スコア"],
@@ -357,6 +421,7 @@
     renderSummary();
     renderUpdateRows();
     renderChecks();
+    await renderMonetizationChecks();
     renderCandidates();
     buildTweet();
   }
