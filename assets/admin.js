@@ -27,6 +27,7 @@
     updateRows: document.getElementById("updateRows"),
     reload: document.getElementById("reloadAdmin"),
     tweetLeague: document.getElementById("tweetLeague"),
+    tweetTeam: document.getElementById("tweetTeam"),
     tweetTheme: document.getElementById("tweetTheme"),
     tweetOutput: document.getElementById("tweetOutput"),
     buildTweet: document.getElementById("buildTweet"),
@@ -107,11 +108,25 @@
     return date.toLocaleString("ja-JP");
   }
 
-  function rowsForRanking(type, rankingId, league, limit = 3) {
+  function inTweetScope(row, league, team = "all") {
+    return (league === "all" || row["リーグ"] === league) && (team === "all" || row["チーム"] === team);
+  }
+
+  function teamPageUrl(team) {
+    const slug = D.TEAM_SLUGS[team];
+    return slug ? `${SITE_URL}teams/${slug}` : `${SITE_URL}team.html?team=${encodeURIComponent(team)}`;
+  }
+
+  function scopedPageUrl(page, team = "all") {
+    if (team === "all") return `${SITE_URL}${page}`;
+    return `${SITE_URL}${page}?team=${encodeURIComponent(team)}`;
+  }
+
+  function rowsForRanking(type, rankingId, league, limit = 5, team = "all") {
     const ranking = D.RANKINGS.find((item) => item.id === rankingId);
     const rows = type === "pitcher" ? loadedData.pitchers : loadedData.batters;
     return rows
-      .filter((row) => league === "all" || row["リーグ"] === league)
+      .filter((row) => inTweetScope(row, league, team))
       .filter((row) => D.toNumber(row[ranking.minKey]) >= ranking.minValue)
       .filter((row) => !ranking.filter || ranking.filter(row))
       .sort((a, b) => D.toNumber(b[ranking.scoreKey]) - D.toNumber(a[ranking.scoreKey]))
@@ -130,45 +145,45 @@
     return type === "pitcher" ? "投手総合スコア" : "打者総合スコア";
   }
 
-  function rowsForRecent(type, league, limit = 5) {
+  function rowsForRecent(type, league, limit = 5, team = "all") {
     const rows = type === "pitcher" ? loadedInsight.recentPitchers : loadedInsight.recentBatters;
     return rows
-      .filter((row) => league === "all" || row["リーグ"] === league)
+      .filter((row) => inTweetScope(row, league, team))
       .filter((row) => type === "pitcher" ? D.toNumber(row["投球アウト数"]) >= 3 : D.toNumber(row["打数"]) >= 4)
       .sort((a, b) => D.toNumber(b["直近スコア"]) - D.toNumber(a["直近スコア"]))
       .slice(0, limit);
   }
 
-  function rowsForRookies(type, league, limit = 5) {
+  function rowsForRookies(type, league, limit = 5, team = "all") {
     return loadedInsight.rookies
       .filter((row) => rowType(row) === type)
-      .filter((row) => league === "all" || row["リーグ"] === league)
+      .filter((row) => inTweetScope(row, league, team))
       .map((row) => ({ row, season: seasonRow(row, type) }))
       .filter((item) => item.season)
       .sort((a, b) => D.toNumber(b.season[scoreKey(type)]) - D.toNumber(a.season[scoreKey(type)]))
       .slice(0, limit);
   }
 
-  function rowsForFielding(league, limit = 5) {
+  function rowsForFielding(league, limit = 5, team = "all") {
     return loadedFielding
-      .filter((row) => league === "all" || row["リーグ"] === league)
+      .filter((row) => inTweetScope(row, league, team))
       .sort((a, b) => D.toNumber(b["守備評価"]) - D.toNumber(a["守備評価"]) || D.toNumber(b["守備機会"]) - D.toNumber(a["守備機会"]))
       .slice(0, limit);
   }
 
-  function rowsForInterleague(type, league, limit = 5) {
+  function rowsForInterleague(type, league, limit = 5, team = "all") {
     const rows = type === "pitcher" ? loadedInterleague.pitchers : loadedInterleague.batters;
     return rows
-      .filter((row) => league === "all" || row["リーグ"] === league)
+      .filter((row) => inTweetScope(row, league, team))
       .filter((row) => type === "pitcher" ? D.toNumber(row["投球アウト数"]) >= 6 : D.toNumber(row["打数"]) >= 8)
       .sort((a, b) => D.toNumber(b["交流戦スコア"]) - D.toNumber(a["交流戦スコア"]))
       .slice(0, limit);
   }
 
-  function rowsForCaughtStealing(league, limit = 5) {
+  function rowsForCaughtStealing(league, limit = 5, team = "all") {
     return loadedFielding
       .filter((row) => row["ポジション"] === "捕手" && row["盗塁阻止率"] !== "")
-      .filter((row) => league === "all" || row["リーグ"] === league)
+      .filter((row) => inTweetScope(row, league, team))
       .sort((a, b) => D.toNumber(b["盗塁阻止率"]) - D.toNumber(a["盗塁阻止率"]) || D.toNumber(b["試合"]) - D.toNumber(a["試合"]))
       .slice(0, limit);
   }
@@ -199,16 +214,25 @@
     `).join("");
   }
 
+  function renderTweetTeams() {
+    const league = els.tweetLeague.value;
+    const current = els.tweetTeam.value;
+    const teams = Object.keys(D.TEAM_TO_FULL).filter((team) => league === "all" || D.leagueOfTeam(team) === league);
+    els.tweetTeam.innerHTML = `<option value="all">全チーム</option>${teams.map((team) => `<option value="${D.escapeHtml(team)}">${D.escapeHtml(team)}</option>`).join("")}`;
+    els.tweetTeam.value = teams.includes(current) ? current : "all";
+  }
+
   function buildTweet() {
     const league = els.tweetLeague.value;
-    const leagueText = league === "all" ? "全体" : `${league}・リーグ`;
+    const team = els.tweetTeam.value;
+    const scopeText = team !== "all" ? team : league === "all" ? "全体" : `${league}・リーグ`;
     const theme = els.tweetTheme.value;
     const map = {
-      batter: ["batter", "batter-overall", "打者総合トップ3", "打者総合スコア"],
-      pitcher: ["pitcher", "pitcher-overall", "投手総合トップ3", "投手総合スコア"],
-      "qualified-batter": ["batter", "batter-qualified", "規定打席到達トップ3", "打者総合スコア"],
-      "qualified-pitcher": ["pitcher", "pitcher-qualified", "規定投球回到達トップ3", "投手総合スコア"],
-      young: ["batter", "batter-young", "若手打者トップ3", "若手スコア"],
+      batter: ["batter", "batter-overall", "打者総合トップ5", "打者総合スコア"],
+      pitcher: ["pitcher", "pitcher-overall", "投手総合トップ5", "投手総合スコア"],
+      "qualified-batter": ["batter", "batter-qualified", "規定打席到達トップ5", "打者総合スコア"],
+      "qualified-pitcher": ["pitcher", "pitcher-qualified", "規定投球回到達トップ5", "投手総合スコア"],
+      young: ["batter", "batter-young", "若手打者トップ5", "若手スコア"],
     };
 
     let title;
@@ -218,35 +242,36 @@
     if (theme === "recent-batter" || theme === "recent-pitcher") {
       const type = theme === "recent-pitcher" ? "pitcher" : "batter";
       title = type === "pitcher" ? "直近6日 投手トップ5" : "直近6日 野手トップ5";
-      lines = rowsForRecent(type, league, 5).map((row, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}/${row["ポジション"]}）${D.formatValue(row["直近スコア"], "スコア")}`);
-      url = `${SITE_URL}insights.html`;
+      lines = rowsForRecent(type, league, 5, team).map((row, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}/${row["ポジション"]}）${D.formatValue(row["直近スコア"], "スコア")}`);
+      url = scopedPageUrl("insights.html", team);
     } else if (theme === "interleague-batter" || theme === "interleague-pitcher") {
       const type = theme === "interleague-pitcher" ? "pitcher" : "batter";
       title = type === "pitcher" ? "交流戦 投手トップ5" : "交流戦 野手トップ5";
-      lines = rowsForInterleague(type, league, 5).map((row, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}/${row["ポジション"]}）${D.formatValue(row["交流戦スコア"], "スコア")}`);
-      url = `${SITE_URL}interleague.html`;
+      lines = rowsForInterleague(type, league, 5, team).map((row, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}/${row["ポジション"]}）${D.formatValue(row["交流戦スコア"], "スコア")}`);
+      url = scopedPageUrl("interleague.html", team);
     } else if (theme === "rookie-batter" || theme === "rookie-pitcher") {
       const type = theme === "rookie-pitcher" ? "pitcher" : "batter";
       title = type === "pitcher" ? "新人王候補 投手トップ5" : "新人王候補 野手トップ5";
-      lines = rowsForRookies(type, league, 5).map(({ row, season }, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}/${row["ポジション"]}）${D.formatValue(season[scoreKey(type)], "スコア")}`);
-      url = `${SITE_URL}insights.html`;
+      lines = rowsForRookies(type, league, 5, team).map(({ row, season }, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}/${row["ポジション"]}）${D.formatValue(season[scoreKey(type)], "スコア")}`);
+      url = scopedPageUrl("insights.html", team);
     } else if (theme === "fielding") {
       title = "守備評価トップ5";
-      lines = rowsForFielding(league, 5).map((row, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}/${row["ポジション"]}）${D.formatValue(row["守備評価"], "スコア")}`);
-      url = `${SITE_URL}defense.html`;
+      lines = rowsForFielding(league, 5, team).map((row, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}/${row["ポジション"]}）${D.formatValue(row["守備評価"], "スコア")}`);
+      url = scopedPageUrl("defense.html", team);
     } else if (theme === "catcher-caught") {
       title = "捕手盗塁阻止トップ5";
-      lines = rowsForCaughtStealing(league, 5).map((row, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}）${D.formatValue(row["盗塁阻止率"], "盗塁阻止率")} / ${row["試合"]}試合`);
-      url = `${SITE_URL}defense.html`;
+      lines = rowsForCaughtStealing(league, 5, team).map((row, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}）${D.formatValue(row["盗塁阻止率"], "盗塁阻止率")} / ${row["試合"]}試合`);
+      url = scopedPageUrl("defense.html", team);
     } else {
       const [type, rankingId, rankingTitle, rankingScoreKey] = map[theme];
       title = rankingTitle;
-      const rows = rowsForRanking(type, rankingId, league, 3);
+      const rows = rowsForRanking(type, rankingId, league, 5, team);
       lines = rows.map((row, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}）${D.formatValue(row[rankingScoreKey], "スコア")}`);
+      if (team !== "all") url = teamPageUrl(team);
     }
 
     els.tweetOutput.value = [
-      `【Player Lens】${leagueText} ${title}`,
+      `【Player Lens】${scopeText} ${title}`,
       ...lines,
       "",
       "プロ野球2026データランキング",
@@ -328,6 +353,7 @@
     ]);
     batterMap = new Map(loadedData.batters.map((row) => [D.playerKey(row), row]));
     pitcherMap = new Map(loadedData.pitchers.map((row) => [D.playerKey(row), row]));
+    renderTweetTeams();
     renderSummary();
     renderUpdateRows();
     renderChecks();
@@ -354,7 +380,11 @@
   els.reload.addEventListener("click", loadAdmin);
   els.buildTweet.addEventListener("click", buildTweet);
   els.copyTweet.addEventListener("click", copyTweet);
-  els.tweetLeague.addEventListener("change", buildTweet);
+  els.tweetLeague.addEventListener("change", () => {
+    renderTweetTeams();
+    buildTweet();
+  });
+  els.tweetTeam.addEventListener("change", buildTweet);
   els.tweetTheme.addEventListener("change", buildTweet);
 
   if (sessionStorage.getItem("playerLensAdmin") === "1") {
