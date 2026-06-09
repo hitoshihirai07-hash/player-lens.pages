@@ -1,6 +1,8 @@
 (async function () {
   const D = window.PlayerLensData;
   const grid = document.getElementById("teamGrid");
+  const totalsLeague = document.getElementById("teamTotalsLeague");
+  const totalsRanking = document.getElementById("teamTotalsRanking");
 
   function metricLine(row, type, scoreKey) {
     if (!row) return "該当なし";
@@ -8,13 +10,60 @@
     return `<a href="${D.playerUrl(row, type)}">${D.escapeHtml(row["選手名"])}</a><span>${score}</span>`;
   }
 
+  function renderTeamTotals(teamTotals) {
+    if (!totalsRanking) return;
+    const league = totalsLeague?.value || "all";
+    const rows = teamTotals
+      .filter((row) => league === "all" || row["リーグ"] === league)
+      .sort((a, b) => D.toNumber(b["総合評価"]) - D.toNumber(a["総合評価"]));
+    totalsRanking.innerHTML = rows.length ? `
+      <div class="compact-table-wrap">
+        <table class="compact-table">
+          <thead>
+            <tr>
+              <th>順位</th>
+              <th>チーム</th>
+              <th>打率</th>
+              <th>本塁打</th>
+              <th>打点</th>
+              <th>チーム防御率目安</th>
+              <th>打撃評価</th>
+              <th>投手評価</th>
+              <th>守備評価</th>
+              <th>総合評価</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((row, index) => `
+              <tr>
+                <td class="rank">${index + 1}</td>
+                <td><a href="${D.teamUrl(row["チーム"])}">${D.escapeHtml(row["チーム"])}</a></td>
+                <td>${D.formatValue(row["打率"], "打率")}</td>
+                <td>${D.escapeHtml(row["本塁打"])}</td>
+                <td>${D.escapeHtml(row["打点"])}</td>
+                <td>${D.formatValue(row["防御率目安"], "防御率目安")}</td>
+                <td class="score">${D.formatValue(row["打撃評価"], "スコア")}</td>
+                <td class="score">${D.formatValue(row["投手評価"], "スコア")}</td>
+                <td class="score">${D.formatValue(row["守備評価"], "スコア")}</td>
+                <td class="score">${D.formatValue(row["総合評価"], "スコア")}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    ` : `<p class="empty-state">該当データなし</p>`;
+    D.enhanceCompactTables(totalsRanking);
+  }
+
   try {
     const [data, fieldingRows, interleague] = await Promise.all([D.loadData(), D.loadFieldingData(), D.loadInterleagueData()]);
+    const teamTotals = D.buildTeamTotals(data, fieldingRows);
     const batterRanking = D.RANKINGS.find((ranking) => ranking.id === "batter-overall");
     const pitcherRanking = D.RANKINGS.find((ranking) => ranking.id === "pitcher-overall");
     const youngRanking = D.RANKINGS.find((ranking) => ranking.id === "batter-young");
 
     function teamCard(team) {
+      const teamTotal = teamTotals.find((row) => row["チーム"] === team);
       const topBatter = D.rankRows(data.batters, batterRanking, team, 1)[0];
       const topPitcher = D.rankRows(data.pitchers, pitcherRanking, team, 1)[0];
       const topYoung = D.rankRows(data.batters, youngRanking, team, 1)[0];
@@ -52,6 +101,7 @@
             <span>投手 ${pitcherCount}</span>
             <span>守備 ${fieldingCount}</span>
             <span>交流戦 ${interleagueCount}</span>
+            <span>総合評価 ${teamTotal ? D.formatValue(teamTotal["総合評価"], "スコア") : "-"}</span>
           </div>
           <a class="text-link" href="${D.teamUrl(team)}">詳しく見る</a>
         </article>
@@ -71,6 +121,8 @@
         <div class="team-grid">${pacificTeams.map(teamCard).join("")}</div>
       </section>
     `;
+    renderTeamTotals(teamTotals);
+    totalsLeague?.addEventListener("change", () => renderTeamTotals(teamTotals));
   } catch (error) {
     grid.innerHTML = `<article class="content-card">${D.escapeHtml(error.message)}</article>`;
   }

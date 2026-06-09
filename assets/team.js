@@ -166,6 +166,7 @@
     const batters = data.batters.filter((row) => row["チーム"] === team);
     const pitchers = data.pitchers.filter((row) => row["チーム"] === team);
     const fielding = fieldingRows.filter((row) => row["チーム"] === team);
+    const teamTotal = D.buildTeamTotals(data, fieldingRows).find((row) => row["チーム"] === team);
     const interleagueBatters = interleague.batters
       .filter((row) => row["チーム"] === team && D.toNumber(row["打数"]) >= 8)
       .sort((a, b) => D.toNumber(b["交流戦スコア"]) - D.toNumber(a["交流戦スコア"]))
@@ -183,11 +184,14 @@
     if (overviewText) overviewText.textContent = profile.description;
 
     summary.innerHTML = [
-      ["打者", batters.length],
-      ["投手", pitchers.length],
-      ["25歳以下", batters.concat(pitchers).filter((row) => D.toNumber(row["年齢"]) <= 25).length],
-      ["守備記録", fielding.length],
-      ["交流戦対象", interleagueBatters.length + interleaguePitchers.length],
+      ["チーム打率", D.formatValue(teamTotal?.["打率"], "打率")],
+      ["本塁打", teamTotal?.["本塁打"] ?? "-"],
+      ["打点", teamTotal?.["打点"] ?? "-"],
+      ["チーム防御率目安", D.formatValue(teamTotal?.["防御率目安"], "防御率目安")],
+      ["打撃評価", D.formatValue(teamTotal?.["打撃評価"], "スコア")],
+      ["投手評価", D.formatValue(teamTotal?.["投手評価"], "スコア")],
+      ["守備評価", D.formatValue(teamTotal?.["守備評価"], "スコア")],
+      ["総合評価", D.formatValue(teamTotal?.["総合評価"], "スコア")],
     ].map(([label, value]) => `<article class="summary-card"><span>${D.escapeHtml(label)}</span><strong>${value}</strong></article>`).join("");
 
     const byId = Object.fromEntries(D.RANKINGS.map((ranking) => [ranking.id, ranking]));

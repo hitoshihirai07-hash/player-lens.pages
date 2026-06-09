@@ -558,7 +558,7 @@
 
   function formatValue(value, column = "") {
     if (value === undefined || value === null || value === "") return "";
-    const rateColumns = new Set(["打率", "出塁率", "長打率", "OPS", "防御率", "勝率", "対右打率", "対左打率", "対右被打率", "対左被打率"]);
+    const rateColumns = new Set(["打率", "出塁率", "長打率", "OPS", "防御率", "防御率目安", "勝率", "対右打率", "対左打率", "対右被打率", "対左被打率"]);
     rateColumns.add("守備率");
     rateColumns.add("盗塁阻止率");
     if (rateColumns.has(column)) {
@@ -599,6 +599,36 @@
       slug: TEAM_SLUGS[team] || "",
       description: TEAM_PROFILES[team] || `${full}の打者、投手、守備、若手、交流戦をまとめて確認できます。`,
     };
+  }
+
+  function buildTeamTotals(data, fieldingRows = []) {
+    return data.teams.map((team) => {
+      const batters = data.batters.filter((row) => row["チーム"] === team);
+      const pitchers = data.pitchers.filter((row) => row["チーム"] === team);
+      const fielding = fieldingRows.filter((row) => row["チーム"] === team);
+      const atBats = batters.reduce((sum, row) => sum + toInt(row["対右打数"]) + toInt(row["対左打数"]), 0);
+      const hits = batters.reduce((sum, row) => sum + toInt(row["対右安打"]) + toInt(row["対左安打"]), 0);
+      const innings = pitchers.reduce((sum, row) => sum + toNumber(row["投球回_計算用"]), 0);
+      const earnedRunsEstimate = pitchers.reduce((sum, row) => sum + (toNumber(row["防御率"]) * toNumber(row["投球回_計算用"]) / 9), 0);
+      const battingScore = batters.reduce((sum, row) => sum + toNumber(row["打者総合スコア"]), 0);
+      const pitchingScore = pitchers.reduce((sum, row) => sum + toNumber(row["投手総合スコア"]), 0);
+      const fieldingScoreTotal = fielding.reduce((sum, row) => sum + toNumber(row["守備評価"]), 0);
+      return {
+        チーム: team,
+        リーグ: leagueOfTeam(team),
+        打数: atBats,
+        安打: hits,
+        打率: atBats > 0 ? round3(hits / atBats) : 0,
+        本塁打: batters.reduce((sum, row) => sum + toInt(row["本塁打"]), 0),
+        打点: batters.reduce((sum, row) => sum + toInt(row["打点"]), 0),
+        投球回: round3(innings),
+        防御率目安: innings > 0 ? round3((earnedRunsEstimate / innings) * 9) : 0,
+        打撃評価: round1(battingScore),
+        投手評価: round1(pitchingScore),
+        守備評価: round1(fieldingScoreTotal),
+        総合評価: round1(battingScore + pitchingScore + fieldingScoreTotal),
+      };
+    });
   }
 
   function enhanceCompactTables(root = document) {
@@ -671,6 +701,7 @@
     FIELDING_POSITIONS,
     TEAM_TO_FULL,
     TEAM_SLUGS,
+    buildTeamTotals,
     escapeHtml,
     formatValue,
     inningsFromOuts,

@@ -44,6 +44,26 @@
         <a href="./opponent-watch.html">対戦相手別 警戒選手</a>
       </div>
     </section>
+    <section class="content-card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Team Totals</p>
+          <h2>チーム合計ランキング</h2>
+        </div>
+        <div class="filters">
+          <label>
+            <span>リーグ</span>
+            <select id="teamTotalsLeague">
+              <option value="all">12球団</option>
+              <option value="セ">セ・リーグ</option>
+              <option value="パ">パ・リーグ</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <p class="small-note">チーム打率、本塁打、打点、チーム防御率目安、打撃・投手・守備評価を既存データから集計しています。</p>
+      <div id="teamTotalsRanking"></div>
+    </section>
     <section class="league-team-list" id="teamGrid">
       <article class="content-card">データ読込中</article>
     </section>
