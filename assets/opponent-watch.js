@@ -1,9 +1,10 @@
 (async function () {
   const D = window.PlayerLensData;
   const TOP_LIMIT = 30;
-  const state = { team: "巨人" };
+  const state = { team: "巨人", playerTeam: "all" };
   const els = {
     team: document.getElementById("opponentTeam"),
+    playerTeam: document.getElementById("playerTeam"),
     summary: document.getElementById("opponentSummary"),
     batters: document.getElementById("opponentBatters"),
     pitchers: document.getElementById("opponentPitchers"),
@@ -75,9 +76,27 @@
       || ["勝利", "敗戦", "HLD", "セーブ"].some((field) => number(row[field]) > 0);
   }
 
+  function isAllPlayerTeams() {
+    return state.playerTeam === "all";
+  }
+
+  function playerTeamLabel() {
+    return isAllPlayerTeams() ? "すべての球団" : state.playerTeam;
+  }
+
+  function matchupSubjectLabel() {
+    return isAllPlayerTeams() ? "各球団" : state.playerTeam;
+  }
+
+  function emptyForSameTeam(type) {
+    if (state.playerTeam !== state.team) return "";
+    return `同一球団との対戦成績はないため、${state.team}の${type}は表示されません。`;
+  }
+
   function selectedBatters() {
     return matchup.batters
       .filter((row) => row["対球団名"] === state.team && row["チーム"] !== state.team)
+      .filter((row) => isAllPlayerTeams() || row["チーム"] === state.playerTeam)
       .filter(hasBatterResult)
       .map((row) => ({ ...row, score: batterScore(row) }))
       .filter((row) => row.score > 0)
@@ -92,6 +111,7 @@
   function selectedPitchers() {
     return matchup.pitchers
       .filter((row) => row["対球団名"] === state.team && row["チーム"] !== state.team)
+      .filter((row) => isAllPlayerTeams() || row["チーム"] === state.playerTeam)
       .filter(hasPitcherResult)
       .map((row) => ({ ...row, usage: pitcherUsage(row), score: pitcherScore(row) }))
       .filter((row) => row.score > 0)
@@ -110,7 +130,7 @@
           <span class="mobile-rank">${rank}</span>
           <div>
             ${playerLink(row, "batter")}
-            <div class="ranking-meta">${D.escapeHtml(row["チーム"])} / ${D.escapeHtml(state.team)}戦</div>
+            <div class="ranking-meta">所属：${D.escapeHtml(row["チーム"])} / 対戦相手：${D.escapeHtml(state.team)}</div>
           </div>
         </div>
         <div class="mobile-score">
@@ -135,7 +155,7 @@
           <span class="mobile-rank">${rank}</span>
           <div>
             ${playerLink(row, "pitcher")}
-            <div class="ranking-meta">${D.escapeHtml(row["チーム"])} / ${D.escapeHtml(state.team)}戦</div>
+            <div class="ranking-meta">所属：${D.escapeHtml(row["チーム"])} / 対戦相手：${D.escapeHtml(state.team)}</div>
           </div>
         </div>
         <div class="mobile-score">
@@ -174,10 +194,10 @@
     const topBatter = batters[0];
     const topPitcher = pitchers[0];
     const items = [
-      ["注目する球団", state.team],
-      ["警戒野手", topBatter ? topBatter["選手名"] : "対象なし"],
-      ["警戒投手", topPitcher ? topPitcher["選手名"] : "対象なし"],
-      ["データ更新日", latestUpdateDate()],
+      ["対戦相手", state.team],
+      ["選手の所属球団", playerTeamLabel()],
+      ["警戒野手", topBatter ? `${topBatter["選手名"]}（${topBatter["チーム"]}）` : "対象なし"],
+      ["警戒投手", topPitcher ? `${topPitcher["選手名"]}（${topPitcher["チーム"]}）` : "対象なし"],
     ];
     els.summary.innerHTML = items.map(([label, value]) => `
       <article class="summary-card">
@@ -190,15 +210,28 @@
   function renderTeamOptions() {
     const teams = Object.keys(D.TEAM_TO_FULL);
     if (!teams.includes(state.team)) state.team = "巨人";
+    if (!isAllPlayerTeams() && !teams.includes(state.playerTeam)) state.playerTeam = "all";
+
     els.team.innerHTML = teams.map((team) => `
       <option value="${D.escapeHtml(team)}">${D.escapeHtml(team)}</option>
     `).join("");
     els.team.value = state.team;
+
+    els.playerTeam.innerHTML = [
+      '<option value="all">すべての球団</option>',
+      ...teams.map((team) => `<option value="${D.escapeHtml(team)}">${D.escapeHtml(team)}</option>`),
+    ].join("");
+    els.playerTeam.value = state.playerTeam;
   }
 
   function syncUrl() {
     const url = new URL(location.href);
     url.searchParams.set("team", state.team);
+    if (isAllPlayerTeams()) {
+      url.searchParams.delete("playerTeam");
+    } else {
+      url.searchParams.set("playerTeam", state.playerTeam);
+    }
     history.replaceState(null, "", url);
   }
 
@@ -206,26 +239,37 @@
     renderTeamOptions();
     const batters = selectedBatters();
     const pitchers = selectedPitchers();
-    els.battersTitle.textContent = `${state.team}戦で相性がいい野手`;
-    els.pitchersTitle.textContent = `${state.team}戦で相性がいい投手`;
+    const subject = matchupSubjectLabel();
+    const dataDate = latestUpdateDate();
+    const sameTeamBatterMessage = emptyForSameTeam("野手");
+    const sameTeamPitcherMessage = emptyForSameTeam("投手");
+    els.battersTitle.textContent = `${state.team}戦で相性がいい${subject}の野手`;
+    els.pitchersTitle.textContent = `${state.team}戦で相性がいい${subject}の投手`;
     els.battersNote.textContent = batters.length
-      ? `${state.team}戦の対戦成績から、相性スコアが高い上位${Math.min(TOP_LIMIT, batters.length)}人を表示しています。`
-      : `${state.team}戦の対球団別野手成績はまだありません。`;
+      ? `${state.team}戦における${subject}の対戦成績から、相性スコアが高い上位${Math.min(TOP_LIMIT, batters.length)}人を表示しています。データ更新日：${dataDate}`
+      : (sameTeamBatterMessage || `${state.team}戦における${subject}の対球団別野手成績はまだありません。`);
     els.pitchersNote.textContent = pitchers.length
-      ? `${state.team}戦の対戦成績から、相性スコアが高い上位${Math.min(TOP_LIMIT, pitchers.length)}人を表示しています。`
-      : `${state.team}戦の対球団別投手成績はまだありません。`;
+      ? `${state.team}戦における${subject}の対戦成績から、相性スコアが高い上位${Math.min(TOP_LIMIT, pitchers.length)}人を表示しています。データ更新日：${dataDate}`
+      : (sameTeamPitcherMessage || `${state.team}戦における${subject}の対球団別投手成績はまだありません。`);
     renderSummary(batters, pitchers);
-    renderCards(els.batters, batters, batterCard, `${state.team}戦で相性が出ている野手はまだいません。`);
-    renderCards(els.pitchers, pitchers, pitcherCard, `${state.team}戦で相性が出ている投手はまだいません。`);
+    renderCards(els.batters, batters, batterCard, sameTeamBatterMessage || `${state.team}戦で相性が出ている${subject}の野手はまだいません。`);
+    renderCards(els.pitchers, pitchers, pitcherCard, sameTeamPitcherMessage || `${state.team}戦で相性が出ている${subject}の投手はまだいません。`);
     syncUrl();
   }
 
   try {
-    const requestedTeam = new URLSearchParams(location.search).get("team");
+    const params = new URLSearchParams(location.search);
+    const requestedTeam = params.get("team");
+    const requestedPlayerTeam = params.get("playerTeam");
     if (requestedTeam && D.TEAM_TO_FULL[requestedTeam]) state.team = requestedTeam;
+    if (requestedPlayerTeam && D.TEAM_TO_FULL[requestedPlayerTeam]) state.playerTeam = requestedPlayerTeam;
     matchup = await D.loadOpponentStatsData();
     els.team.addEventListener("change", () => {
       state.team = els.team.value;
+      render();
+    });
+    els.playerTeam.addEventListener("change", () => {
+      state.playerTeam = els.playerTeam.value;
       render();
     });
     render();
