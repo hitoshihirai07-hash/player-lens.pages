@@ -12,6 +12,8 @@
     fielding: "./data/fielding_summary.csv",
     interleagueBatters: "./data/interleague_batters.csv",
     interleaguePitchers: "./data/interleague_pitchers.csv",
+    teamStatsBatters: "./data/team_stats_batter.csv",
+    teamStatsPitchers: "./data/team_stats_pitcher.csv",
   };
 
   const TEAM_TO_FULL = {
@@ -695,6 +697,28 @@
     };
   }
 
+  function normalizeOpponentStatsRows(rows) {
+    return rows
+      .map((row) => ({
+        ...row,
+        選手名: normalizeName(row["選手名"]),
+        チーム: normalizedTeam(row),
+        対球団名: shortTeam(row["対球団名"] || ""),
+      }))
+      .filter((row) => row["選手名"] && row["選手名"] !== "#N/A" && row["チーム"] && row["対球団名"]);
+  }
+
+  async function loadOpponentStatsData() {
+    const [batterRows, pitcherRows] = await Promise.all([
+      loadCsv(dataPath(DATA_FILES.teamStatsBatters), true),
+      loadCsv(dataPath(DATA_FILES.teamStatsPitchers), true),
+    ]);
+    return {
+      batters: normalizeOpponentStatsRows(batterRows),
+      pitchers: normalizeOpponentStatsRows(pitcherRows),
+    };
+  }
+
   window.PlayerLensData = {
     RANKINGS,
     START_POSITIONS,
@@ -710,6 +734,7 @@
     loadFieldingData,
     loadInsightData,
     loadInterleagueData,
+    loadOpponentStatsData,
     playerKey,
     playerUrl,
     rankRows,

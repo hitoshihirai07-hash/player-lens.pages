@@ -69,6 +69,64 @@
     `;
   }
 
+  function playerNameKey(value) {
+    return String(value ?? "").normalize("NFKC").replace(/[\s\u3000]/g, "");
+  }
+
+  function opponentValue(value, column = "") {
+    if (value === undefined || value === null || String(value).trim() === "") return "—";
+    const formatted = D.formatValue(value, column);
+    return formatted === "" ? "—" : formatted;
+  }
+
+  function hasOpponentResult(row, isBatter) {
+    if (isBatter) return String(row["試合"] ?? "").trim() !== "";
+    const appearanceFields = ["先発", "救援", "防御率"];
+    const decisionFields = ["勝利", "敗戦", "HLD", "セーブ"];
+    return appearanceFields.some((field) => String(row[field] ?? "").trim() !== "")
+      || decisionFields.some((field) => D.toNumber(row[field]) > 0);
+  }
+
+  function opponentStatsTable(rows, isBatter) {
+    const columns = isBatter
+      ? ["対戦相手", "試合", "打率", "本塁打", "打点", "盗塁"]
+      : ["対戦相手", "先発", "救援", "防御率", "勝利", "敗戦", "HLD", "セーブ"];
+    const cells = isBatter
+      ? (item) => [
+          item["対球団名"],
+          opponentValue(item["試合"]),
+          opponentValue(item["打率"], "打率"),
+          opponentValue(item["本塁打"]),
+          opponentValue(item["打点"]),
+          opponentValue(item["盗塁"]),
+        ]
+      : (item) => [
+          item["対球団名"],
+          opponentValue(item["先発"]),
+          opponentValue(item["救援"]),
+          opponentValue(item["防御率"], "防御率"),
+          opponentValue(item["勝利"]),
+          opponentValue(item["敗戦"]),
+          opponentValue(item["HLD"]),
+          opponentValue(item["セーブ"]),
+        ];
+
+    if (!rows.length) return `<p class="empty-state">対球団別の成績はまだありません。</p>`;
+    return `
+      <p class="small-note">対戦相手別に、今季の出場がある成績のみを表示しています。</p>
+      <div class="compact-table-wrap opponent-stats-wrap">
+        <table class="compact-table opponent-stats-table">
+          <thead><tr>${columns.map((column) => `<th>${D.escapeHtml(column)}</th>`).join("")}</tr></thead>
+          <tbody>
+            ${rows.map((item) => `
+              <tr>${cells(item).map((value) => `<td>${D.escapeHtml(value)}</td>`).join("")}</tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
   function fieldingTable(rows) {
     if (!rows.length) return "";
     return `
@@ -105,7 +163,11 @@
   }
 
   try {
-    const [data, fieldingRows] = await Promise.all([D.loadData(), D.loadFieldingData()]);
+    const [data, fieldingRows, opponentStats] = await Promise.all([
+      D.loadData(),
+      D.loadFieldingData(),
+      D.loadOpponentStatsData(),
+    ]);
     const rows = type === "pitcher" ? data.pitchers : data.batters;
     const row = rows.find((candidate) => candidate["チーム"] === team && candidate["選手名"] === name);
     if (!row) {
@@ -120,6 +182,9 @@
     const playerFielding = fieldingRows
       .filter((item) => item["チーム"] === row["チーム"] && item["選手名"] === row["選手名"])
       .sort((a, b) => D.toNumber(b["守備評価"]) - D.toNumber(a["守備評価"]));
+    const playerOpponentStats = (isBatter ? opponentStats.batters : opponentStats.pitchers)
+      .filter((item) => item["チーム"] === row["チーム"] && playerNameKey(item["選手名"]) === playerNameKey(row["選手名"]))
+      .filter((item) => hasOpponentResult(item, isBatter));
 
     document.title = `${row["選手名"]} 2026成績 | Player Lens`;
     title.textContent = `${row["選手名"]} 2026成績`;
@@ -166,6 +231,11 @@
       <section class="content-card">
         <h2>左右別成績</h2>
         <div class="compact-table-wrap player-split-wrap">${splitTable(row, isBatter)}</div>
+      </section>
+
+      <section class="content-card">
+        <h2>対球団別成績</h2>
+        ${opponentStatsTable(playerOpponentStats, isBatter)}
       </section>
 
       ${fieldingTable(playerFielding)}

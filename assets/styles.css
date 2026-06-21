@@ -1474,6 +1474,35 @@ tbody tr.is-selected {
     border: 0;
   }
 
+  .opponent-stats-wrap {
+    overflow: visible;
+    border: 0;
+  }
+
+  .compact-table.opponent-stats-table.is-card-table td:first-child {
+    display: block;
+    padding-bottom: 7px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+  }
+
+  .compact-table.opponent-stats-table.is-card-table td:first-child::before {
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .compact-table.opponent-stats-table.is-card-table td:nth-child(2) {
+    display: flex;
+    padding-bottom: 0;
+    border-bottom: 0;
+    text-align: right;
+  }
+
+  .compact-table.opponent-stats-table.is-card-table td:nth-child(2)::before {
+    display: block;
+    margin-bottom: 0;
+  }
+
   .player-split-wrap .compact-table,
   .split-block .split-table {
     display: none;

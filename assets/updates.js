@@ -12,6 +12,8 @@
     { label: "守備成績", path: "./data/fielding_summary.csv" },
     { label: "交流戦野手", path: "./data/interleague_batters.csv" },
     { label: "交流戦投手", path: "./data/interleague_pitchers.csv" },
+    { label: "対球団別野手成績", path: "./data/team_stats_batter.csv" },
+    { label: "対球団別投手成績", path: "./data/team_stats_pitcher.csv" },
   ];
 
   const rowsEl = document.getElementById("updateRows");
