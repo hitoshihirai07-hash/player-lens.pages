@@ -23,7 +23,7 @@
     ["注目データ", "./insights.html", "https://player-lens-pages.pages.dev/insights"],
     ["守備", "./defense.html", "https://player-lens-pages.pages.dev/defense"],
     ["交流戦", "./interleague.html", "https://player-lens-pages.pages.dev/interleague"],
-    ["対戦相手別", "./opponent-watch.html", "https://player-lens-pages.pages.dev/opponent-watch"],
+    ["対球団別相性", "./opponent-watch.html", "https://player-lens-pages.pages.dev/opponent-watch"],
     ["読み物", "./articles.html", "https://player-lens-pages.pages.dev/articles"],
     ["見方", "./guide.html", "https://player-lens-pages.pages.dev/guide"],
     ["基礎知識", "./stats-basics.html", "https://player-lens-pages.pages.dev/stats-basics"],
