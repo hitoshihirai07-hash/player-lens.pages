@@ -17,6 +17,8 @@
   const deregisteredCountEl = document.getElementById("deregisteredCount");
   const deregisteredTableEl = document.getElementById("deregisteredTable");
   const updatedAtEl = document.getElementById("rosterUpdatedAt");
+  const activeRosterViewerEl = document.getElementById("activeRosterViewer");
+  let sourceRows = [];
 
   function isControlled(row) {
     return row["区分"] === "支配下";
@@ -158,6 +160,7 @@
               <th>捕手（支 / 育）</th>
               <th>内野手（支 / 育）</th>
               <th>外野手（支 / 育）</th>
+              <th>登録中一覧</th>
             </tr>
           </thead>
           <tbody>
@@ -174,6 +177,7 @@
                 <td>${positionCell(summary, "捕手")}</td>
                 <td>${positionCell(summary, "内野手")}</td>
                 <td>${positionCell(summary, "外野手")}</td>
+                <td><button class="roster-view-button" type="button" data-active-team="${D.escapeHtml(summary.team)}" aria-controls="activeRosterViewer" aria-expanded="false">一軍登録中を表示</button></td>
               </tr>
             `).join("")}
           </tbody>
@@ -181,6 +185,76 @@
       </div>
     ` : `<p class="empty-state">該当する球団がありません。</p>`;
     D.enhanceCompactTables(teamTableEl);
+  }
+
+  function activeRosterRows(rows, team) {
+    return rows.filter((row) => (
+      row["チーム"] === team
+      && isControlled(row)
+      && row["現在登録中"] === STATUS.active
+    ));
+  }
+
+  function updateActiveRosterButtons(activeTeam = "") {
+    teamTableEl.querySelectorAll("[data-active-team]").forEach((button) => {
+      const isOpen = !activeRosterViewerEl.hidden && button.dataset.activeTeam === activeTeam;
+      button.setAttribute("aria-expanded", String(isOpen));
+      button.textContent = isOpen ? "一覧を閉じる" : "一軍登録中を表示";
+    });
+  }
+
+  function closeActiveRoster() {
+    activeRosterViewerEl.hidden = true;
+    activeRosterViewerEl.dataset.team = "";
+    activeRosterViewerEl.innerHTML = "";
+    updateActiveRosterButtons();
+  }
+
+  function activeRosterGroup(position, rows) {
+    const players = rows.filter((row) => row["ポジション"] === position);
+    return `
+      <section class="active-roster-group">
+        <div class="active-roster-group-heading">
+          <h3>${D.escapeHtml(position)}</h3>
+          <span>${players.length}人</span>
+        </div>
+        ${players.length ? `
+          <ul class="active-roster-player-list">
+            ${players.map((row) => `
+              <li>
+                <span class="active-roster-player-name">${D.escapeHtml(row["選手名"])}</span>
+                <span class="active-roster-player-date">最新登録日：${formatDate(row["登録日"])}</span>
+              </li>
+            `).join("")}
+          </ul>
+        ` : `<p class="active-roster-empty">現在登録中の選手はいません。</p>`}
+      </section>
+    `;
+  }
+
+  function renderActiveRoster(rows, team, scrollIntoView = false) {
+    const activeRows = activeRosterRows(rows, team);
+    const teamName = D.TEAM_TO_FULL[team] || team;
+    activeRosterViewerEl.dataset.team = team;
+    activeRosterViewerEl.hidden = false;
+    activeRosterViewerEl.innerHTML = `
+      <div class="active-roster-viewer-heading">
+        <div>
+          <p class="eyebrow">Active Roster</p>
+          <h2>${D.escapeHtml(teamName)}の一軍登録中メンバー</h2>
+          <p class="small-note">支配下選手のうち、CSVの「現在登録中」が登録中の選手を表示しています。</p>
+        </div>
+        <button class="active-roster-close-button" type="button" data-close-active-roster>閉じる</button>
+      </div>
+      <div class="active-roster-total"><strong>${activeRows.length}人</strong>が一軍登録中</div>
+      <div class="active-roster-grid">
+        ${POSITIONS.map((position) => activeRosterGroup(position, activeRows)).join("")}
+      </div>
+    `;
+    updateActiveRosterButtons(team);
+    if (scrollIntoView) {
+      activeRosterViewerEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }
 
   function headingForScope(rows) {
@@ -324,6 +398,13 @@
     renderTeamTable(scoped);
     renderBreakdown(scoped);
     renderDeregistered(scoped);
+
+    const activeTeam = activeRosterViewerEl.dataset.team || "";
+    if (activeTeam && scoped.some((row) => row["チーム"] === activeTeam)) {
+      renderActiveRoster(scoped, activeTeam);
+    } else {
+      closeActiveRoster();
+    }
   }
 
   try {
@@ -331,6 +412,27 @@
     fillTeamOptions(rows);
     const updated = rows.map((row) => row["更新日"]).filter(Boolean).sort().at(-1);
     updatedAtEl.textContent = updated ? `最終更新：${formatDate(updated)}` : "最終更新日：確認中";
+
+    sourceRows = rows;
+
+    teamTableEl.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-active-team]");
+      if (!button) return;
+      const team = button.dataset.activeTeam || "";
+      if (!team) return;
+
+      if (!activeRosterViewerEl.hidden && activeRosterViewerEl.dataset.team === team) {
+        closeActiveRoster();
+        return;
+      }
+      renderActiveRoster(scopeRows(sourceRows), team, true);
+    });
+
+    activeRosterViewerEl.addEventListener("click", (event) => {
+      if (event.target.closest("[data-close-active-roster]")) {
+        closeActiveRoster();
+      }
+    });
 
     leagueSelect.addEventListener("change", () => {
       syncTeamOptions();
