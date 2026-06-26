@@ -14,6 +14,7 @@
     { label: "交流戦投手", path: "./data/interleague_pitchers.csv" },
     { label: "対球団別野手成績", path: "./data/team_stats_batter.csv" },
     { label: "対球団別投手成績", path: "./data/team_stats_pitcher.csv" },
+    { label: "選手登録状況", path: "./data/registration_history.csv" },
   ];
 
   const rowsEl = document.getElementById("updateRows");

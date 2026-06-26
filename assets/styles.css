@@ -1522,3 +1522,20 @@ tbody tr.is-selected {
     gap: 4px;
   }
 }
+
+
+.roster-summary-table {
+  min-width: 1120px;
+}
+
+.roster-breakdown-table {
+  min-width: 720px;
+}
+
+.roster-deregistered-table {
+  min-width: 940px;
+}
+
+.roster-position-cell {
+  font-variant-numeric: tabular-nums;
+}

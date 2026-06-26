@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="2026年プロ野球12球団の一軍登録、支配下・育成の人数、投手・捕手・内野手・外野手の構成、抹消中選手の再登録可能目安を確認できます。">
+  <title>選手登録状況 | Player Lens</title>
+  <link rel="canonical" href="https://player-lens-pages.pages.dev/roster">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7687416670736373"
+     crossorigin="anonymous"></script>
+  <link rel="icon" href="./assets/player-lens-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/styles.css">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"選手登録状況 | Player Lens","url":"https://player-lens-pages.pages.dev/roster","description":"プロ野球12球団の一軍登録、支配下・育成の人数、ポジション別の構成、抹消中選手の再登録可能目安を確認できるページです。","isPartOf":{"@type":"WebSite","name":"Player Lens","url":"https://player-lens-pages.pages.dev/"}}</script>
+</head>
+<body>
+  <header class="page-header">
+    <a class="brand-mini" href="./index.html"><img src="./assets/player-lens-icon.svg" alt="">Player Lens</a>
+    <h1>選手登録状況</h1>
+    <p>一軍登録、支配下・育成の人数、ポジション別の構成、抹消中選手の再登録可能目安を球団ごとに確認できます。</p>
+  </header>
+  <nav class="site-nav" aria-label="サイト内メニュー">
+    <a href="./index.html">ランキング</a>
+    <a href="./teams.html">チーム別</a>
+    <a href="./roster.html" aria-current="page">登録状況</a>
+    <a href="./insights.html">注目データ</a>
+    <a href="./defense.html">守備</a>
+    <a href="./articles">読み物</a>
+    <a href="./guide.html">見方</a>
+    <a href="./updates.html">更新履歴</a>
+    <a href="./resources.html">楽しみ方</a>
+    <a href="./about.html">このサイトについて</a>
+  </nav>
+
+  <main class="shell">
+    <section class="intro-band">
+      <div>
+        <p class="eyebrow">Roster Lens</p>
+        <h2>選手構成と一軍登録状況を、球団ごとに確認</h2>
+        <p>支配下・育成の人数を投手、捕手、内野手、外野手ごとに整理しています。支配下選手は、登録中・抹消中・今季一軍未登録の状況も確認できます。</p>
+        <p class="small-note" id="rosterUpdatedAt">データ読込中</p>
+      </div>
+      <a class="text-link" href="./teams.html">チーム別ページへ</a>
+    </section>
+
+    <section class="control-band" aria-label="選手登録状況の絞り込み">
+      <div class="section-heading compact-heading">
+        <div>
+          <p class="eyebrow">Filters</p>
+          <h2>球団を絞る</h2>
+        </div>
+      </div>
+      <div class="filters">
+        <label>
+          <span>リーグ</span>
+          <select id="rosterLeague">
+            <option value="all">12球団</option>
+            <option value="セ">セ・リーグ</option>
+            <option value="パ">パ・リーグ</option>
+          </select>
+        </label>
+        <label>
+          <span>球団</span>
+          <select id="rosterTeam"></select>
+        </label>
+        <label>
+          <span>抹消中の表示</span>
+          <select id="deregisteredFilter">
+            <option value="waiting">再登録待ち</option>
+            <option value="all">すべての抹消中</option>
+            <option value="eligible">再登録可能</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="summary-grid" id="rosterSummary" aria-label="選手登録状況サマリー"></section>
+
+    <section class="content-card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Team Roster</p>
+          <h2>球団別 人数・ポジション構成</h2>
+        </div>
+        <span class="table-meta" id="rosterTeamCount"></span>
+      </div>
+      <p class="small-note">ポジション欄は「支配下 / 育成」の順です。一軍登録中・抹消中・今季一軍未登録は支配下選手のみを集計しています。</p>
+      <div id="rosterTeamTable"></div>
+    </section>
+
+    <section class="content-card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Position Detail</p>
+          <h2 id="rosterBreakdownTitle">12球団合計のポジション別内訳</h2>
+        </div>
+      </div>
+      <div id="rosterBreakdown"></div>
+    </section>
+
+    <section class="content-card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Deregistered Players</p>
+          <h2>抹消中の選手</h2>
+        </div>
+        <span class="table-meta" id="deregisteredCount"></span>
+      </div>
+      <p class="small-note">再登録可能日は、通常の登録抹消について抹消日から10日後として表示しています。特例による再登録などは反映していません。</p>
+      <div id="deregisteredTable"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <a href="./index.html">ランキング</a>
+    <a href="./teams.html">チーム別</a>
+    <a href="./updates.html">更新履歴</a>
+    <a href="./insights.html">注目データ</a>
+    <a href="./defense.html">守備</a>
+    <a href="./privacy.html">プライバシーポリシー</a>
+    <a href="./disclaimer.html">免責事項</a>
+    <a href="./contact.html">お問い合わせ</a>
+  </footer>
+  <script src="./assets/site-data.js"></script>
+  <script src="./assets/roster.js"></script>
+</body>
+</html>

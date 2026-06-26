@@ -14,6 +14,7 @@
     interleaguePitchers: "./data/interleague_pitchers.csv",
     teamStatsBatters: "./data/team_stats_batter.csv",
     teamStatsPitchers: "./data/team_stats_pitcher.csv",
+    registrationHistory: "./data/registration_history.csv",
   };
 
   const TEAM_TO_FULL = {
@@ -719,6 +720,21 @@
     };
   }
 
+  async function loadRosterData() {
+    const rows = await loadCsv(dataPath(DATA_FILES.registrationHistory));
+    return rows
+      .map((row) => {
+        const team = shortTeam(row["球団名"] || "");
+        return {
+          ...row,
+          選手名: normalizeName(row["投手"] || ""),
+          チーム: team,
+          リーグ: leagueOfTeam(team),
+        };
+      })
+      .filter((row) => row["選手名"] && row["チーム"]);
+  }
+
   window.PlayerLensData = {
     RANKINGS,
     START_POSITIONS,
@@ -735,6 +751,7 @@
     loadInsightData,
     loadInterleagueData,
     loadOpponentStatsData,
+    loadRosterData,
     playerKey,
     playerUrl,
     rankRows,
