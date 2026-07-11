@@ -148,21 +148,68 @@
     ].join("");
   }
 
+  const recentFilter = { league: "all", team: "all" };
+
+  function recentScopeLabel() {
+    if (recentFilter.team !== "all") return recentFilter.team;
+    if (recentFilter.league === "セ") return "セ・リーグ全体";
+    if (recentFilter.league === "パ") return "パ・リーグ全体";
+    return "全体";
+  }
+
+  function renderRecentTeamFilter() {
+    const teamSelect = document.getElementById("recentTeamFilter");
+    if (!teamSelect) return;
+    const teams = Object.keys(D.TEAM_TO_FULL)
+      .filter((team) => recentFilter.league === "all" || D.leagueOfTeam(team) === recentFilter.league);
+    if (recentFilter.team !== "all" && !teams.includes(recentFilter.team)) recentFilter.team = "all";
+    const allLabel = recentFilter.league === "all" ? "全12球団" : `${recentFilter.league}・リーグ全体`;
+    teamSelect.innerHTML = [
+      `<option value="all">${D.escapeHtml(allLabel)}</option>`,
+      ...teams.map((team) => `<option value="${D.escapeHtml(team)}">${D.escapeHtml(team)}</option>`),
+    ].join("");
+    teamSelect.value = recentFilter.team;
+  }
+
+  function initRecentFilters() {
+    const leagueSelect = document.getElementById("recentLeagueFilter");
+    const teamSelect = document.getElementById("recentTeamFilter");
+    if (!leagueSelect || !teamSelect) return;
+    renderRecentTeamFilter();
+    leagueSelect.addEventListener("change", (event) => {
+      recentFilter.league = event.target.value;
+      recentFilter.team = "all";
+      renderRecentTeamFilter();
+      renderRecent();
+    });
+    teamSelect.addEventListener("change", (event) => {
+      recentFilter.team = event.target.value;
+      renderRecent();
+    });
+  }
+
+  function filterRecentRows(rows) {
+    return rows
+      .filter((row) => recentFilter.league === "all" || row["リーグ"] === recentFilter.league)
+      .filter((row) => recentFilter.team === "all" || row["チーム"] === recentFilter.team);
+  }
+
   function renderRecent() {
-    const batters = insight.recentBatters
+    const batters = filterRecentRows(insight.recentBatters)
       .filter((row) => D.toNumber(row["打数"]) >= 4)
       .sort((a, b) => D.toNumber(b["直近スコア"]) - D.toNumber(a["直近スコア"]));
-    const pitchers = insight.recentPitchers
+    const pitchers = filterRecentRows(insight.recentPitchers)
       .filter((row) => D.toNumber(row["投球アウト数"]) >= 3)
       .sort((a, b) => D.toNumber(b["直近スコア"]) - D.toNumber(a["直近スコア"]));
     const topBatter = batters[0];
     const topPitcher = pitchers[0];
+    const scope = recentScopeLabel();
 
     summary([
-      ["対象期間", periodLabel(insight.recentBatters)],
+      ["表示範囲", scope],
+      ["対象期間", periodLabel(filterRecentRows(insight.recentBatters))],
       ["対象野手", batters.length],
       ["対象投手", pitchers.length],
-      ["野手1位", topBatter ? topBatter["選手名"] : "-"],
     ]);
 
     const batterRows = batters.slice(0, 20).map((row, index) => {
@@ -199,14 +246,15 @@
     });
 
     const lead = topBatter && topPitcher
-      ? `<p>直近の野手では${D.escapeHtml(topBatter["選手名"])}、投手では${D.escapeHtml(topPitcher["選手名"])}が高い評価になっています。</p>`
-      : "<p>直近6日間で一定以上出場した選手を対象にしています。</p>";
+      ? `<p>${D.escapeHtml(scope)}では、野手の上位に${D.escapeHtml(topBatter["選手名"])}、投手の上位に${D.escapeHtml(topPitcher["選手名"])}が入っています。</p>`
+      : `<p>${D.escapeHtml(scope)}では、出場量の条件を満たした野手・投手がいません。</p>`;
 
     mainEl.innerHTML = [
-      card("この記事の見どころ", `${lead}<p>短期成績は好不調の波を見つけるための入口です。通算成績の上位とは違う名前が出ることもあり、次に見る試合の注目選手を探しやすくなります。</p>`),
-      card("直近6日 野手ランキング", table(["順位", "選手", "球団", "登録", "評価", "打率", "OPS", "本塁打", "打点"], batterRows)),
-      card("直近6日 投手ランキング", table(["順位", "選手", "球団", "登録", "評価", "投球回", "防御率", "奪三振", "WHIP"], pitcherRows)),
+      card("この記事の見どころ", `${lead}<p>リーグと球団を切り替えると、その範囲の中で順位を付け直します。短期成績は好不調の波を見つけるための入口として、通算成績とあわせて見るのがおすすめです。</p>`),
+      card(`${D.escapeHtml(scope)} 直近6日 野手ランキング`, table(["順位", "選手", "球団", "登録", "評価", "打率", "OPS", "本塁打", "打点"], batterRows)),
+      card(`${D.escapeHtml(scope)} 直近6日 投手ランキング`, table(["順位", "選手", "球団", "登録", "評価", "投球回", "防御率", "奪三振", "WHIP"], pitcherRows)),
     ].join("");
+    D.enhanceCompactTables(mainEl);
   }
 
   function renderInterleague() {
@@ -530,7 +578,10 @@
     recentPitcherMap = new Map(insight.recentPitchers.map((row) => [D.playerKey(row), row]));
 
     if (article === "rookie") renderRookie();
-    if (article === "recent") renderRecent();
+    if (article === "recent") {
+      initRecentFilters();
+      renderRecent();
+    }
     if (article === "outfield") renderOutfield();
     if (article === "position") renderPosition();
     if (article === "central") renderLeague("セ", "セ・リーグ");

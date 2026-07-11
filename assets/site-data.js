@@ -160,7 +160,8 @@
   }
 
   function playerKey(row) {
-    return `${normalizeName(row["選手名"])}|${row["チーム"]}`;
+    const name = normalizeName(row["選手名"]).replace(/[\s\u3000]/g, "");
+    return `${name}|${row["チーム"]}`;
   }
 
   function normalizedTeam(row) {
@@ -258,14 +259,20 @@
   function mergeBatterSplits(rows, splitRows) {
     const grouped = new Map();
     for (const split of splitRows) {
-      const key = `${normalizeName(split["選手名"])}|${shortTeam(split["球団"])}`;
-      const side = split["区分"] === "対左" ? "対左" : "対右";
+      const team = shortTeam(split["チーム"] || split["球団"] || "");
+      const side = split["区分"] === "対左" ? "対左" : split["区分"] === "対右" ? "対右" : "";
+      if (!split["選手名"] || !team || !side) continue;
+      const key = playerKey({ 選手名: split["選手名"], チーム: team });
       const record = grouped.get(key) || {};
       record[`${side}打率`] = split["打率"] || "";
       record[`${side}打数`] = split["打数"] || "";
       record[`${side}安打`] = split["安打"] || "";
       record[`${side}本塁打`] = split["本塁打"] || "";
-      record[`${side}打点`] = split["打点"] || "";
+      record[`${side}三振`] = split["三振"] || "";
+      record[`${side}四球`] = split["四球"] || "";
+      record[`${side}死球`] = split["死球"] || "";
+      record[`${side}犠打`] = split["犠打"] || "";
+      record[`${side}犠飛`] = split["犠飛"] || "";
       grouped.set(key, record);
     }
     return rows.map((row) => ({ ...row, ...(grouped.get(playerKey(row)) || {}) }));
@@ -274,7 +281,8 @@
   function mergePitcherSplits(rows, splitRows) {
     const grouped = new Map();
     for (const split of splitRows) {
-      const key = `${normalizeName(split["選手名"])}|${shortTeam(split["チーム"])}`;
+      const team = shortTeam(split["チーム"] || "");
+      const key = playerKey({ 選手名: split["選手名"], チーム: team });
       const side = split["区分"] === "対左打者" ? "対左" : "対右";
       const record = grouped.get(key) || {};
       record[`${side}被打率`] = split["被打率"] || "";
@@ -314,9 +322,10 @@
     const ab = toInt(row[`${side}打数`]);
     const hits = toInt(row[`${side}安打`]);
     const hr = toInt(row[`${side}本塁打`]);
-    const rbi = toInt(row[`${side}打点`]);
+    const strikeouts = toInt(row[`${side}三振`]);
+    const walks = toInt(row[`${side}四球`]);
     const reliability = ab > 0 ? Math.min(1, ab / 40) : 0;
-    return avg * 760 * reliability + hits * 1.5 + hr * 12 + rbi * 1.8 + Math.min(ab, 90) * 0.45;
+    return avg * 760 * reliability + hits * 1.5 + hr * 12 + walks * 1.2 - strikeouts * 0.4 + Math.min(ab, 90) * 0.45;
   }
 
   function addBatterScores(row) {

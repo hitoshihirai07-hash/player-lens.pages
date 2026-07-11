@@ -36,17 +36,17 @@
 
   function splitTable(row, isBatter) {
     if (isBatter) {
-      const columns = ["区分", "打数", "打率", "安打", "本塁打", "打点"];
+      const columns = ["区分", "打数", "打率", "安打", "本塁打", "三振", "四球", "死球", "犠打", "犠飛"];
       const rows = [
-        ["対右", row["対右打数"] || "", D.formatValue(row["対右打率"], "対右打率"), row["対右安打"] || "", row["対右本塁打"] || "", row["対右打点"] || ""],
-        ["対左", row["対左打数"] || "", D.formatValue(row["対左打率"], "対左打率"), row["対左安打"] || "", row["対左本塁打"] || "", row["対左打点"] || ""],
+        ["対右", row["対右打数"] || "", D.formatValue(row["対右打率"], "対右打率"), row["対右安打"] || "", row["対右本塁打"] || "", row["対右三振"] || "", row["対右四球"] || "", row["対右死球"] || "", row["対右犠打"] || "", row["対右犠飛"] || ""],
+        ["対左", row["対左打数"] || "", D.formatValue(row["対左打率"], "対左打率"), row["対左安打"] || "", row["対左本塁打"] || "", row["対左三振"] || "", row["対左四球"] || "", row["対左死球"] || "", row["対左犠打"] || "", row["対左犠飛"] || ""],
       ];
       return `
         <table class="compact-table">
-          <thead><tr><th>区分</th><th>打数</th><th>打率</th><th>安打</th><th>本塁打</th><th>打点</th></tr></thead>
+          <thead><tr><th>区分</th><th>打数</th><th>打率</th><th>安打</th><th>本塁打</th><th>三振</th><th>四球</th><th>死球</th><th>犠打</th><th>犠飛</th></tr></thead>
           <tbody>
-            <tr><td>対右</td><td>${D.escapeHtml(row["対右打数"] || "")}</td><td>${D.formatValue(row["対右打率"], "対右打率")}</td><td>${D.escapeHtml(row["対右安打"] || "")}</td><td>${D.escapeHtml(row["対右本塁打"] || "")}</td><td>${D.escapeHtml(row["対右打点"] || "")}</td></tr>
-            <tr><td>対左</td><td>${D.escapeHtml(row["対左打数"] || "")}</td><td>${D.formatValue(row["対左打率"], "対左打率")}</td><td>${D.escapeHtml(row["対左安打"] || "")}</td><td>${D.escapeHtml(row["対左本塁打"] || "")}</td><td>${D.escapeHtml(row["対左打点"] || "")}</td></tr>
+            <tr><td>対右</td><td>${D.escapeHtml(row["対右打数"] || "")}</td><td>${D.formatValue(row["対右打率"], "対右打率")}</td><td>${D.escapeHtml(row["対右安打"] || "")}</td><td>${D.escapeHtml(row["対右本塁打"] || "")}</td><td>${D.escapeHtml(row["対右三振"] || "")}</td><td>${D.escapeHtml(row["対右四球"] || "")}</td><td>${D.escapeHtml(row["対右死球"] || "")}</td><td>${D.escapeHtml(row["対右犠打"] || "")}</td><td>${D.escapeHtml(row["対右犠飛"] || "")}</td></tr>
+            <tr><td>対左</td><td>${D.escapeHtml(row["対左打数"] || "")}</td><td>${D.formatValue(row["対左打率"], "対左打率")}</td><td>${D.escapeHtml(row["対左安打"] || "")}</td><td>${D.escapeHtml(row["対左本塁打"] || "")}</td><td>${D.escapeHtml(row["対左三振"] || "")}</td><td>${D.escapeHtml(row["対左四球"] || "")}</td><td>${D.escapeHtml(row["対左死球"] || "")}</td><td>${D.escapeHtml(row["対左犠打"] || "")}</td><td>${D.escapeHtml(row["対左犠飛"] || "")}</td></tr>
           </tbody>
         </table>
         ${splitCards(columns, rows)}

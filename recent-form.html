@@ -37,6 +37,26 @@
       <p>通算成績は選手の安定感を見るには便利ですが、最近の状態まではすぐに見えません。このページでは直近6日間の成績を使い、野手は打撃内容、投手は投球内容を中心に評価しています。</p>
       <p>短期ランキングは、次に注目したい選手を探す入口として使えます。打席数や投球アウト数が少ない選手は極端な数字になりやすいため、最低限の出場量を満たした選手を中心に表示しています。</p>
     </article>
+    <section class="content-card recent-filter-card" aria-label="直近6日間ランキングの絞り込み">
+      <div>
+        <p class="eyebrow">Ranking Filter</p>
+        <h2>表示する範囲</h2>
+      </div>
+      <div class="filters recent-filters">
+        <label>リーグ
+          <select id="recentLeagueFilter" aria-label="リーグで絞り込む">
+            <option value="all">全体</option>
+            <option value="セ">セ・リーグ</option>
+            <option value="パ">パ・リーグ</option>
+          </select>
+        </label>
+        <label>球団
+          <select id="recentTeamFilter" aria-label="球団で絞り込む">
+            <option value="all">全12球団</option>
+          </select>
+        </label>
+      </div>
+    </section>
     <section class="summary-grid" id="articleSummary"></section>
     <section class="article-grid" id="articleMain"></section>
     <section class="content-card">
