@@ -1718,3 +1718,329 @@ tbody tr.is-selected {
     white-space: normal;
   }
 }
+
+/* 2026-07-19 Player Lens home and player detail renewal */
+.home-topbar {
+  background:
+    linear-gradient(125deg, rgba(223, 237, 252, 0.82), transparent 42%),
+    #fff;
+}
+
+.home-catch {
+  margin: 5px 0 0;
+  color: #0a2e5c;
+  font-size: clamp(22px, 3.5vw, 38px);
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.home-shell {
+  display: grid;
+  gap: 16px;
+}
+
+.home-shell > * {
+  margin-bottom: 0;
+}
+
+.home-intro {
+  border-color: #c8d9eb;
+  background: linear-gradient(135deg, #f3f8ff, #fff 58%);
+}
+
+.data-status-panel,
+.recent-home-panel,
+.watch-note-bridge {
+  padding: 20px;
+  border: 1px solid #cbd9e8;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.data-status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.status-card {
+  display: grid;
+  gap: 5px;
+  min-height: 112px;
+  padding: 14px;
+  border: 1px solid #d3e0ee;
+  border-radius: 9px;
+  background: #f7fbff;
+}
+
+.status-card span,
+.status-card small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-card strong {
+  color: #0a2e5c;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.home-ranking-controls {
+  grid-template-columns: 1fr;
+  align-items: stretch;
+  padding: 18px;
+  border-color: #0a2e5c;
+  background: linear-gradient(135deg, #082d59, #0d4d8f);
+}
+
+.home-ranking-controls .control-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: end;
+  color: #fff;
+}
+
+.home-ranking-controls .control-heading .eyebrow,
+.home-ranking-controls .control-heading a {
+  color: #dbeafe;
+}
+
+.home-ranking-controls .rank-switch button {
+  border-color: rgba(255,255,255,.28);
+  background: rgba(255,255,255,.96);
+}
+
+.home-ranking-controls .rank-switch button[aria-pressed="true"] {
+  border-color: #78a9df;
+  background: #dcecff;
+  color: #082d59;
+}
+
+.home-ranking-controls .filters {
+  display: grid;
+  grid-template-columns: 180px 210px minmax(260px, 1fr);
+  gap: 12px;
+}
+
+.home-ranking-controls .filters label {
+  color: #e4effc;
+}
+
+.home-ranking-controls select,
+.home-ranking-controls input {
+  width: 100%;
+  border-color: #abc5df;
+}
+
+.recent-home-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.recent-player-card {
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #f8fafc;
+}
+
+.recent-player-card > span,
+.recent-player-card small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.recent-player-card > strong {
+  font-size: 18px;
+}
+
+.recent-player-card dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin: 7px 0 0;
+}
+
+.recent-player-card dl div {
+  padding: 7px;
+  border-radius: 7px;
+  background: #fff;
+  text-align: center;
+}
+
+.recent-player-card dt {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.recent-player-card dd {
+  margin: 2px 0 0;
+  color: #0a2e5c;
+  font-weight: 800;
+}
+
+.watch-note-bridge {
+  background: linear-gradient(135deg, #f3f8ff, #fff 62%, #fff8e8);
+}
+
+.watch-note-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.watch-note-data-card {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-height: 230px;
+  padding: 16px;
+  border: 1px solid #cddced;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.watch-note-data-card .card-date {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.watch-note-data-card h3 {
+  color: #0a2e5c;
+  line-height: 1.5;
+}
+
+.watch-note-actions {
+  display: grid;
+  gap: 7px;
+  margin-top: auto;
+}
+
+.watch-note-actions a {
+  padding: 8px 10px;
+  border: 1px solid #c8d9eb;
+  border-radius: 7px;
+  background: #f7fbff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.watch-note-actions .primary-link {
+  border-color: #0a2e5c;
+  background: #0a2e5c;
+  color: #fff;
+}
+
+.team-links-panel .resource-grid a,
+.secondary-tools-panel .resource-grid a {
+  border-color: #cbd9e8;
+  background: #f8fbff;
+}
+
+.registration-summary {
+  display: grid;
+  grid-template-columns: minmax(180px, .7fr) minmax(0, 2fr);
+  gap: 16px;
+  align-items: center;
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.registration-summary.is-registered {
+  border-color: #acd7d0;
+  background: #effaf7;
+}
+
+.registration-summary.is-off-roster {
+  border-color: #ecd28f;
+  background: #fff9e8;
+}
+
+.registration-summary > strong {
+  color: var(--accent-dark);
+  font-size: 24px;
+}
+
+.registration-summary dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.registration-summary dl div {
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.82);
+}
+
+.registration-summary dt {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.registration-summary dd {
+  margin: 3px 0 0;
+  font-weight: 800;
+}
+
+.recent-player-section .wide-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1000px) {
+  .data-status-grid,
+  .watch-note-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .recent-home-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .registration-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .registration-summary dl,
+  .recent-player-section .wide-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .home-ranking-controls .filters,
+  .data-status-grid,
+  .recent-home-grid,
+  .watch-note-card-grid,
+  .registration-summary dl,
+  .recent-player-section .wide-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .home-ranking-controls .control-heading,
+  .section-heading {
+    align-items: flex-start;
+  }
+
+  .home-ranking-controls .control-heading {
+    flex-direction: column;
+  }
+
+  .watch-note-data-card {
+    min-height: auto;
+  }
+}

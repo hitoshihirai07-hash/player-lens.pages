@@ -156,6 +156,91 @@
     `;
   }
 
+
+  function formatDate(value) {
+    const text = String(value || "").trim();
+    const match = text.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/);
+    if (!match) return text || "—";
+    return `${Number(match[1])}年${Number(match[2])}月${Number(match[3])}日`;
+  }
+
+  function formatPeriod(value) {
+    const text = String(value || "").trim();
+    const parts = text.split("_");
+    if (parts.length !== 2) return text || "—";
+    const short = (item) => {
+      const match = item.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/);
+      return match ? `${Number(match[2])}月${Number(match[3])}日` : item;
+    };
+    return `${short(parts[0])}〜${short(parts[1])}`;
+  }
+
+  function recentFormMarkup(recentRow, isBatter) {
+    if (!recentRow) {
+      return `
+        <section class="content-card recent-player-section">
+          <div class="section-heading"><div><p class="eyebrow">Recent Form</p><h2>直近6日間の成績</h2></div></div>
+          <p class="empty-state">直近6日間の出場データはありません。</p>
+        </section>
+      `;
+    }
+    const items = isBatter
+      ? [
+          ["期間", formatPeriod(recentRow["期間"])],
+          ["打数", recentRow["打数"]],
+          ["打率", D.formatValue(recentRow["打率"], "打率")],
+          ["OPS", D.formatValue(recentRow["OPS"], "OPS")],
+          ["安打", recentRow["安打"]],
+          ["本塁打", recentRow["本塁打"]],
+          ["打点", recentRow["打点"]],
+          ["盗塁", recentRow["盗塁"]],
+        ]
+      : [
+          ["期間", formatPeriod(recentRow["期間"])],
+          ["投球回", recentRow["投球回"] || D.inningsFromOuts(recentRow["投球アウト数"])],
+          ["防御率", D.formatValue(recentRow["防御率"], "防御率")],
+          ["奪三振", recentRow["奪三振"]],
+          ["WHIP", D.formatValue(recentRow["WHIP"], "WHIP")],
+          ["被安打", recentRow["被安打"]],
+          ["与四球", recentRow["与四球"]],
+          ["自責点", recentRow["自責点"]],
+        ];
+    return `
+      <section class="content-card recent-player-section">
+        <div class="section-heading"><div><p class="eyebrow">Recent Form</p><h2>直近6日間の成績</h2></div><a href="./recent-form.html">直近成績一覧</a></div>
+        ${metricCards(items)}
+      </section>
+    `;
+  }
+
+  function registrationMarkup(rosterRow) {
+    if (!rosterRow) {
+      return `
+        <section class="content-card registration-card">
+          <div class="section-heading"><div><p class="eyebrow">Roster</p><h2>現在の登録状況</h2></div><a href="./roster.html">登録状況一覧</a></div>
+          <p class="empty-state">登録履歴データで確認できませんでした。</p>
+        </section>
+      `;
+    }
+    const isRegistered = String(rosterRow["現在登録中"] || "").includes("登録中");
+    const status = isRegistered ? "一軍登録中" : rosterRow["抹消日"] ? "現在抹消中" : "一軍登録外";
+    const statusClass = isRegistered ? "is-registered" : "is-off-roster";
+    return `
+      <section class="content-card registration-card">
+        <div class="section-heading"><div><p class="eyebrow">Roster</p><h2>現在の登録状況</h2></div><a href="./roster.html">登録状況一覧</a></div>
+        <div class="registration-summary ${statusClass}">
+          <strong>${D.escapeHtml(status)}</strong>
+          <dl>
+            <div><dt>登録日</dt><dd>${D.escapeHtml(formatDate(rosterRow["登録日"]))}</dd></div>
+            <div><dt>抹消日</dt><dd>${D.escapeHtml(formatDate(rosterRow["抹消日"]))}</dd></div>
+            <div><dt>区分</dt><dd>${D.escapeHtml(rosterRow["区分"] || "—")}</dd></div>
+            <div><dt>更新日</dt><dd>${D.escapeHtml(formatDate(rosterRow["更新日"]))}</dd></div>
+          </dl>
+        </div>
+      </section>
+    `;
+  }
+
   function teamRank(row, rows, ranking) {
     const ranked = D.rankRows(rows, ranking, row["チーム"], 999);
     const index = ranked.findIndex((candidate) => D.playerKey(candidate) === D.playerKey(row));
@@ -163,10 +248,12 @@
   }
 
   try {
-    const [data, fieldingRows, opponentStats] = await Promise.all([
+    const [data, fieldingRows, opponentStats, insightData, rosterRows] = await Promise.all([
       D.loadData(),
       D.loadFieldingData(),
       D.loadOpponentStatsData(),
+      D.loadInsightData(),
+      D.loadRosterData(),
     ]);
     const rows = type === "pitcher" ? data.pitchers : data.batters;
     const row = rows.find((candidate) => candidate["チーム"] === team && candidate["選手名"] === name);
@@ -185,6 +272,11 @@
     const playerOpponentStats = (isBatter ? opponentStats.batters : opponentStats.pitchers)
       .filter((item) => item["チーム"] === row["チーム"] && playerNameKey(item["選手名"]) === playerNameKey(row["選手名"]))
       .filter((item) => hasOpponentResult(item, isBatter));
+    const recentRows = isBatter ? insightData.recentBatters : insightData.recentPitchers;
+    const recentRow = recentRows.find((item) => item["チーム"] === row["チーム"] && playerNameKey(item["選手名"]) === playerNameKey(row["選手名"]));
+    const rosterRow = rosterRows
+      .filter((item) => item["チーム"] === row["チーム"] && playerNameKey(item["選手名"]) === playerNameKey(row["選手名"]))
+      .sort((a, b) => String(b["更新日"] || "").localeCompare(String(a["更新日"] || "")))[0];
 
     document.title = `${row["選手名"]} 2026成績 | Player Lens`;
     title.textContent = `${row["選手名"]} 2026成績`;
@@ -227,6 +319,10 @@
         <h2>主な成績</h2>
         ${metricCards(mainMetrics)}
       </section>
+
+      ${registrationMarkup(rosterRow)}
+
+      ${recentFormMarkup(recentRow, isBatter)}
 
       <section class="content-card">
         <h2>左右別成績</h2>

@@ -4,6 +4,13 @@ const DATA_FILES = {
   master: "./data/current_player_master.csv",
   batterSplits: "./data/2026_batter_left_and_right_stats.csv",
   pitcherSplits: "./data/2026_pitcher_left_and_right_stats.csv",
+  recentBatters: "./data/recent_batter_6days.csv",
+  recentPitchers: "./data/recent_pitcher_6days.csv",
+  teamStatsBatters: "./data/team_stats_batter.csv",
+  teamStatsPitchers: "./data/team_stats_pitcher.csv",
+  fielding: "./data/fielding_summary.csv",
+  registrationHistory: "./data/registration_history.csv",
+  starterPositions: "./data/starter_positions.csv",
 };
 
 const TEAM_TO_FULL = {
@@ -197,6 +204,9 @@ const state = {
   selectedKey: "",
   batters: [],
   pitchers: [],
+  recentBatters: [],
+  recentPitchers: [],
+  statusRows: {},
 };
 
 const els = {
@@ -213,6 +223,8 @@ const els = {
   rankingHead: document.getElementById("rankingHead"),
   rankingBody: document.getElementById("rankingBody"),
   detailPanel: document.getElementById("detailPanel"),
+  dataStatus: document.getElementById("dataStatus"),
+  recentForm: document.getElementById("recentForm"),
 };
 
 function normalizeName(value) {
@@ -874,6 +886,120 @@ function splitTable(columns, rows) {
   `;
 }
 
+
+function normalizeInsightRows(rows) {
+  return rows
+    .map((row) => {
+      const team = shortTeam(row["チーム"] || row["球団"] || row["球団名"] || "");
+      return { ...row, 選手名: normalizeName(row["選手名"] || row["投手"] || ""), チーム: team };
+    })
+    .filter((row) => row["選手名"] && row["チーム"]);
+}
+
+function recentBatterScore(row) {
+  const ab = toInt(row["打数"]);
+  const ops = toNumber(row["OPS"]);
+  const hits = toInt(row["安打"]);
+  const hr = toInt(row["本塁打"]);
+  const rbi = toInt(row["打点"]);
+  const walks = toInt(row["四球"]);
+  const strikeouts = toInt(row["三振"]);
+  const reliability = Math.min(1, ab / 16);
+  return ops * 520 * reliability + hits * 4 + hr * 14 + rbi * 2.2 + walks * 1.2 - strikeouts * 0.5;
+}
+
+function recentPitcherScore(row) {
+  const outs = toInt(row["投球アウト数"]);
+  const ip = outs / 3;
+  const era = toNumber(row["防御率"], 9.99);
+  const whip = toNumber(row["WHIP"], 3);
+  const strikeouts = toInt(row["奪三振"]);
+  const walks = toInt(row["与四球"]);
+  const hits = toInt(row["被安打"]);
+  const hr = toInt(row["被本塁打"]);
+  const reliability = Math.min(1, outs / 12);
+  return Math.max(0, 5 - era) * 18 * reliability + Math.max(0, 2 - whip) * 16 * reliability + ip * 7 + strikeouts * 3.5 - walks * 2 - hits * 0.6 - hr * 5;
+}
+
+function formatJapaneseDate(value) {
+  const text = String(value || "").trim();
+  const match = text.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/);
+  if (!match) return text || "確認できません";
+  return `${Number(match[1])}年${Number(match[2])}月${Number(match[3])}日`;
+}
+
+function maxDateFromRows(rows, column = "更新日") {
+  const values = rows.map((row) => String(row[column] || "").trim()).filter(Boolean);
+  if (!values.length) return "";
+  return values.sort((a, b) => a.localeCompare(b))[values.length - 1];
+}
+
+function formatPeriod(value) {
+  const text = String(value || "").trim();
+  const parts = text.split("_");
+  if (parts.length !== 2) return text || "確認できません";
+  const formatShort = (item) => {
+    const match = item.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/);
+    return match ? `${Number(match[2])}月${Number(match[3])}日` : item;
+  };
+  return `${formatShort(parts[0])}〜${formatShort(parts[1])}`;
+}
+
+function renderDataStatus() {
+  if (!els.dataStatus) return;
+  const rows = state.statusRows;
+  const basicDate = [maxDateFromRows(rows.teamStatsBatters || []), maxDateFromRows(rows.teamStatsPitchers || [])]
+    .filter(Boolean).sort().at(-1) || "";
+  const recentPeriod = (state.recentBatters[0]?.["期間"] || state.recentPitchers[0]?.["期間"] || "");
+  const defenseDate = [maxDateFromRows(rows.fielding || []), maxDateFromRows(rows.registrationHistory || [])]
+    .filter(Boolean).sort().at(-1) || "";
+  const starterDate = maxDateFromRows(rows.starterPositions || []);
+  const cards = [
+    ["基本・対球団別", formatJapaneseDate(basicDate), "通算成績と対戦相手別データ"],
+    ["直近6日", formatPeriod(recentPeriod), "短期間の好調選手"],
+    ["守備・登録状況", formatJapaneseDate(defenseDate), "守備成績と一軍登録状況"],
+    ["スタメン守備位置", formatJapaneseDate(starterDate), "項目によって更新時点が異なります"],
+  ];
+  els.dataStatus.innerHTML = cards.map(([label, value, note]) => `
+    <article class="status-card"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>
+  `).join("");
+}
+
+function inningsDisplayFromOuts(value) {
+  const outs = toInt(value);
+  const whole = Math.floor(outs / 3);
+  const rest = outs % 3;
+  return rest ? `${whole}.${rest}` : String(whole);
+}
+
+function renderRecentForm() {
+  if (!els.recentForm) return;
+  const batterRows = [...state.recentBatters]
+    .filter((row) => toInt(row["打数"]) > 0)
+    .sort((a, b) => recentBatterScore(b) - recentBatterScore(a))
+    .slice(0, 3);
+  const pitcherRows = [...state.recentPitchers]
+    .filter((row) => toInt(row["投球アウト数"]) > 0)
+    .sort((a, b) => recentPitcherScore(b) - recentPitcherScore(a))
+    .slice(0, 3);
+
+  const batterCards = batterRows.map((row) => `
+    <article class="recent-player-card">
+      <span>打者</span><strong><a href="${playerDetailUrl(row, "batter")}">${escapeHtml(row["選手名"])}</a></strong>
+      <small><a href="${teamDetailUrl(row["チーム"])}">${escapeHtml(row["チーム"])}</a> / ${escapeHtml(formatPeriod(row["期間"]))}</small>
+      <dl><div><dt>打率</dt><dd>${escapeHtml(formatValue(row["打率"], "打率"))}</dd></div><div><dt>本塁打</dt><dd>${escapeHtml(row["本塁打"] || "0")}</dd></div><div><dt>OPS</dt><dd>${escapeHtml(formatValue(row["OPS"], "OPS"))}</dd></div></dl>
+    </article>`).join("");
+  const pitcherCards = pitcherRows.map((row) => `
+    <article class="recent-player-card">
+      <span>投手</span><strong><a href="${playerDetailUrl(row, "pitcher")}">${escapeHtml(row["選手名"])}</a></strong>
+      <small><a href="${teamDetailUrl(row["チーム"])}">${escapeHtml(row["チーム"])}</a> / ${escapeHtml(formatPeriod(row["期間"]))}</small>
+      <dl><div><dt>投球回</dt><dd>${escapeHtml(inningsDisplayFromOuts(row["投球アウト数"]))}</dd></div><div><dt>防御率</dt><dd>${escapeHtml(formatValue(row["防御率"], "防御率"))}</dd></div><div><dt>奪三振</dt><dd>${escapeHtml(row["奪三振"] || "0")}</dd></div></dl>
+    </article>`).join("");
+
+  const grid = els.recentForm.querySelector(".recent-home-grid");
+  if (grid) grid.innerHTML = batterCards + pitcherCards || '<article class="content-card">直近データなし</article>';
+}
+
 function render() {
   const ranking = currentRanking();
   const rows = rowsForRanking(ranking);
@@ -881,6 +1007,8 @@ function render() {
   renderRankingButtons();
   renderSummary();
   renderDailyFocus();
+  renderDataStatus();
+  renderRecentForm();
   els.rankingGroup.textContent = ranking.group;
   els.rankingTitle.textContent = ranking.label;
   els.resultCount.textContent = `${rows.length.toLocaleString("ja-JP")}件`;
@@ -899,17 +1027,27 @@ function escapeHtml(value) {
 
 async function boot() {
   try {
-    const [battersRaw, pitchersRaw, masterRaw, batterSplitsRaw, pitcherSplitsRaw] = await Promise.all([
+    const [battersRaw, pitchersRaw, masterRaw, batterSplitsRaw, pitcherSplitsRaw, recentBattersRaw, recentPitchersRaw, teamStatsBattersRaw, teamStatsPitchersRaw, fieldingRaw, registrationHistoryRaw, starterPositionsRaw] = await Promise.all([
       loadCsv(DATA_FILES.batters),
       loadCsv(DATA_FILES.pitchers),
       loadCsv(DATA_FILES.master),
       loadCsv(DATA_FILES.batterSplits, true),
       loadCsv(DATA_FILES.pitcherSplits, true),
+      loadCsv(DATA_FILES.recentBatters, true),
+      loadCsv(DATA_FILES.recentPitchers, true),
+      loadCsv(DATA_FILES.teamStatsBatters, true),
+      loadCsv(DATA_FILES.teamStatsPitchers, true),
+      loadCsv(DATA_FILES.fielding, true),
+      loadCsv(DATA_FILES.registrationHistory, true),
+      loadCsv(DATA_FILES.starterPositions, true),
     ]);
 
     const indexes = buildMasterIndexes(masterRaw);
     state.batters = mergeBatterSplits(enrichRows(battersRaw, indexes), batterSplitsRaw).map(addBatterScores);
     state.pitchers = mergePitcherSplits(enrichRows(pitchersRaw, indexes), pitcherSplitsRaw).map(addPitcherScores);
+    state.recentBatters = normalizeInsightRows(recentBattersRaw);
+    state.recentPitchers = normalizeInsightRows(recentPitchersRaw);
+    state.statusRows = { teamStatsBatters: teamStatsBattersRaw, teamStatsPitchers: teamStatsPitchersRaw, fielding: fieldingRaw, registrationHistory: registrationHistoryRaw, starterPositions: starterPositionsRaw };
     addQualificationFlags(state.batters, state.pitchers);
 
     renderTeamFilter();
