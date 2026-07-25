@@ -49,6 +49,17 @@
     return `${root}${page}?${params.toString()}`;
   }
 
+  function starterBatteryTeamUrl() {
+    const params = new URLSearchParams({ view: "batteries", team });
+    return `${root}starter-battery.html?${params.toString()}`;
+  }
+
+  function ensureStarterBatteryLink() {
+    const links = document.querySelector(".team-overview .resource-grid");
+    if (!links || links.querySelector("[data-starter-battery-link]")) return;
+    links.insertAdjacentHTML("beforeend", `<a data-starter-battery-link href="${D.escapeHtml(starterBatteryTeamUrl())}">先発バッテリー成績</a>`);
+  }
+
   function scoreCard(label, row, type, scoreKey, meta = "") {
     if (!row) {
       return `<article class="team-highlight"><span>${D.escapeHtml(label)}</span><strong>該当なし</strong></article>`;
@@ -113,6 +124,7 @@
           <a href="${teamScopedUrl("insights.html")}">直近・新人王候補を見る</a>
           <a href="${teamScopedUrl("interleague.html")}">交流戦ランキングを見る</a>
           <a href="${teamScopedUrl("defense.html")}">守備データを見る</a>
+          <a href="${starterBatteryTeamUrl()}">先発バッテリー成績を見る</a>
           <a href="${root}guide.html">スコアの見方を見る</a>
         </div>
       </section>
@@ -160,6 +172,8 @@
       </article>
     `;
   }
+
+  ensureStarterBatteryLink();
 
   try {
     const [data, insight, fieldingRows, interleague] = await Promise.all([D.loadData(), D.loadInsightData(), D.loadFieldingData(), D.loadInterleagueData()]);

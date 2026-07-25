@@ -157,6 +157,143 @@
   }
 
 
+  function starterRate(value) {
+    return `${(D.toNumber(value) * 100).toFixed(1)}%`;
+  }
+
+  function starterEra(value) {
+    return D.toNumber(value).toFixed(2);
+  }
+
+  function starterAverage(value) {
+    return D.toNumber(value).toFixed(2);
+  }
+
+  function starterRecord(row) {
+    return `${D.toInt(row["チーム勝"])}勝${D.toInt(row["チーム敗"])}敗${D.toInt(row["チーム分"])}分`;
+  }
+
+  function starterDetailUrl(teamName, playerName, view = "batteries") {
+    const query = new URLSearchParams({ view, team: teamName, search: playerName });
+    return `./starter-battery.html?${query.toString()}`;
+  }
+
+  function starterPlayerLink(teamName, playerName, playerType) {
+    const href = D.playerUrl({ チーム: teamName, 選手名: playerName }, playerType);
+    return `<a href="${D.escapeHtml(href)}">${D.escapeHtml(playerName)}</a>`;
+  }
+
+  function pitcherBatteryMarkup(summaryRow, batteryRows) {
+    if (!summaryRow && !batteryRows.length) return "";
+    const sortedRows = [...batteryRows].sort((a, b) => D.toInt(b["先発回数"]) - D.toInt(a["先発回数"]) || String(b["最新登板日"] || "").localeCompare(String(a["最新登板日"] || "")));
+    const overview = summaryRow ? [
+      ["先発数", `${D.toInt(summaryRow["先発数"])}試合`],
+      ["組んだ捕手", `${D.toInt(summaryRow["組んだ捕手数"])}人`],
+      ["最多先発捕手", summaryRow["最多先発捕手名"] || "—"],
+      ["チーム成績", starterRecord(summaryRow)],
+      ["防御率", starterEra(summaryRow["防御率"])],
+      ["QS率", starterRate(summaryRow["QS率"])],
+      ["HQS率", starterRate(summaryRow["HQS率"])],
+      ["平均援護点", starterAverage(summaryRow["平均援護点"])],
+    ] : [];
+
+    return `
+      <section class="content-card player-starter-section">
+        <div class="section-heading">
+          <div><p class="eyebrow">Starter Battery</p><h2>先発バッテリー成績</h2></div>
+          <a href="${D.escapeHtml(starterDetailUrl(team, name))}">全履歴を見る</a>
+        </div>
+        <p class="small-note">先発登板時に組んだ捕手別の成績です。防御率やQS率は、その組み合わせで先発した試合を集計しています。</p>
+        ${overview.length ? metricCards(overview) : ""}
+        <div class="compact-table-wrap player-starter-wrap">
+          <table class="compact-table player-starter-table">
+            <thead><tr><th>捕手</th><th>先発</th><th>チーム成績</th><th>防御率</th><th>QS率</th><th>HQS率</th><th>平均投球回</th><th>平均援護点</th><th>最新登板</th></tr></thead>
+            <tbody>
+              ${sortedRows.map((item) => `
+                <tr>
+                  <td>${starterPlayerLink(item["球団"], item["先発捕手名"], "batter")}</td>
+                  <td>${D.toInt(item["先発回数"])}</td>
+                  <td>${D.escapeHtml(starterRecord(item))}</td>
+                  <td>${starterEra(item["防御率"])}</td>
+                  <td>${starterRate(item["QS率"])}</td>
+                  <td>${starterRate(item["HQS率"])}</td>
+                  <td>${starterAverage(item["平均投球回"])}</td>
+                  <td>${starterAverage(item["平均援護点"])}</td>
+                  <td>${D.escapeHtml(formatDate(item["最新登板日"]))}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    `;
+  }
+
+  function catcherStarterMaskMarkup(batteryRows) {
+    if (!batteryRows.length) return "";
+    const sortedRows = [...batteryRows].sort((a, b) => D.toInt(b["先発回数"]) - D.toInt(a["先発回数"]) || String(b["最新登板日"] || "").localeCompare(String(a["最新登板日"] || "")));
+    const totals = batteryRows.reduce((result, item) => {
+      result.starts += D.toInt(item["先発回数"]);
+      result.wins += D.toInt(item["チーム勝"]);
+      result.losses += D.toInt(item["チーム敗"]);
+      result.draws += D.toInt(item["チーム分"]);
+      result.outs += D.toInt(item["投球アウト数"]);
+      result.earnedRuns += D.toInt(item["自責点合計"]);
+      result.qs += D.toInt(item["QS"]);
+      result.hqs += D.toInt(item["HQS"]);
+      result.support += D.toNumber(item["援護点合計"]);
+      return result;
+    }, { starts: 0, wins: 0, losses: 0, draws: 0, outs: 0, earnedRuns: 0, qs: 0, hqs: 0, support: 0 });
+    const decisions = totals.wins + totals.losses;
+    const winRate = decisions ? totals.wins / decisions : 0;
+    const era = totals.outs ? totals.earnedRuns * 27 / totals.outs : 0;
+    const averageInnings = totals.starts ? totals.outs / 3 / totals.starts : 0;
+    const averageSupport = totals.starts ? totals.support / totals.starts : 0;
+    const overview = [
+      ["先発マスク", `${totals.starts}試合`],
+      ["組んだ先発投手", `${batteryRows.length}人`],
+      ["チーム成績", `${totals.wins}勝${totals.losses}敗${totals.draws}分`],
+      ["チーム勝率", `${(winRate * 100).toFixed(1)}%`],
+      ["防御率", era.toFixed(2)],
+      ["QS率", `${(totals.starts ? totals.qs / totals.starts * 100 : 0).toFixed(1)}%`],
+      ["HQS率", `${(totals.starts ? totals.hqs / totals.starts * 100 : 0).toFixed(1)}%`],
+      ["平均投球回", averageInnings.toFixed(2)],
+      ["平均援護点", averageSupport.toFixed(2)],
+    ];
+
+    return `
+      <section class="content-card player-starter-section">
+        <div class="section-heading">
+          <div><p class="eyebrow">Starting Catcher</p><h2>先発マスク成績</h2></div>
+          <a href="${D.escapeHtml(starterDetailUrl(team, name))}">全履歴を見る</a>
+        </div>
+        <p class="small-note">先発捕手として組んだ投手別の成績です。途中出場や途中交代後の投手成績は含みません。</p>
+        ${metricCards(overview)}
+        <div class="compact-table-wrap player-starter-wrap">
+          <table class="compact-table player-starter-table">
+            <thead><tr><th>先発投手</th><th>先発</th><th>チーム成績</th><th>防御率</th><th>QS率</th><th>HQS率</th><th>平均投球回</th><th>平均援護点</th><th>最新登板</th></tr></thead>
+            <tbody>
+              ${sortedRows.map((item) => `
+                <tr>
+                  <td>${starterPlayerLink(item["球団"], item["先発投手名"], "pitcher")}</td>
+                  <td>${D.toInt(item["先発回数"])}</td>
+                  <td>${D.escapeHtml(starterRecord(item))}</td>
+                  <td>${starterEra(item["防御率"])}</td>
+                  <td>${starterRate(item["QS率"])}</td>
+                  <td>${starterRate(item["HQS率"])}</td>
+                  <td>${starterAverage(item["平均投球回"])}</td>
+                  <td>${starterAverage(item["平均援護点"])}</td>
+                  <td>${D.escapeHtml(formatDate(item["最新登板日"]))}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    `;
+  }
+
+
   function formatDate(value) {
     const text = String(value || "").trim();
     const match = text.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/);
@@ -248,12 +385,13 @@
   }
 
   try {
-    const [data, fieldingRows, opponentStats, insightData, rosterRows] = await Promise.all([
+    const [data, fieldingRows, opponentStats, insightData, rosterRows, starterData] = await Promise.all([
       D.loadData(),
       D.loadFieldingData(),
       D.loadOpponentStatsData(),
       D.loadInsightData(),
       D.loadRosterData(),
+      D.loadStarterBatteryData(),
     ]);
     const rows = type === "pitcher" ? data.pitchers : data.batters;
     const row = rows.find((candidate) => candidate["チーム"] === team && candidate["選手名"] === name);
@@ -277,6 +415,15 @@
     const rosterRow = rosterRows
       .filter((item) => item["チーム"] === row["チーム"] && playerNameKey(item["選手名"]) === playerNameKey(row["選手名"]))
       .sort((a, b) => String(b["更新日"] || "").localeCompare(String(a["更新日"] || "")))[0];
+    const pitcherStarterSummary = !isBatter
+      ? starterData.pitchers.find((item) => item["球団"] === row["チーム"] && playerNameKey(item["先発投手名"]) === playerNameKey(row["選手名"]))
+      : null;
+    const pitcherBatteryRows = !isBatter
+      ? starterData.batteries.filter((item) => item["球団"] === row["チーム"] && playerNameKey(item["先発投手名"]) === playerNameKey(row["選手名"]))
+      : [];
+    const catcherBatteryRows = isBatter
+      ? starterData.batteries.filter((item) => item["球団"] === row["チーム"] && playerNameKey(item["先発捕手名"]) === playerNameKey(row["選手名"]))
+      : [];
 
     document.title = `${row["選手名"]} 2026成績 | Player Lens`;
     title.textContent = `${row["選手名"]} 2026成績`;
@@ -324,6 +471,8 @@
 
       ${recentFormMarkup(recentRow, isBatter)}
 
+      ${isBatter ? catcherStarterMaskMarkup(catcherBatteryRows) : pitcherBatteryMarkup(pitcherStarterSummary, pitcherBatteryRows)}
+
       <section class="content-card">
         <h2>左右別成績</h2>
         <div class="compact-table-wrap player-split-wrap">${splitTable(row, isBatter)}</div>
@@ -340,6 +489,7 @@
         <h2>関連して見る</h2>
         <div class="resource-grid">
           <a href="${D.teamUrl(row["チーム"])}">${D.escapeHtml(row["チーム"])}のチーム別ランキング</a>
+          ${(!isBatter && pitcherBatteryRows.length) || (isBatter && catcherBatteryRows.length) ? `<a href="${D.escapeHtml(starterDetailUrl(row["チーム"], row["選手名"]))}">先発バッテリー履歴</a>` : ""}
           <a href="./insights.html">注目データ</a>
           <a href="./defense.html">守備データ</a>
           <a href="./guide.html">ランキングの見方</a>
