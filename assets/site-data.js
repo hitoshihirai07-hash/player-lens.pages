@@ -15,6 +15,9 @@
     teamStatsBatters: "./data/team_stats_batter.csv",
     teamStatsPitchers: "./data/team_stats_pitcher.csv",
     registrationHistory: "./data/registration_history.csv",
+    starterPitchers: "./data/starter_pitcher_summary.csv",
+    starterBatteries: "./data/starter_battery_summary.csv",
+    starterGames: "./data/starter_game_results.csv",
   };
 
   const TEAM_TO_FULL = {
@@ -744,6 +747,36 @@
       .filter((row) => row["選手名"] && row["チーム"]);
   }
 
+  async function loadStarterBatteryData() {
+    const [pitchers, batteries, games] = await Promise.all([
+      loadCsv(dataPath(DATA_FILES.starterPitchers)),
+      loadCsv(dataPath(DATA_FILES.starterBatteries)),
+      loadCsv(dataPath(DATA_FILES.starterGames)),
+    ]);
+
+    return {
+      pitchers: pitchers.map((row) => ({
+        ...row,
+        球団: shortTeam(row["球団"] || ""),
+        先発投手名: normalizeName(row["先発投手名"] || ""),
+        最多先発捕手名: normalizeName(row["最多先発捕手名"] || ""),
+      })),
+      batteries: batteries.map((row) => ({
+        ...row,
+        球団: shortTeam(row["球団"] || ""),
+        先発投手名: normalizeName(row["先発投手名"] || ""),
+        先発捕手名: normalizeName(row["先発捕手名"] || ""),
+      })),
+      games: games.map((row) => ({
+        ...row,
+        球団: shortTeam(row["球団"] || ""),
+        相手球団: shortTeam(row["相手球団"] || ""),
+        先発投手名: normalizeName(row["先発投手名"] || ""),
+        先発捕手名: normalizeName(row["先発捕手名"] || ""),
+      })),
+    };
+  }
+
   window.PlayerLensData = {
     RANKINGS,
     START_POSITIONS,
@@ -761,6 +794,7 @@
     loadInterleagueData,
     loadOpponentStatsData,
     loadRosterData,
+    loadStarterBatteryData,
     playerKey,
     playerUrl,
     rankRows,

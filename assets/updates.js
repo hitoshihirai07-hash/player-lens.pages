@@ -15,6 +15,9 @@
     { label: "対球団別野手成績", path: "./data/team_stats_batter.csv" },
     { label: "対球団別投手成績", path: "./data/team_stats_pitcher.csv" },
     { label: "選手登録状況", path: "./data/registration_history.csv" },
+    { label: "先発投手別成績", path: "./data/starter_pitcher_summary.csv" },
+    { label: "先発バッテリー別成績", path: "./data/starter_battery_summary.csv" },
+    { label: "先発バッテリー試合履歴", path: "./data/starter_game_results.csv" },
   ];
 
   const rowsEl = document.getElementById("updateRows");

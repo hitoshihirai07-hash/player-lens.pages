@@ -36,4 +36,9 @@
   <url><loc>https://player-lens-pages.pages.dev/teams/eagles</loc></url>
   <url><loc>https://player-lens-pages.pages.dev/teams/lions</loc></url>
   <url><loc>https://player-lens-pages.pages.dev/teams/fighters</loc></url>
+  <url>
+    <loc>https://player-lens-pages.pages.dev/starter-battery</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>

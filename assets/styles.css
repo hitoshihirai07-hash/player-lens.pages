@@ -2044,3 +2044,223 @@ tbody tr.is-selected {
     min-height: auto;
   }
 }
+
+/* Starter battery history */
+.starter-battery-shell {
+  max-width: 1480px;
+}
+
+.starter-battery-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.starter-battery-intro p:not(.eyebrow) {
+  max-width: 920px;
+}
+
+.starter-filter-card,
+.starter-results-card {
+  margin-bottom: 16px;
+}
+
+.starter-filter-heading {
+  align-items: flex-end;
+}
+
+.secondary-button,
+.starter-pagination button {
+  min-height: 38px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 7px 12px;
+  background: #fff;
+  color: #344256;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.secondary-button:hover,
+.starter-pagination button:hover:not(:disabled) {
+  border-color: #76b8ad;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.starter-tabs {
+  margin-bottom: 16px;
+}
+
+.starter-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.starter-filters label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.starter-filters select,
+.starter-filters input {
+  width: 100%;
+}
+
+.starter-search-filter {
+  grid-column: span 2;
+}
+
+.starter-result-heading {
+  align-items: flex-end;
+}
+
+.starter-table-wrap {
+  max-width: 100%;
+}
+
+.starter-data-table {
+  min-width: 1120px;
+}
+
+.starter-games-table {
+  min-width: 1580px;
+}
+
+.starter-data-table th:first-child,
+.starter-data-table td:first-child {
+  text-align: left;
+}
+
+.starter-name-pair {
+  display: grid;
+  gap: 2px;
+  min-width: 180px;
+}
+
+.starter-name-pair strong,
+.starter-name-pair small {
+  display: block;
+}
+
+.starter-name-pair small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.starter-result-badge,
+.starter-quality-badge {
+  display: inline-flex;
+  min-width: 34px;
+  min-height: 25px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 3px 8px;
+  background: #edf2f7;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.starter-result-badge.is-win {
+  background: #e5f6ef;
+  color: #08735f;
+}
+
+.starter-result-badge.is-loss {
+  background: #fff0ef;
+  color: #b42318;
+}
+
+.starter-result-badge.is-draw {
+  background: #f1f5f9;
+  color: #526174;
+}
+
+.starter-quality-badge.is-qs {
+  background: #e8f1ff;
+  color: #1d5f9e;
+}
+
+.starter-quality-badge.is-hqs {
+  background: var(--gold-soft);
+  color: #8a5913;
+}
+
+.starter-empty-cell {
+  padding: 28px !important;
+  color: var(--muted);
+  text-align: center !important;
+}
+
+.starter-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.starter-pagination button:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+.starter-pagination span {
+  min-width: 110px;
+  text-align: center;
+  font-weight: 800;
+}
+
+.starter-pagination small {
+  width: 100%;
+  color: var(--muted);
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .starter-battery-intro {
+    grid-template-columns: 1fr;
+  }
+
+  .starter-filter-heading,
+  .starter-result-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .starter-search-filter {
+    grid-column: auto;
+  }
+
+  .starter-data-table,
+  .starter-games-table {
+    min-width: 0;
+  }
+
+  .compact-table.starter-data-table.is-card-table td:first-child {
+    display: flex;
+    padding-bottom: 0;
+    border-bottom: 0;
+    text-align: right;
+  }
+
+  .compact-table.starter-data-table.is-card-table td:first-child::before {
+    display: block;
+    margin-bottom: 0;
+  }
+
+  .starter-name-pair {
+    min-width: 0;
+  }
+}
