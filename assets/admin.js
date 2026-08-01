@@ -8,7 +8,7 @@
     { label: "打者左右成績", path: "./data/2026_batter_left_and_right_stats.csv" },
     { label: "投手左右成績", path: "./data/2026_pitcher_left_and_right_stats.csv" },
     { label: "新人王候補", path: "./data/rookie_candidates.csv" },
-    { label: "スタメン守備位置", path: "./data/starter_positions.csv" },
+    { label: "守備位置別出場数", path: "./data/starter_positions.csv" },
     { label: "直近6日野手", path: "./data/recent_batter_6days.csv" },
     { label: "直近6日投手", path: "./data/recent_pitcher_6days.csv" },
     { label: "守備成績", path: "./data/fielding_summary.csv" },

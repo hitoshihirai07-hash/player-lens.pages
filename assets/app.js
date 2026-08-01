@@ -1000,7 +1000,7 @@ function renderDataStatus() {
     ["基本・対球団別", formatJapaneseDate(basicDate), "通算成績と対戦相手別データ"],
     ["直近6日", formatPeriod(recentPeriod), "短期間の好調選手"],
     ["守備・登録状況", formatJapaneseDate(defenseDate), "守備成績と一軍登録状況"],
-    ["スタメン守備位置", formatJapaneseDate(starterDate), "項目によって更新時点が異なります"],
+    ["守備位置別出場数", formatJapaneseDate(starterDate), "試合途中の守備位置変更を含みます"],
   ];
   els.dataStatus.innerHTML = cards.map(([label, value, note]) => `
     <article class="status-card"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>

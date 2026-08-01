@@ -331,7 +331,7 @@
     summary([
       ["外野対象", rows.length],
       ["1位", top ? top.row["選手名"] : "-"],
-      ["最多先発", rows.length ? Math.max(...rows.map((item) => item.starts)) : 0],
+      ["最多出場", rows.length ? Math.max(...rows.map((item) => item.starts)) : 0],
       ["表示形式", "外野統合"],
     ]);
 
@@ -349,11 +349,11 @@
       </tr>
     `);
     const topText = top
-      ? `<p>現在の外野手ランキング上位は${D.escapeHtml(top.row["選手名"])}です。外野でのスタメン出場数と今季評価を並べることで、外野3枠をまとめて見られます。</p>`
-      : "<p>外野でスタメン出場した選手を対象にしています。</p>";
+      ? `<p>現在の外野手ランキング上位は${D.escapeHtml(top.row["選手名"])}です。外野の各守備位置で出場した試合数と今季評価を並べることで、外野3枠をまとめて見られます。</p>`
+      : "<p>外野の守備位置に就いた選手を対象にしています。試合途中から守った場合や途中で守備位置が変わった場合も含みます。</p>";
     mainEl.innerHTML = [
       card("この記事の見どころ", `${topText}<p>外野手は左右中で役割が違いますが、表彰や比較では外野手としてまとめて見る場面があります。このランキングでは3ポジションを合算しています。</p>`),
-      card("外野手ランキング", table(["順位", "選手", "球団", "登録", "外野先発", "今季評価", "打席", "OPS", "本塁打"], tableRows)),
+      card("外野手ランキング", table(["順位", "選手", "球団", "登録", "外野出場", "今季評価", "打席", "OPS", "本塁打"], tableRows)),
     ].join("");
   }
 
@@ -371,7 +371,7 @@
           <td>${position.type === "pitcher" ? D.escapeHtml(season["投球回"]) : D.escapeHtml(season["打席"])}</td>
         </tr>
       `);
-      return card(`${position.label}ランキング`, table(["順位", "選手", "球団", "先発", "今季評価", position.type === "pitcher" ? "投球回" : "打席"], bodyRows));
+      return card(`${position.label}ランキング`, table(["順位", "選手", "球団", "出場", "今季評価", position.type === "pitcher" ? "投球回" : "打席"], bodyRows));
     });
     const multiRows = insight.starterPositions
       .map((row) => {
@@ -404,7 +404,7 @@
     mainEl.innerHTML = [
       card("この記事の見どころ", "<p>守備位置別に見ると、同じチーム内の起用やポジション争いが見えやすくなります。外野手はレフト、センター、ライトを統合し、外野3枠の比較として見られるようにしています。</p>"),
       ...blocks,
-      card("複数ポジションでスタメン出場している選手", table(["順位", "選手", "球団", "位置数", "先発数", "守備位置"], multiRows)),
+      card("複数ポジションで出場している選手", table(["順位", "選手", "球団", "位置数", "各位置の出場数計", "守備位置"], multiRows)),
     ].join("");
   }
 

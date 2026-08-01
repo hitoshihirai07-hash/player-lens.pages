@@ -207,7 +207,7 @@
           <td>${type === "pitcher" ? D.escapeHtml(season["投球回"]) : D.escapeHtml(season["打席"])}</td>
         </tr>
       `);
-    els.positionRanking.innerHTML = table(["順位", "選手", "球団", "登録", `${position.label}先発`, "今季評価", type === "pitcher" ? "投球回" : "打席"], rows);
+    els.positionRanking.innerHTML = table(["順位", "選手", "球団", "登録", `${position.label}出場`, "今季評価", type === "pitcher" ? "投球回" : "打席"], rows);
   }
 
   function positionCount(row) {
@@ -263,7 +263,7 @@
           <td class="score">${D.formatValue(season[scoreKey(type)], "スコア")}</td>
         </tr>
       `);
-    els.multiPositionList.innerHTML = table(["順位", "選手", "球団", "位置数", "先発数", "守備位置", "今季評価"], rows);
+    els.multiPositionList.innerHTML = table(["順位", "選手", "球団", "位置数", "各位置の出場数計", "守備位置", "今季評価"], rows);
   }
 
   function renderSummary() {
