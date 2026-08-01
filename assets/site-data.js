@@ -262,12 +262,14 @@
   function mergeBatterSplits(rows, splitRows) {
     const grouped = new Map();
     for (const split of splitRows) {
-      const team = shortTeam(split["チーム"] || split["球団"] || "");
-      const side = split["区分"] === "対左" ? "対左" : split["区分"] === "対右" ? "対右" : "";
+      const team = shortTeam(split["チーム"] || split["球団"] || split["球団名"] || "");
+      const sideValue = String(split["区分"] || split["左右"] || "").trim();
+      const side = ["対左", "左"].includes(sideValue) ? "対左" : ["対右", "右"].includes(sideValue) ? "対右" : "";
       if (!split["選手名"] || !team || !side) continue;
       const key = playerKey({ 選手名: split["選手名"], チーム: team });
       const record = grouped.get(key) || {};
       record[`${side}打率`] = split["打率"] || "";
+      record[`${side}打席`] = split["打席"] || "";
       record[`${side}打数`] = split["打数"] || "";
       record[`${side}安打`] = split["安打"] || "";
       record[`${side}本塁打`] = split["本塁打"] || "";
@@ -440,8 +442,48 @@
     }));
   }
 
+  function normalizeRecentBatterRow(row) {
+    const atBats = toInt(row["打数"]);
+    const hits = toInt(row["安打"]);
+    const singles = toInt(row["単打"]);
+    const doubles = toInt(row["二塁打"]);
+    const triples = toInt(row["三塁打"]);
+    const homeRuns = toInt(row["本塁打"]);
+    const walks = toInt(row["四球"]);
+    const hitByPitch = toInt(row["死球"]);
+    const sacrificeFlies = toInt(row["犠飛"]);
+    const onBaseDenominator = atBats + walks + hitByPitch + sacrificeFlies;
+    const average = row["打率"] !== "" ? toNumber(row["打率"]) : atBats > 0 ? hits / atBats : "";
+    const onBase = row["出塁率"] !== undefined && row["出塁率"] !== ""
+      ? toNumber(row["出塁率"])
+      : onBaseDenominator > 0 ? (hits + walks + hitByPitch) / onBaseDenominator : "";
+    const totalBases = singles + doubles * 2 + triples * 3 + homeRuns * 4;
+    const slugging = row["長打率"] !== undefined && row["長打率"] !== ""
+      ? toNumber(row["長打率"])
+      : atBats > 0 ? totalBases / atBats : "";
+    const ops = row["OPS"] !== undefined && row["OPS"] !== ""
+      ? toNumber(row["OPS"])
+      : onBase !== "" && slugging !== "" ? onBase + slugging : "";
+    const iso = row["ISO"] !== undefined && row["ISO"] !== ""
+      ? toNumber(row["ISO"])
+      : average !== "" && slugging !== "" ? slugging - average : "";
+
+    return {
+      ...row,
+      打率: average === "" ? "" : round3(average),
+      出塁率: onBase === "" ? "" : round3(onBase),
+      長打率: slugging === "" ? "" : round3(slugging),
+      OPS: ops === "" ? "" : round3(ops),
+      ISO: iso === "" ? "" : round3(iso),
+      期間: row["期間"] || (row["更新日"] ? `${row["更新日"]}時点` : ""),
+    };
+  }
+
   function addRecentBatterScores(rows) {
-    return normalizeInsightRows(rows).map((row) => ({ ...row, 直近スコア: recentBatterScore(row) }));
+    return normalizeInsightRows(rows)
+      .map(normalizeRecentBatterRow)
+      .filter((row) => row["ポジション"] !== "投手")
+      .map((row) => ({ ...row, 直近スコア: recentBatterScore(row) }));
   }
 
   function addRecentPitcherScores(rows) {
@@ -716,7 +758,8 @@
         ...row,
         選手名: normalizeName(row["選手名"]),
         チーム: normalizedTeam(row),
-        対球団名: shortTeam(row["対球団名"] || ""),
+        対球団名: shortTeam(row["対球団名"] || row["対戦球団"] || ""),
+        試合: row["試合"] || row["試合数"] || "",
       }))
       .filter((row) => row["選手名"] && row["選手名"] !== "#N/A" && row["チーム"] && row["対球団名"]);
   }
@@ -727,7 +770,7 @@
       loadCsv(dataPath(DATA_FILES.teamStatsPitchers), true),
     ]);
     return {
-      batters: normalizeOpponentStatsRows(batterRows),
+      batters: normalizeOpponentStatsRows(batterRows).filter((row) => row["ポジション"] !== "投手"),
       pitchers: normalizeOpponentStatsRows(pitcherRows),
     };
   }

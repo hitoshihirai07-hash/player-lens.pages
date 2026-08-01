@@ -89,16 +89,16 @@
 
   function opponentStatsTable(rows, isBatter) {
     const columns = isBatter
-      ? ["対戦相手", "試合", "打率", "本塁打", "打点", "盗塁"]
+      ? ["対戦相手", "試合", "打席", "打率", "本塁打", "打点"]
       : ["対戦相手", "先発", "救援", "防御率", "勝利", "敗戦", "HLD", "セーブ"];
     const cells = isBatter
       ? (item) => [
           item["対球団名"],
           opponentValue(item["試合"]),
+          opponentValue(item["打席"]),
           opponentValue(item["打率"], "打率"),
           opponentValue(item["本塁打"]),
           opponentValue(item["打点"]),
-          opponentValue(item["盗塁"]),
         ]
       : (item) => [
           item["対球団名"],

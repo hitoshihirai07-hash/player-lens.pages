@@ -40,11 +40,11 @@
   function batterScore(row) {
     const games = D.toInt(row["試合"]);
     const average = number(row["打率"]);
+    const hits = D.toInt(row["安打"]);
     const homeRuns = D.toInt(row["本塁打"]);
     const rbi = D.toInt(row["打点"]);
-    const stolenBases = D.toInt(row["盗塁"]);
     const sampleWeight = Math.min(1, games / 5);
-    const raw = (average * 100) + (homeRuns * 12) + (rbi * 3) + (stolenBases * 4);
+    const raw = (average * 100) + (hits * 0.8) + (homeRuns * 12) + (rbi * 3);
     return Math.round(raw * sampleWeight * 10) / 10;
   }
 
@@ -139,10 +139,10 @@
         </div>
         <dl class="watch-metrics">
           ${metric("試合", numberDisplay(row["試合"]))}
+          ${metric("打席", numberDisplay(row["打席"]))}
           ${metric("打率", numberDisplay(row["打率"], "打率"))}
           ${metric("本塁打", numberDisplay(row["本塁打"]))}
           ${metric("打点", numberDisplay(row["打点"]))}
-          ${metric("盗塁", numberDisplay(row["盗塁"]))}
         </dl>
       </article>
     `;
