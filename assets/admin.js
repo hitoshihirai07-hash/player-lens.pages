@@ -9,8 +9,8 @@
     { label: "投手左右成績", path: "./data/2026_pitcher_left_and_right_stats.csv" },
     { label: "新人王候補", path: "./data/rookie_candidates.csv" },
     { label: "守備位置別出場数", path: "./data/starter_positions.csv" },
-    { label: "直近6日野手", path: "./data/recent_batter_6days.csv" },
-    { label: "直近6日投手", path: "./data/recent_pitcher_6days.csv" },
+    { label: "直近6試合野手", path: "./data/recent_batter_6days.csv" },
+    { label: "直近6試合投手", path: "./data/recent_pitcher_6days.csv" },
     { label: "守備成績", path: "./data/fielding_summary.csv" },
     { label: "交流戦野手", path: "./data/interleague_batters.csv" },
     { label: "交流戦投手", path: "./data/interleague_pitchers.csv" },
@@ -266,7 +266,7 @@
 
     if (theme === "recent-batter" || theme === "recent-pitcher") {
       const type = theme === "recent-pitcher" ? "pitcher" : "batter";
-      title = type === "pitcher" ? "直近6日 投手トップ5" : "直近6日 野手トップ5";
+      title = type === "pitcher" ? "直近6試合 投手トップ5" : "直近6試合 野手トップ5";
       lines = rowsForRecent(type, league, 5, team).map((row, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}/${row["ポジション"]}）${D.formatValue(row["直近スコア"], "スコア")}`);
       url = scopedPageUrl("insights.html", team);
     } else if (theme === "interleague-batter" || theme === "interleague-pitcher") {

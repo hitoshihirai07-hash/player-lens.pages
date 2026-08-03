@@ -316,14 +316,14 @@
     if (!recentRow) {
       return `
         <section class="content-card recent-player-section">
-          <div class="section-heading"><div><p class="eyebrow">Recent Form</p><h2>直近6日間の成績</h2></div></div>
-          <p class="empty-state">直近6日間の出場データはありません。</p>
+          <div class="section-heading"><div><p class="eyebrow">Recent Form</p><h2>出場した直近6試合の成績</h2></div></div>
+          <p class="empty-state">直近6試合の出場データはありません。</p>
         </section>
       `;
     }
     const items = isBatter
       ? [
-          ["期間", formatPeriod(recentRow["期間"])],
+          ["集計対象", "出場した直近6試合"],
           ["打数", recentRow["打数"]],
           ["打率", D.formatValue(recentRow["打率"], "打率")],
           ["OPS", D.formatValue(recentRow["OPS"], "OPS")],
@@ -333,7 +333,7 @@
           ["盗塁", recentRow["盗塁"]],
         ]
       : [
-          ["期間", formatPeriod(recentRow["期間"])],
+          ["集計対象", "出場した直近6試合"],
           ["投球回", recentRow["投球回"] || D.inningsFromOuts(recentRow["投球アウト数"])],
           ["防御率", D.formatValue(recentRow["防御率"], "防御率")],
           ["奪三振", recentRow["奪三振"]],
@@ -344,7 +344,7 @@
         ];
     return `
       <section class="content-card recent-player-section">
-        <div class="section-heading"><div><p class="eyebrow">Recent Form</p><h2>直近6日間の成績</h2></div><a href="./recent-form.html">直近成績一覧</a></div>
+        <div class="section-heading"><div><p class="eyebrow">Recent Form</p><h2>出場した直近6試合の成績</h2></div><a href="./recent-form.html">直近成績一覧</a></div>
         ${metricCards(items)}
       </section>
     `;

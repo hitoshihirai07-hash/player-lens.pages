@@ -121,7 +121,7 @@
       .sort((a, b) => D.toNumber(b["直近スコア"]) - D.toNumber(a["直近スコア"]))
       .slice(0, 10);
 
-    els.recentPeriod.textContent = periodLabel(insight.recentBatters) || periodLabel(insight.recentPitchers);
+    els.recentPeriod.textContent = "選手ごとの直近6試合";
     els.recentRankings.innerHTML = `
       <section class="mini-ranking">
         <h3>野手</h3>

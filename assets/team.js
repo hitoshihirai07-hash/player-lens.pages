@@ -115,8 +115,8 @@
           ${scoreCard("投手", topPitcher, "pitcher", "投手総合スコア", "投手総合")}
           ${scoreCard("守備", topFielding, topFieldingType, "守備評価", topFielding?.["ポジション"])}
           ${scoreCard("若手", topYoung, topYoungType, topYoungScore, `${topYoung?.["年齢"] || "-"}歳`)}
-          ${scoreCard("直近野手", recentBatter, "batter", "直近スコア", "直近6日")}
-          ${scoreCard("直近投手", recentPitcher, "pitcher", "直近スコア", "直近6日")}
+          ${scoreCard("直近野手", recentBatter, "batter", "直近スコア", "直近6試合")}
+          ${scoreCard("直近投手", recentPitcher, "pitcher", "直近スコア", "直近6試合")}
           ${scoreCard("交流戦野手", interleagueBatter, "batter", "交流戦スコア", "交流戦")}
           ${scoreCard("交流戦投手", interleaguePitcher, "pitcher", "交流戦スコア", "交流戦")}
         </div>

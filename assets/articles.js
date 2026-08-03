@@ -207,7 +207,7 @@
 
     summary([
       ["表示範囲", scope],
-      ["対象期間", periodLabel(filterRecentRows(insight.recentBatters))],
+      ["集計単位", "選手ごとの直近6試合"],
       ["対象野手", batters.length],
       ["対象投手", pitchers.length],
     ]);
@@ -251,8 +251,8 @@
 
     mainEl.innerHTML = [
       card("この記事の見どころ", `${lead}<p>リーグと球団を切り替えると、その範囲の中で順位を付け直します。短期成績は好不調の波を見つけるための入口として、通算成績とあわせて見るのがおすすめです。</p>`),
-      card(`${D.escapeHtml(scope)} 直近6日 野手ランキング`, table(["順位", "選手", "球団", "登録", "評価", "打率", "OPS", "本塁打", "打点"], batterRows)),
-      card(`${D.escapeHtml(scope)} 直近6日 投手ランキング`, table(["順位", "選手", "球団", "登録", "評価", "投球回", "防御率", "奪三振", "WHIP"], pitcherRows)),
+      card(`${D.escapeHtml(scope)} 直近6試合 野手ランキング`, table(["順位", "選手", "球団", "登録", "評価", "打率", "OPS", "本塁打", "打点"], batterRows)),
+      card(`${D.escapeHtml(scope)} 直近6試合 投手ランキング`, table(["順位", "選手", "球団", "登録", "評価", "投球回", "防御率", "奪三振", "WHIP"], pitcherRows)),
     ].join("");
     D.enhanceCompactTables(mainEl);
   }
@@ -442,7 +442,7 @@
       ["対象球団", 6],
       ["規定打席到達", qualifiedBatters],
       ["規定投球回到達", qualifiedPitchers],
-      ["直近対象期間", periodLabel(insight.recentBatters)],
+      ["直近集計", "選手ごとの直近6試合"],
     ]);
 
     const batterRows = batters.map((row, index) => `
@@ -507,11 +507,11 @@
       : `<p>${leagueLabel}の野手・投手ランキングをまとめています。</p>`;
 
     mainEl.innerHTML = [
-      card("この記事の見どころ", `${lead}<p>今季通算と直近6日間を分けて見ると、安定して成績を残している選手と、最近状態を上げている選手を比べられます。球団をまたいで注目選手を探したい時に使えるまとめです。</p>`),
+      card("この記事の見どころ", `${lead}<p>今季通算と選手が出場した直近6試合を分けて見ると、安定して成績を残している選手と、最近状態を上げている選手を比べられます。球団をまたいで注目選手を探したい時に使えるまとめです。</p>`),
       card(`${leagueLabel} 打者ランキング`, table(["順位", "選手", "球団", "評価", "打席", "打率", "OPS", "本塁打", "打点"], batterRows)),
       card(`${leagueLabel} 投手ランキング`, table(["順位", "選手", "球団", "評価", "投球回", "防御率", "奪三振", "勝利", "セーブ"], pitcherRows)),
-      card(`${leagueLabel} 直近6日 野手ランキング`, table(["順位", "選手", "球団", "評価", "打率", "OPS", "本塁打", "打点"], recentBatterRows)),
-      card(`${leagueLabel} 直近6日 投手ランキング`, table(["順位", "選手", "球団", "評価", "投球回", "防御率", "奪三振", "WHIP"], recentPitcherRows)),
+      card(`${leagueLabel} 直近6試合 野手ランキング`, table(["順位", "選手", "球団", "評価", "打率", "OPS", "本塁打", "打点"], recentBatterRows)),
+      card(`${leagueLabel} 直近6試合 投手ランキング`, table(["順位", "選手", "球団", "評価", "投球回", "防御率", "奪三振", "WHIP"], recentPitcherRows)),
     ].join("");
   }
 

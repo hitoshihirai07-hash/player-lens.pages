@@ -43,7 +43,7 @@
   const UNSUPPORTED_TOPICS = [
     "明日", "今日の試合", "試合速報", "速報", "スタメン", "先発予想", "予想", "怪我", "けが", "故障", "離脱", "今後", "将来", "おすすめ", "感想",
   ];
-  const RECENT_WORDS = ["直近6日", "直近", "最近", "好調", "6日"];
+  const RECENT_WORDS = ["直近6試合", "6試合", "直近6日", "直近", "最近", "好調", "6日"];
   const LOW_WORDS = ["低い", "少ない", "少な", "低く"];
   const HIGH_WORDS = ["高い", "多い", "多く", "上位", "最多"];
   const state = {
@@ -222,14 +222,14 @@
       return unsupportedHtml(`${entry.row["選手名"]}は${entry.type === "pitcher" ? "投手" : "打者"}データに登録されているため、${metric.label}では検索できません。`);
     }
     if (metric && !metric[period]) {
-      return unsupportedHtml(`${metric.label}は${period === "recent" ? "直近6日" : "シーズン"}データでは確認できません。`);
+      return unsupportedHtml(`${metric.label}は${period === "recent" ? "直近6試合" : "シーズン"}データでは確認できません。`);
     }
 
     const row = period === "recent" ? recentRowFor(entry) : entry.row;
     if (period === "recent" && !rowHasRecentActivity(row, entry.type)) {
       return `
         <section class="question-result is-unavailable">
-          <h3>直近6日間の出場データはありません</h3>
+          <h3>直近6試合の出場データはありません</h3>
           <p>${D.escapeHtml(entry.row["選手名"])}のシーズン成績は選手ページで確認できます。</p>
           <a class="question-related-link" href="${D.escapeHtml(D.playerUrl(entry.row, entry.type))}">選手ページを見る</a>
         </section>
@@ -237,14 +237,13 @@
     }
 
     const typeLabel = entry.type === "pitcher" ? "投手" : "打者";
-    const heading = `${period === "recent" ? "直近6日" : "シーズン"}・${fullTeamName(entry.row["チーム"])}・${entry.row["選手名"]}・${typeLabel}`;
+    const heading = `${period === "recent" ? "直近6試合" : "シーズン"}・${fullTeamName(entry.row["チーム"])}・${entry.row["選手名"]}・${typeLabel}`;
     const metrics = profileMetricItems(row, entry.type, period);
-    const periodText = period === "recent" ? periodLabel(row) : "";
     return `
       <section class="question-result">
         <p class="eyebrow">Player Result</p>
         <h3>${D.escapeHtml(heading)}</h3>
-        ${periodText ? `<p class="question-result-period">集計期間：${D.escapeHtml(periodText)}</p>` : ""}
+        ${period === "recent" ? '<p class="question-result-period">集計対象：選手が出場した直近6試合</p>' : ""}
         <dl class="question-player-metrics">
           ${metrics.map(([label, value]) => `<div><dt>${D.escapeHtml(label)}</dt><dd>${D.escapeHtml(value)}</dd></div>`).join("")}
         </dl>
@@ -326,8 +325,7 @@
 
     const typeLabel = type === "pitcher" ? "投手" : "打者";
     const directionLabel = direction === "asc" ? "低い順" : "高い順";
-    const heading = `${period === "recent" ? "直近6日" : "シーズン"}・${scopeLabel(team, league)}・${typeLabel}・${metric.label}${directionLabel}`;
-    const periodText = period === "recent" ? periodLabel(rows[0]) : "";
+    const heading = `${period === "recent" ? "直近6試合" : "シーズン"}・${scopeLabel(team, league)}・${typeLabel}・${metric.label}${directionLabel}`;
     const minimumText = period === "recent"
       ? (type === "pitcher" ? "3アウト以上" : "10打席以上")
       : (type === "pitcher" ? "5投球回以上" : "20打席以上");
@@ -336,7 +334,7 @@
       <section class="question-result">
         <p class="eyebrow">Ranking Result</p>
         <h3>${D.escapeHtml(heading)}</h3>
-        <p class="question-result-period">${periodText ? `集計期間：${D.escapeHtml(periodText)} ／ ` : ""}最低条件：${D.escapeHtml(minimumText)}</p>
+        <p class="question-result-period">${period === "recent" ? "集計対象：選手ごとの直近6試合 ／ " : ""}最低条件：${D.escapeHtml(minimumText)}</p>
         <ol class="question-ranking-list">
           ${rows.map((row, index) => {
             const seasonRow = period === "season" ? row : seasonRowFor(row, type);
@@ -357,7 +355,7 @@
         </ol>
         <div class="question-related-links">
           ${team ? `<a href="${D.escapeHtml(D.teamUrl(team))}">${D.escapeHtml(fullTeamName(team))}のページ</a>` : ""}
-          <a href="${period === "recent" ? "./recent-form.html" : "./index.html"}">${period === "recent" ? "直近6日一覧" : "ランキング一覧"}</a>
+          <a href="${period === "recent" ? "./recent-form.html" : "./index.html"}">${period === "recent" ? "直近6試合一覧" : "ランキング一覧"}</a>
         </div>
       </section>
     `;
@@ -388,8 +386,8 @@
     }
     if (!metric[period]) {
       const detail = metric.id === "whip" && period === "season"
-        ? "WHIPは直近6日の投手データでのみ検索できます。「直近」を含めて質問してください。"
-        : `${metric.label}は${period === "recent" ? "直近6日" : "シーズン"}データでは検索できません。`;
+        ? "WHIPは直近6試合の投手データでのみ検索できます。「直近」を含めて質問してください。"
+        : `${metric.label}は${period === "recent" ? "直近6試合" : "シーズン"}データでは検索できません。`;
       return unsupportedHtml(detail);
     }
 

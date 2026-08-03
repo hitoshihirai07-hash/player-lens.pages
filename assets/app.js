@@ -992,13 +992,12 @@ function renderDataStatus() {
   const rows = state.statusRows;
   const basicDate = [maxDateFromRows(rows.teamStatsBatters || []), maxDateFromRows(rows.teamStatsPitchers || [])]
     .filter(Boolean).sort().at(-1) || "";
-  const recentPeriod = (state.recentBatters[0]?.["期間"] || state.recentPitchers[0]?.["期間"] || "");
   const defenseDate = [maxDateFromRows(rows.fielding || []), maxDateFromRows(rows.registrationHistory || [])]
     .filter(Boolean).sort().at(-1) || "";
   const starterDate = maxDateFromRows(rows.starterPositions || []);
   const cards = [
     ["基本・対球団別", formatJapaneseDate(basicDate), "通算成績と対戦相手別データ"],
-    ["直近6日", formatPeriod(recentPeriod), "短期間の好調選手"],
+    ["直近6試合", "選手ごとに集計", "選手が出場した直近6試合"],
     ["守備・登録状況", formatJapaneseDate(defenseDate), "守備成績と一軍登録状況"],
     ["守備位置別出場数", formatJapaneseDate(starterDate), "試合途中の守備位置変更を含みます"],
   ];
@@ -1028,13 +1027,13 @@ function renderRecentForm() {
   const batterCards = batterRows.map((row) => `
     <article class="recent-player-card">
       <span>打者</span><strong><a href="${playerDetailUrl(row, "batter")}">${escapeHtml(row["選手名"])}</a></strong>
-      <small><a href="${teamDetailUrl(row["チーム"])}">${escapeHtml(row["チーム"])}</a> / ${escapeHtml(formatPeriod(row["期間"]))}</small>
+      <small><a href="${teamDetailUrl(row["チーム"])}">${escapeHtml(row["チーム"])}</a> / 出場した直近6試合</small>
       <dl><div><dt>打率</dt><dd>${escapeHtml(formatValue(row["打率"], "打率"))}</dd></div><div><dt>本塁打</dt><dd>${escapeHtml(row["本塁打"] || "0")}</dd></div><div><dt>OPS</dt><dd>${escapeHtml(formatValue(row["OPS"], "OPS"))}</dd></div></dl>
     </article>`).join("");
   const pitcherCards = pitcherRows.map((row) => `
     <article class="recent-player-card">
       <span>投手</span><strong><a href="${playerDetailUrl(row, "pitcher")}">${escapeHtml(row["選手名"])}</a></strong>
-      <small><a href="${teamDetailUrl(row["チーム"])}">${escapeHtml(row["チーム"])}</a> / ${escapeHtml(formatPeriod(row["期間"]))}</small>
+      <small><a href="${teamDetailUrl(row["チーム"])}">${escapeHtml(row["チーム"])}</a> / 出場した直近6試合</small>
       <dl><div><dt>投球回</dt><dd>${escapeHtml(inningsDisplayFromOuts(row["投球アウト数"]))}</dd></div><div><dt>防御率</dt><dd>${escapeHtml(formatValue(row["防御率"], "防御率"))}</dd></div><div><dt>奪三振</dt><dd>${escapeHtml(row["奪三振"] || "0")}</dd></div></dl>
     </article>`).join("");
 
