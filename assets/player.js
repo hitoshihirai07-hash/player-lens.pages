@@ -4,6 +4,8 @@
   const name = params.get("name") || "";
   const team = params.get("team") || "";
   const type = params.get("type") || "batter";
+  let activeTeam = team;
+  let activeName = name;
   const title = document.getElementById("playerTitle");
   const lead = document.getElementById("playerLead");
   const content = document.getElementById("playerContent");
@@ -201,7 +203,7 @@
       <section class="content-card player-starter-section">
         <div class="section-heading">
           <div><p class="eyebrow">Starter Battery</p><h2>先発バッテリー成績</h2></div>
-          <a href="${D.escapeHtml(starterDetailUrl(team, name))}">全履歴を見る</a>
+          <a href="${D.escapeHtml(starterDetailUrl(activeTeam, activeName))}">全履歴を見る</a>
         </div>
         <p class="small-note">先発登板時に組んだ捕手別の成績です。防御率やQS率は、その組み合わせで先発した試合を集計しています。</p>
         ${overview.length ? metricCards(overview) : ""}
@@ -265,7 +267,7 @@
       <section class="content-card player-starter-section">
         <div class="section-heading">
           <div><p class="eyebrow">Starting Catcher</p><h2>先発マスク成績</h2></div>
-          <a href="${D.escapeHtml(starterDetailUrl(team, name))}">全履歴を見る</a>
+          <a href="${D.escapeHtml(starterDetailUrl(activeTeam, activeName))}">全履歴を見る</a>
         </div>
         <p class="small-note">先発捕手として組んだ投手別の成績です。途中出場や途中交代後の投手成績は含みません。</p>
         ${metricCards(overview)}
@@ -313,7 +315,8 @@
   }
 
   function recentFormMarkup(recentRow, isBatter) {
-    if (!recentRow) {
+    const hasActivity = recentRow && (isBatter ? D.toInt(recentRow["打席"]) > 0 : D.toInt(recentRow["投球アウト数"]) > 0);
+    if (!hasActivity) {
       return `
         <section class="content-card recent-player-section">
           <div class="section-heading"><div><p class="eyebrow">Recent Form</p><h2>出場した直近6試合の成績</h2></div></div>
@@ -331,16 +334,23 @@
           ["本塁打", recentRow["本塁打"]],
           ["打点", recentRow["打点"]],
           ["盗塁", recentRow["盗塁"]],
+          ["データ更新日", recentRow["更新日"] || "—"],
         ]
       : [
           ["集計対象", "出場した直近6試合"],
+          ["登板", recentRow["登板"] || "0"],
+          ["先発 / 救援", `${recentRow["先発"] || 0} / ${recentRow["救援"] || 0}`],
           ["投球回", recentRow["投球回"] || D.inningsFromOuts(recentRow["投球アウト数"])],
           ["防御率", D.formatValue(recentRow["防御率"], "防御率")],
+          ["WHIP", recentRow["WHIP"] || "—"],
           ["奪三振", recentRow["奪三振"]],
-          ["WHIP", D.formatValue(recentRow["WHIP"], "WHIP")],
-          ["被安打", recentRow["被安打"]],
-          ["与四球", recentRow["与四球"]],
-          ["自責点", recentRow["自責点"]],
+          ["K%", D.formatValue(recentRow["K%"], "K%") || "—"],
+          ["K-BB%", D.formatValue(recentRow["K-BB%"], "K-BB%") || "—"],
+          ["K/9", recentRow["K/9"] || "—"],
+          ["BB/9", recentRow["BB/9"] || "—"],
+          ["HR/9", recentRow["HR/9"] || "—"],
+          ...(recentRow["平均Game Score"] ? [["平均Game Score", recentRow["平均Game Score"]]] : []),
+          ["データ更新日", recentRow["更新日"] || "—"],
         ];
     return `
       <section class="content-card recent-player-section">
@@ -394,11 +404,15 @@
       D.loadStarterBatteryData(),
     ]);
     const rows = type === "pitcher" ? data.pitchers : data.batters;
-    const row = rows.find((candidate) => candidate["チーム"] === team && candidate["選手名"] === name);
+    const exactRow = rows.find((candidate) => candidate["チーム"] === team && playerNameKey(candidate["選手名"]) === playerNameKey(name));
+    const nameRows = rows.filter((candidate) => playerNameKey(candidate["選手名"]) === playerNameKey(name));
+    const row = exactRow || (nameRows.length === 1 ? nameRows[0] : null);
     if (!row) {
       content.innerHTML = `<section class="content-card">選手が見つかりませんでした。</section>`;
       return;
     }
+    activeTeam = row["チーム"];
+    activeName = row["選手名"];
 
     const isBatter = type !== "pitcher";
     const ranking = D.RANKINGS.find((item) => item.id === (isBatter ? "batter-overall" : "pitcher-overall"));
@@ -440,11 +454,21 @@
           ["チーム内順位", teamRank(row, teamRows, ranking)],
         ]
       : [
+          ["登板", row["登板"] || "0"],
+          ["先発 / 救援", `${row["先発"] || 0} / ${row["救援"] || 0}`],
           ["投球回", row["投球回"]],
           ["防御率", D.formatValue(row["防御率"], "防御率")],
+          ["WHIP", row["WHIP"] || "—"],
+          ["勝敗", `${row["勝利"] || 0}勝${row["敗戦"] || 0}敗`],
           ["奪三振", row["奪三振"]],
-          ["勝利", row["勝利"]],
-          ["セーブ/HP", `${row["セーブ"] || 0} / ${row["ＨＰ"] || 0}`],
+          ["セーブ / ホールド", `${row["セーブ"] || 0} / ${row["ホールド"] || 0}`],
+          ["K%", D.formatValue(row["K%"], "K%") || "—"],
+          ["K-BB%", D.formatValue(row["K-BB%"], "K-BB%") || "—"],
+          ["K/9", row["K/9"] || "—"],
+          ["BB/9", row["BB/9"] || "—"],
+          ["HR/9", row["HR/9"] || "—"],
+          ...(row["平均Game Score"] ? [["平均Game Score", row["平均Game Score"]]] : []),
+          ["データ更新日", row["更新日"] || "—"],
           ["規定投球回", row["規定投球回到達"] || "未到達"],
           ["チーム内順位", teamRank(row, teamRows, ranking)],
         ];
@@ -464,6 +488,9 @@
 
       <section class="content-card">
         <h2>主な成績</h2>
+        ${!isBatter && row["移籍選手"] === "TRUE" ? '<p class="notice">移籍した選手の成績はシーズン通算です。現在の所属球団で確認してください。</p>' : ""}
+        ${!isBatter && D.toInt(row["登板"]) === 0 ? '<p class="notice">今季一軍登板はありません。</p>' : ""}
+        ${!isBatter && !D.isSeasonStarterEligible(row) && !D.isSeasonRelieverEligible(row) ? '<p class="small-note">データに質問のランキング掲載条件には未到達です。選手個人の成績は条件にかかわらず表示しています。</p>' : ""}
         ${metricCards(mainMetrics)}
       </section>
 

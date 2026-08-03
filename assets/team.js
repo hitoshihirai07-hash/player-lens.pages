@@ -89,10 +89,10 @@
       .sort((a, b) => D.toNumber(b["守備評価"]) - D.toNumber(a["守備評価"]) || D.toNumber(b["守備機会"]) - D.toNumber(a["守備機会"]))[0];
     const topFieldingType = topFielding?.["ポジション"] === "投手" ? "pitcher" : "batter";
     const recentBatter = insight.recentBatters
-      .filter((row) => row["チーム"] === team && D.toNumber(row["打数"]) >= 4)
+      .filter((row) => row["チーム"] === team && D.toInt(row["打席"]) >= D.DATA_QUESTION_MINIMUMS.recentBatterPa)
       .sort((a, b) => D.toNumber(b["直近スコア"]) - D.toNumber(a["直近スコア"]))[0];
     const recentPitcher = insight.recentPitchers
-      .filter((row) => row["チーム"] === team && D.toNumber(row["投球アウト数"]) >= 3)
+      .filter((row) => row["チーム"] === team && D.isRecentPitcherEligible(row))
       .sort((a, b) => D.toNumber(b["直近スコア"]) - D.toNumber(a["直近スコア"]))[0];
     const interleagueBatter = interleague.batters
       .filter((row) => row["チーム"] === team && D.toNumber(row["打数"]) >= 8)

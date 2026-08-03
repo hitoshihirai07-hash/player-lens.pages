@@ -77,6 +77,16 @@
     { key: "(指)", label: "指名打者", type: "batter" },
   ];
   const FIELDING_POSITIONS = ["捕手", "一塁手", "二塁手", "三塁手", "遊撃手", "外野手", "投手"];
+  const DATA_QUESTION_MINIMUMS = {
+    seasonBatterPa: 150,
+    seasonStarterStarts: 5,
+    seasonStarterOuts: 90,
+    seasonRelieverGames: 20,
+    seasonRelieverOuts: 45,
+    recentBatterPa: 18,
+    recentPitcherGames: 3,
+    recentPitcherOuts: 12,
+  };
 
   const RANKINGS = [
     { id: "batter-overall", label: "打者総合", type: "batter", scoreKey: "打者総合スコア", minKey: "打席", minValue: 20 },
@@ -87,9 +97,9 @@
     { id: "batter-vs-right", label: "対右打者", type: "batter", scoreKey: "対右スコア", minKey: "対右打数", minValue: 10 },
     { id: "batter-vs-left", label: "対左打者", type: "batter", scoreKey: "対左スコア", minKey: "対左打数", minValue: 8 },
     { id: "pitcher-overall", label: "投手総合", type: "pitcher", scoreKey: "投手総合スコア", minKey: "投球回_計算用", minValue: 5 },
-    { id: "starter", label: "先発", type: "pitcher", scoreKey: "先発スコア", minKey: "投球回_計算用", minValue: 20, filter: (row) => isLikelyStarter(row) },
+    { id: "starter", label: "先発", type: "pitcher", scoreKey: "先発スコア", minKey: "先発", minValue: 5, filter: (row) => isSeasonStarterEligible(row) },
     { id: "pitcher-qualified", label: "規定投球回", type: "pitcher", scoreKey: "投手総合スコア", minKey: "投球回_計算用", minValue: 0, filter: (row) => row["規定投球回到達"] === "到達" },
-    { id: "reliever", label: "救援", type: "pitcher", scoreKey: "救援スコア", minKey: "登板", minValue: 5, filter: (row) => isLikelyReliever(row) },
+    { id: "reliever", label: "救援", type: "pitcher", scoreKey: "救援スコア", minKey: "救援", minValue: 20, filter: (row) => isSeasonRelieverEligible(row) },
     { id: "pitcher-young", label: "若手投手", type: "pitcher", scoreKey: "若手投手スコア", minKey: "投球回_計算用", minValue: 3, filter: (row) => toNumber(row["年齢"]) <= 25 },
     { id: "pitcher-vs-right", label: "対右投手", type: "pitcher", scoreKey: "対右投球スコア", minKey: "対右被打数", minValue: 10 },
     { id: "pitcher-vs-left", label: "対左投手", type: "pitcher", scoreKey: "対左投球スコア", minKey: "対左被打数", minValue: 10 },
@@ -100,7 +110,7 @@
   }
 
   function toNumber(value, fallback = 0) {
-    const text = String(value ?? "").replace(/,/g, "").trim();
+    const text = String(value ?? "").replace(/,/g, "").replace(/%$/, "").trim();
     if (!text || text === "-" || text === "－") return fallback;
     const parsed = Number(text);
     return Number.isFinite(parsed) ? parsed : fallback;
@@ -127,6 +137,7 @@
   }
 
   function isLikelyReliever(row) {
+    if (row["救援"] !== undefined && row["救援"] !== "") return toInt(row["救援"]) > 0;
     const games = toInt(row["登板"]);
     const saves = toInt(row["セーブ"]);
     const holds = toInt(row["ＨＰ"]);
@@ -135,7 +146,23 @@
   }
 
   function isLikelyStarter(row) {
+    if (row["先発"] !== undefined && row["先発"] !== "") return toInt(row["先発"]) > 0;
     return !isLikelyReliever(row) && inningsPerGame(row) >= 3;
+  }
+
+  function isSeasonStarterEligible(row) {
+    return toInt(row["先発"]) >= DATA_QUESTION_MINIMUMS.seasonStarterStarts
+      && toInt(row["投球アウト数"]) >= DATA_QUESTION_MINIMUMS.seasonStarterOuts;
+  }
+
+  function isSeasonRelieverEligible(row) {
+    return toInt(row["救援"]) >= DATA_QUESTION_MINIMUMS.seasonRelieverGames
+      && toInt(row["投球アウト数"]) >= DATA_QUESTION_MINIMUMS.seasonRelieverOuts;
+  }
+
+  function isRecentPitcherEligible(row) {
+    return toInt(row["登板"]) >= DATA_QUESTION_MINIMUMS.recentPitcherGames
+      && toInt(row["投球アウト数"]) >= DATA_QUESTION_MINIMUMS.recentPitcherOuts;
   }
 
   function ageFromBirthdate(value) {
@@ -225,6 +252,7 @@
   function buildMasterIndexes(masterRows) {
     const byKey = new Map();
     const byName = new Map();
+    const transferCurrentByName = new Map();
 
     for (const row of masterRows) {
       const name = normalizeName(row["投手"]);
@@ -234,7 +262,64 @@
       if (!byName.has(name)) byName.set(name, []);
       byName.get(name).push(normalized);
     }
-    return { byKey, byName };
+    for (const [name, rows] of byName) {
+      const destinations = rows.filter((row) => String(row["備考"] || "").includes("より移籍"));
+      if (destinations.length === 1) transferCurrentByName.set(name, destinations[0]);
+    }
+    return { byKey, byName, transferCurrentByName };
+  }
+
+  function normalizePitcherRow(row) {
+    const team = normalizedTeam(row);
+    const outsSource = row["投球アウト数"] ?? row["投球回(アウト)"];
+    const calculatedOuts = outsSource !== undefined && outsSource !== ""
+      ? toInt(outsSource)
+      : Math.round(parseInnings(row["投球回"]) * 3);
+    const wins = row["勝利"] ?? row["勝"] ?? "";
+    const losses = row["敗戦"] ?? row["敗"] ?? "";
+    const holds = row["ホールド"] ?? row["ＨＰ"] ?? row["HLD"] ?? "";
+    return {
+      ...row,
+      選手名: normalizeName(row["選手名"]),
+      チーム: team,
+      勝: wins,
+      勝利: wins,
+      敗: losses,
+      敗戦: losses,
+      ホールド: holds,
+      ＨＰ: holds,
+      "投球回(アウト)": calculatedOuts,
+      投球アウト数: calculatedOuts,
+      投球回: row["投球回"] || inningsFromOuts(calculatedOuts),
+    };
+  }
+
+  function dedupeTransferredPitchers(rows, indexes) {
+    const grouped = new Map();
+    for (const row of rows) {
+      const name = normalizeName(row["選手名"]);
+      if (!grouped.has(name)) grouped.set(name, []);
+      grouped.get(name).push(row);
+    }
+    const result = [];
+    for (const [name, nameRows] of grouped) {
+      const current = indexes.transferCurrentByName.get(name);
+      if (!current || nameRows.length < 2) {
+        result.push(...nameRows);
+        continue;
+      }
+      const currentRow = nameRows.find((row) => row["チーム"] === current["チーム"]);
+      if (!currentRow) {
+        result.push(...nameRows);
+        continue;
+      }
+      result.push({
+        ...currentRow,
+        移籍選手: "TRUE",
+        移籍前球団: nameRows.filter((row) => row !== currentRow).map((row) => row["チーム"]).filter(Boolean).join("・"),
+      });
+    }
+    return result;
   }
 
   function enrichRows(rows, indexes) {
@@ -618,6 +703,10 @@
     const rateColumns = new Set(["打率", "出塁率", "長打率", "OPS", "防御率", "防御率目安", "勝率", "対右打率", "対左打率", "対右被打率", "対左被打率"]);
     rateColumns.add("守備率");
     rateColumns.add("盗塁阻止率");
+    const percentColumns = new Set(["K%", "BB%", "K-BB%"]);
+    if (percentColumns.has(column)) {
+      return String(value).includes("%") ? String(value) : `${toNumber(value).toFixed(1)}%`;
+    }
     if (rateColumns.has(column)) {
       const number = toNumber(value);
       return number.toFixed(3).replace(/^0(?=\.)/, "");
@@ -716,23 +805,27 @@
     ]);
     const indexes = buildMasterIndexes(masterRaw);
     const batters = mergeBatterSplits(enrichRows(battersRaw, indexes), batterSplitsRaw).map(addBatterScores);
-    const pitchers = mergePitcherSplits(enrichRows(pitchersRaw, indexes), pitcherSplitsRaw).map(addPitcherScores);
+    const normalizedPitchers = dedupeTransferredPitchers(pitchersRaw.map(normalizePitcherRow), indexes);
+    const pitchers = mergePitcherSplits(enrichRows(normalizedPitchers, indexes), pitcherSplitsRaw).map(addPitcherScores);
     addQualificationFlags(batters, pitchers);
     return { batters, pitchers, teams: Object.keys(TEAM_TO_FULL) };
   }
 
   async function loadInsightData() {
-    const [rookieRows, positionRows, recentBatterRows, recentPitcherRows] = await Promise.all([
+    const [rookieRows, positionRows, recentBatterRows, recentPitcherRows, masterRows] = await Promise.all([
       loadCsv(dataPath(DATA_FILES.rookieCandidates), true),
       loadCsv(dataPath(DATA_FILES.starterPositions), true),
       loadCsv(dataPath(DATA_FILES.recentBatters), true),
       loadCsv(dataPath(DATA_FILES.recentPitchers), true),
+      loadCsv(dataPath(DATA_FILES.master)),
     ]);
+    const indexes = buildMasterIndexes(masterRows);
+    const recentPitchers = dedupeTransferredPitchers(recentPitcherRows.map(normalizePitcherRow), indexes);
     return {
       rookies: normalizeInsightRows(rookieRows),
       starterPositions: normalizeInsightRows(positionRows),
       recentBatters: addRecentBatterScores(recentBatterRows),
-      recentPitchers: addRecentPitcherScores(recentPitcherRows),
+      recentPitchers: addRecentPitcherScores(recentPitchers),
     };
   }
 
@@ -821,6 +914,7 @@
   }
 
   window.PlayerLensData = {
+    DATA_QUESTION_MINIMUMS,
     RANKINGS,
     START_POSITIONS,
     FIELDING_POSITIONS,
@@ -830,6 +924,9 @@
     escapeHtml,
     formatValue,
     inningsFromOuts,
+    isRecentPitcherEligible,
+    isSeasonRelieverEligible,
+    isSeasonStarterEligible,
     enhanceCompactTables,
     loadData,
     loadFieldingData,

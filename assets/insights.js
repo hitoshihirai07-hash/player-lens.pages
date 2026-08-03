@@ -112,12 +112,12 @@
   function renderRecentRankings() {
     const batters = insight.recentBatters
       .filter(scoped)
-      .filter((row) => D.toNumber(row["打数"]) >= 4)
+      .filter((row) => D.toInt(row["打席"]) >= D.DATA_QUESTION_MINIMUMS.recentBatterPa)
       .sort((a, b) => D.toNumber(b["直近スコア"]) - D.toNumber(a["直近スコア"]))
       .slice(0, 10);
     const pitchers = insight.recentPitchers
       .filter(scoped)
-      .filter((row) => D.toNumber(row["投球アウト数"]) >= 3)
+      .filter(D.isRecentPitcherEligible)
       .sort((a, b) => D.toNumber(b["直近スコア"]) - D.toNumber(a["直近スコア"]))
       .slice(0, 10);
 
@@ -268,8 +268,8 @@
 
   function renderSummary() {
     const scopedRookies = insight.rookies.filter(scoped);
-    const scopedRecentBatters = insight.recentBatters.filter(scoped).filter((row) => D.toNumber(row["打数"]) >= 4);
-    const scopedRecentPitchers = insight.recentPitchers.filter(scoped).filter((row) => D.toNumber(row["投球アウト数"]) >= 3);
+    const scopedRecentBatters = insight.recentBatters.filter(scoped).filter((row) => D.toInt(row["打席"]) >= D.DATA_QUESTION_MINIMUMS.recentBatterPa);
+    const scopedRecentPitchers = insight.recentPitchers.filter(scoped).filter(D.isRecentPitcherEligible);
     const multi = insight.starterPositions.filter(scoped).filter((row) => positionCount(row) >= 2).length;
     els.summary.innerHTML = [
       ["新人王候補", scopedRookies.length],

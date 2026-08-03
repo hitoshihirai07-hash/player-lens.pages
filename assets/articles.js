@@ -196,10 +196,10 @@
 
   function renderRecent() {
     const batters = filterRecentRows(insight.recentBatters)
-      .filter((row) => D.toNumber(row["打数"]) >= 4)
+      .filter((row) => D.toInt(row["打席"]) >= D.DATA_QUESTION_MINIMUMS.recentBatterPa)
       .sort((a, b) => D.toNumber(b["直近スコア"]) - D.toNumber(a["直近スコア"]));
     const pitchers = filterRecentRows(insight.recentPitchers)
-      .filter((row) => D.toNumber(row["投球アウト数"]) >= 3)
+      .filter(D.isRecentPitcherEligible)
       .sort((a, b) => D.toNumber(b["直近スコア"]) - D.toNumber(a["直近スコア"]));
     const topBatter = batters[0];
     const topPitcher = pitchers[0];
@@ -423,7 +423,7 @@
     const rows = type === "pitcher" ? insight.recentPitchers : insight.recentBatters;
     return rows
       .filter((row) => row["リーグ"] === league)
-      .filter((row) => type === "pitcher" ? D.toNumber(row["投球アウト数"]) >= 3 : D.toNumber(row["打数"]) >= 4)
+      .filter((row) => type === "pitcher" ? D.isRecentPitcherEligible(row) : D.toInt(row["打席"]) >= D.DATA_QUESTION_MINIMUMS.recentBatterPa)
       .sort((a, b) => D.toNumber(b["直近スコア"]) - D.toNumber(a["直近スコア"]))
       .slice(0, limit);
   }
