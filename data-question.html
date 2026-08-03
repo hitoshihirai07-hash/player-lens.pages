@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="選手名、球団名、リーグ、打率、OPS、防御率などを文章で入力し、Player Lens内の2026年成績データを検索できます。">
+  <title>データに質問 | Player Lens</title>
+  <link rel="canonical" href="https://player-lens-pages.pages.dev/data-question">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="データに質問 | Player Lens">
+  <meta property="og:description" content="選手名や球団名、知りたい成績を入力すると、Player Lens内のCSVデータから検索結果を表示します。">
+  <meta property="og:url" content="https://player-lens-pages.pages.dev/data-question">
+  <meta property="og:image" content="https://player-lens-pages.pages.dev/assets/player-lens-ogp.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="データに質問 | Player Lens">
+  <meta name="twitter:description" content="文章で質問して、Player Lens内の2026年成績データを検索できます。">
+  <meta name="twitter:image" content="https://player-lens-pages.pages.dev/assets/player-lens-ogp.png">
+  <link rel="icon" href="./assets/player-lens-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/styles.css?v=20260803-data-question">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"データに質問 | Player Lens","url":"https://player-lens-pages.pages.dev/data-question","description":"文章で質問して、Player Lens内の2026年成績データを検索できるページです。","isPartOf":{"@type":"WebSite","name":"Player Lens","url":"https://player-lens-pages.pages.dev/"}}</script>
+</head>
+<body>
+  <header class="page-header">
+    <a class="brand-mini" href="./index.html"><img src="./assets/player-lens-icon.svg" alt="">Player Lens</a>
+    <p class="eyebrow">Search Player Lens Data</p>
+    <h1>データに質問</h1>
+    <p>選手名や球団名、知りたい成績を入力してください。Player Lensに掲載しているデータから回答します。</p>
+  </header>
+  <nav class="site-nav" aria-label="サイト内メニュー">
+    <a href="./index.html">ランキング</a>
+    <a href="./teams.html">球団別</a>
+    <a href="./insights.html">注目データ</a>
+    <a href="./roster.html">登録状況</a>
+    <a href="./defense.html">守備</a>
+    <a href="./starter-battery.html">先発バッテリー</a>
+    <a href="./opponent-watch.html">対球団別</a>
+    <a href="./data-question.html" aria-current="page">データに質問</a>
+    <a href="./articles">読み物</a>
+    <a href="./updates.html">更新履歴</a>
+    <a href="./about.html">このサイトについて</a>
+  </nav>
+
+  <main class="content-shell data-question-shell">
+    <section class="content-card data-question-note" aria-labelledby="question-note-title">
+      <div>
+        <p class="eyebrow">About This Page</p>
+        <h2 id="question-note-title">サイト内データを文章で探せます</h2>
+        <p>このページはPlayer Lens内のCSVデータを検索して回答します。生成AIによる回答ではありません。</p>
+      </div>
+      <ul class="plain-list">
+        <li>試合速報、怪我情報、将来予想には対応していません。</li>
+        <li>シーズン成績と直近6日の成績から、選手検索や上位5人のランキングを表示します。</li>
+      </ul>
+    </section>
+
+    <section class="data-question-panel" aria-labelledby="question-panel-title">
+      <div class="data-question-heading">
+        <div>
+          <p class="eyebrow">Question</p>
+          <h2 id="question-panel-title">Player Lensのデータを検索</h2>
+        </div>
+        <div class="status" id="questionStatus" role="status" aria-live="polite">データ読込中</div>
+      </div>
+
+      <div class="data-question-log" id="questionLog" aria-live="polite" aria-relevant="additions">
+        <article class="question-message is-answer">
+          <div class="question-message-label">Player Lens</div>
+          <div class="question-message-body">
+            <p>選手名や球団名、知りたい指標を入力してください。</p>
+            <p>例：巨人のOPS上位、セ・リーグの防御率、井上温大の成績</p>
+          </div>
+        </article>
+      </div>
+
+      <div class="question-examples" aria-labelledby="question-examples-title">
+        <h3 id="question-examples-title">質問例</h3>
+        <div class="question-example-list">
+          <button type="button" data-question-example="巨人のOPS上位は？" disabled>巨人のOPS上位は？</button>
+          <button type="button" data-question-example="セ・リーグで防御率が低い投手は？" disabled>セ・リーグで防御率が低い投手は？</button>
+          <button type="button" data-question-example="パ・リーグで本塁打が多い打者は？" disabled>パ・リーグで本塁打が多い打者は？</button>
+          <button type="button" data-question-example="直近で打率が高い巨人打者は？" disabled>直近で打率が高い巨人打者は？</button>
+          <button type="button" data-question-example="井上温大の成績を見たい" disabled>井上温大の成績を見たい</button>
+          <button type="button" data-question-example="阪神で奪三振が多い投手は？" disabled>阪神で奪三振が多い投手は？</button>
+        </div>
+      </div>
+
+      <form class="data-question-form" id="questionForm" novalidate>
+        <label for="questionInput">質問を入力</label>
+        <div class="data-question-input-row">
+          <input id="questionInput" name="question" type="text" maxlength="100" autocomplete="off" placeholder="例：日本ハムで本塁打が多い打者は？" disabled required>
+          <button class="data-question-submit" id="questionSubmit" type="submit" disabled>質問する</button>
+        </div>
+        <p class="small-note">100文字以内。球団名、選手名、リーグ名、知りたい指標を含めると探しやすくなります。</p>
+      </form>
+    </section>
+
+    <section class="content-card soft-callout">
+      <h2>現在検索できる主な指標</h2>
+      <p>打者：打率、OPS、本塁打、打点、安打、出塁率、長打率</p>
+      <p>投手：防御率、勝利、奪三振、セーブ、投球回。WHIPは直近成績で検索できます。</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <a href="https://pro-baseball-watch-guide.pages.dev/" target="_blank" rel="noopener">プロ野球観戦メモ</a>
+    <a href="./index.html">ランキング</a>
+    <a href="./teams.html">球団別</a>
+    <a href="./insights.html">注目データ</a>
+    <a href="./updates.html">更新履歴</a>
+    <a href="./privacy.html">プライバシーポリシー</a>
+    <a href="./disclaimer.html">免責事項</a>
+    <a href="./contact.html">お問い合わせ</a>
+  </footer>
+  <script src="./assets/site-data.js"></script>
+  <script src="./assets/data-question.js?v=20260803"></script>
+</body>
+</html>
