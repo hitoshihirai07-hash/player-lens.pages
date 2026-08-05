@@ -8,6 +8,7 @@
     rookieCandidates: "./data/rookie_candidates.csv",
     starterPositions: "./data/starter_positions.csv",
     recentBatters: "./data/recent_batter_6days.csv",
+    recentSteals: "./data/recent_steal_6days.csv",
     recentPitchers: "./data/recent_pitcher_6days.csv",
     fielding: "./data/fielding_summary.csv",
     interleagueBatters: "./data/interleague_batters.csv",
@@ -564,11 +565,24 @@
     };
   }
 
-  function addRecentBatterScores(rows) {
+  function addRecentBatterScores(rows, stealRows = []) {
+    const stealMap = new Map(normalizeInsightRows(stealRows).map((row) => [playerKey(row), row]));
     return normalizeInsightRows(rows)
       .map(normalizeRecentBatterRow)
       .filter((row) => row["ポジション"] !== "投手")
-      .map((row) => ({ ...row, 直近スコア: recentBatterScore(row) }));
+      .map((row) => {
+        const steal = stealMap.get(playerKey(row));
+        const merged = {
+          ...row,
+          盗塁: steal?.["盗塁成功"] || "0",
+          盗塁成功: steal?.["盗塁成功"] || "0",
+          盗塁死: steal?.["盗塁死"] || "0",
+          盗塁企図: steal?.["盗塁企図"] || "0",
+          盗塁成功率: steal?.["盗塁成功率"] || "",
+          盗塁データ更新日: steal?.["更新日"] || "",
+        };
+        return { ...merged, 直近スコア: recentBatterScore(merged) };
+      });
   }
 
   function addRecentPitcherScores(rows) {
@@ -703,6 +717,7 @@
     const rateColumns = new Set(["打率", "出塁率", "長打率", "OPS", "防御率", "防御率目安", "勝率", "対右打率", "対左打率", "対右被打率", "対左被打率"]);
     rateColumns.add("守備率");
     rateColumns.add("盗塁阻止率");
+    rateColumns.add("盗塁成功率");
     const percentColumns = new Set(["K%", "BB%", "K-BB%"]);
     if (percentColumns.has(column)) {
       return String(value).includes("%") ? String(value) : `${toNumber(value).toFixed(1)}%`;
@@ -812,10 +827,11 @@
   }
 
   async function loadInsightData() {
-    const [rookieRows, positionRows, recentBatterRows, recentPitcherRows, masterRows] = await Promise.all([
+    const [rookieRows, positionRows, recentBatterRows, recentStealRows, recentPitcherRows, masterRows] = await Promise.all([
       loadCsv(dataPath(DATA_FILES.rookieCandidates), true),
       loadCsv(dataPath(DATA_FILES.starterPositions), true),
       loadCsv(dataPath(DATA_FILES.recentBatters), true),
+      loadCsv(dataPath(DATA_FILES.recentSteals), true),
       loadCsv(dataPath(DATA_FILES.recentPitchers), true),
       loadCsv(dataPath(DATA_FILES.master)),
     ]);
@@ -824,7 +840,7 @@
     return {
       rookies: normalizeInsightRows(rookieRows),
       starterPositions: normalizeInsightRows(positionRows),
-      recentBatters: addRecentBatterScores(recentBatterRows),
+      recentBatters: addRecentBatterScores(recentBatterRows, recentStealRows),
       recentPitchers: addRecentPitcherScores(recentPitchers),
     };
   }

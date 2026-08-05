@@ -5,6 +5,7 @@ const DATA_FILES = {
   batterSplits: "./data/2026_batter_left_and_right_stats.csv",
   pitcherSplits: "./data/2026_pitcher_left_and_right_stats.csv",
   recentBatters: "./data/recent_batter_6days.csv",
+  recentSteals: "./data/recent_steal_6days.csv",
   recentPitchers: "./data/recent_pitcher_6days.csv",
   teamStatsBatters: "./data/team_stats_batter.csv",
   teamStatsPitchers: "./data/team_stats_pitcher.csv",
@@ -863,7 +864,7 @@ function scoreBar(score, maxScore) {
 
 function formatValue(value, column) {
   if (value === undefined || value === null || value === "") return "";
-  const numericColumns = new Set(["打率", "出塁率", "長打率", "OPS", "防御率", "勝率", "対右打率", "対左打率", "対右被打率", "対左被打率"]);
+  const numericColumns = new Set(["打率", "出塁率", "長打率", "OPS", "防御率", "勝率", "対右打率", "対左打率", "対右被打率", "対左被打率", "盗塁成功率"]);
   if (numericColumns.has(column)) {
     const number = toNumber(value);
     return number === 0 && String(value).trim() === "" ? "" : number.toFixed(3).replace(/^0(?=\.)/, "");
@@ -1016,6 +1017,22 @@ function normalizeRecentBatterRows(rows) {
     .filter((row) => row["ポジション"] !== "投手");
 }
 
+function mergeRecentSteals(rows, stealRows) {
+  const stealMap = new Map(normalizeInsightRows(stealRows).map((row) => [playerKey(row), row]));
+  return rows.map((row) => {
+    const steal = stealMap.get(playerKey(row));
+    return {
+      ...row,
+      盗塁: steal?.["盗塁成功"] || "0",
+      盗塁成功: steal?.["盗塁成功"] || "0",
+      盗塁死: steal?.["盗塁死"] || "0",
+      盗塁企図: steal?.["盗塁企図"] || "0",
+      盗塁成功率: steal?.["盗塁成功率"] || "",
+      盗塁データ更新日: steal?.["更新日"] || "",
+    };
+  });
+}
+
 function recentBatterScore(row) {
   const ab = toInt(row["打数"]);
   const ops = toNumber(row["OPS"]);
@@ -1099,7 +1116,7 @@ function renderRecentForm() {
     <article class="recent-player-card">
       <span>打者</span><strong><a href="${playerDetailUrl(row, "batter")}">${escapeHtml(row["選手名"])}</a></strong>
       <small><a href="${teamDetailUrl(row["チーム"])}">${escapeHtml(row["チーム"])}</a> / 出場した直近6試合</small>
-      <dl><div><dt>打率</dt><dd>${escapeHtml(formatValue(row["打率"], "打率"))}</dd></div><div><dt>本塁打</dt><dd>${escapeHtml(row["本塁打"] || "0")}</dd></div><div><dt>OPS</dt><dd>${escapeHtml(formatValue(row["OPS"], "OPS"))}</dd></div></dl>
+      <dl><div><dt>打率</dt><dd>${escapeHtml(formatValue(row["打率"], "打率"))}</dd></div><div><dt>本塁打</dt><dd>${escapeHtml(row["本塁打"] || "0")}</dd></div><div><dt>盗塁</dt><dd>${escapeHtml(row["盗塁成功"] || "0")}</dd></div><div><dt>OPS</dt><dd>${escapeHtml(formatValue(row["OPS"], "OPS"))}</dd></div></dl>
     </article>`).join("");
   const pitcherCards = pitcherRows.map((row) => `
     <article class="recent-player-card">
@@ -1139,13 +1156,14 @@ function escapeHtml(value) {
 
 async function boot() {
   try {
-    const [battersRaw, pitchersRaw, masterRaw, batterSplitsRaw, pitcherSplitsRaw, recentBattersRaw, recentPitchersRaw, teamStatsBattersRaw, teamStatsPitchersRaw, fieldingRaw, registrationHistoryRaw, starterPositionsRaw] = await Promise.all([
+    const [battersRaw, pitchersRaw, masterRaw, batterSplitsRaw, pitcherSplitsRaw, recentBattersRaw, recentStealsRaw, recentPitchersRaw, teamStatsBattersRaw, teamStatsPitchersRaw, fieldingRaw, registrationHistoryRaw, starterPositionsRaw] = await Promise.all([
       loadCsv(DATA_FILES.batters),
       loadCsv(DATA_FILES.pitchers),
       loadCsv(DATA_FILES.master),
       loadCsv(DATA_FILES.batterSplits, true),
       loadCsv(DATA_FILES.pitcherSplits, true),
       loadCsv(DATA_FILES.recentBatters, true),
+      loadCsv(DATA_FILES.recentSteals, true),
       loadCsv(DATA_FILES.recentPitchers, true),
       loadCsv(DATA_FILES.teamStatsBatters, true),
       loadCsv(DATA_FILES.teamStatsPitchers, true),
@@ -1158,7 +1176,7 @@ async function boot() {
     state.batters = mergeBatterSplits(enrichRows(battersRaw, indexes), batterSplitsRaw).map(addBatterScores);
     const normalizedPitchers = dedupeTransferredPitchers(pitchersRaw.map(normalizePitcherRow), indexes);
     state.pitchers = mergePitcherSplits(enrichRows(normalizedPitchers, indexes), pitcherSplitsRaw).map(addPitcherScores);
-    state.recentBatters = normalizeRecentBatterRows(recentBattersRaw);
+    state.recentBatters = mergeRecentSteals(normalizeRecentBatterRows(recentBattersRaw), recentStealsRaw);
     state.recentPitchers = normalizeInsightRows(dedupeTransferredPitchers(recentPitchersRaw.map(normalizePitcherRow), indexes));
     state.statusRows = { teamStatsBatters: teamStatsBattersRaw, teamStatsPitchers: teamStatsPitchersRaw, fielding: fieldingRaw, registrationHistory: registrationHistoryRaw, starterPositions: starterPositionsRaw };
     addQualificationFlags(state.batters, state.pitchers);

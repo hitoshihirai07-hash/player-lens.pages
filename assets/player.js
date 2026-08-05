@@ -333,7 +333,10 @@
           ["安打", recentRow["安打"]],
           ["本塁打", recentRow["本塁打"]],
           ["打点", recentRow["打点"]],
-          ["盗塁", recentRow["盗塁"]],
+          ["盗塁成功", recentRow["盗塁成功"] || "0"],
+          ["盗塁死", recentRow["盗塁死"] || "0"],
+          ["盗塁企図", recentRow["盗塁企図"] || "0"],
+          ["盗塁成功率", recentRow["盗塁成功率"] === "" ? "—" : D.formatValue(recentRow["盗塁成功率"], "盗塁成功率")],
           ["データ更新日", recentRow["更新日"] || "—"],
         ]
       : [
@@ -450,6 +453,7 @@
           ["OPS", D.formatValue(row["OPS"], "OPS")],
           ["本塁打", row["本塁打"]],
           ["打点", row["打点"]],
+          ["盗塁", row["盗塁"] || "0"],
           ["規定打席", row["規定打席到達"] || "未到達"],
           ["チーム内順位", teamRank(row, teamRows, ranking)],
         ]

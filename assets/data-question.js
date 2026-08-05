@@ -33,6 +33,10 @@
     { id: "hr9", label: "HR/9", type: "pitcher", aliases: ["hr/9", "9回あたり被本塁打"], season: true, recent: true, key: "HR/9", direction: "asc" },
     { id: "gameScore", label: "平均Game Score", type: "pitcher", aliases: ["平均game score", "平均ゲームスコア", "game score", "ゲームスコア"], season: true, recent: true, key: "平均Game Score", direction: "desc", roles: ["starter"] },
     { id: "whip", label: "WHIP", type: "pitcher", aliases: ["whip"], season: true, recent: true, key: "WHIP", direction: "asc" },
+    { id: "stealRate", label: "盗塁成功率", type: "batter", aliases: ["盗塁成功率", "盗塁率"], season: false, recent: true, key: "盗塁成功率", direction: "desc", recentMinKey: "盗塁企図", recentMinValue: 1, recentMinimumLabel: "盗塁企図1回以上" },
+    { id: "caughtStealing", label: "盗塁死", type: "batter", aliases: ["盗塁死", "盗塁失敗"], season: false, recent: true, key: "盗塁死", direction: "desc", recentMinKey: "盗塁企図", recentMinValue: 1, recentMinimumLabel: "盗塁企図1回以上" },
+    { id: "stealAttempts", label: "盗塁企図", type: "batter", aliases: ["盗塁企図", "盗塁を試みた", "盗塁試行"], season: false, recent: true, key: "盗塁企図", direction: "desc", recentMinKey: "盗塁企図", recentMinValue: 1, recentMinimumLabel: "盗塁企図1回以上" },
+    { id: "steals", label: "盗塁", type: "batter", aliases: ["盗塁成功", "盗塁数", "盗塁", "スチール"], season: true, recent: true, key: "盗塁", direction: "desc", recentMinKey: "盗塁企図", recentMinValue: 1, recentMinimumLabel: "盗塁企図1回以上" },
     { id: "ops", label: "OPS", type: "batter", aliases: ["ops"], season: true, recent: true, key: "OPS", direction: "desc" },
     { id: "obp", label: "出塁率", type: "batter", aliases: ["出塁率"], season: true, recent: true, key: "出塁率", direction: "desc" },
     { id: "slg", label: "長打率", type: "batter", aliases: ["長打率"], season: true, recent: true, key: "長打率", direction: "desc" },
@@ -149,7 +153,7 @@
       <section class="question-result is-unavailable">
         <h3>この質問には現在対応していません</h3>
         ${detail ? `<p>${D.escapeHtml(detail)}</p>` : ""}
-        <p>球団名、選手名、打率、OPS、本塁打、防御率、奪三振などを含めて質問してください。</p>
+        <p>球団名、選手名、打率、OPS、本塁打、盗塁、防御率、奪三振などを含めて質問してください。</p>
       </section>
     `;
   }
@@ -209,7 +213,7 @@
 
   function formatMetricValue(value, metric) {
     if (value === undefined || value === null || value === "") return "-";
-    if (["average", "ops", "obp", "slg", "era"].includes(metric.id)) return D.formatValue(value, metric.key);
+    if (["average", "ops", "obp", "slg", "era", "stealRate"].includes(metric.id)) return D.formatValue(value, metric.key);
     if (["kbb", "kRate", "bbRate"].includes(metric.id)) return D.formatValue(value, metric.key);
     if (["whip", "k9", "bb9", "hr9", "gameScore"].includes(metric.id)) return D.toNumber(value).toFixed(2);
     if (metric.id === "form") return D.toNumber(value).toFixed(1);
@@ -218,7 +222,13 @@
 
   function profileMetricItems(row, type, period) {
     if (period === "recent" && type === "batter") {
-      return ["打率", "OPS", "本塁打", "打点", "安打", "打席"].map((key) => [key, D.formatValue(row[key], key) || "-"]);
+      return [
+        ...["打率", "OPS", "本塁打", "打点", "安打", "打席"].map((key) => [key, D.formatValue(row[key], key) || "-"]),
+        ["盗塁成功", row["盗塁成功"] || "0"],
+        ["盗塁死", row["盗塁死"] || "0"],
+        ["盗塁企図", row["盗塁企図"] || "0"],
+        ["盗塁成功率", row["盗塁成功率"] === "" ? "-" : D.formatValue(row["盗塁成功率"], "盗塁成功率")],
+      ];
     }
     if (period === "recent" && type === "pitcher") {
       return [
@@ -235,7 +245,7 @@
       ];
     }
     if (type === "batter") {
-      return ["打率", "OPS", "本塁打", "打点", "安打", "打席"].map((key) => [key, D.formatValue(row[key], key) || "-"]);
+      return [...["打率", "OPS", "本塁打", "打点", "安打", "打席"].map((key) => [key, D.formatValue(row[key], key) || "-"]), ["盗塁", row["盗塁"] || "0"]];
     }
     return [
       ["登板", row["登板"] || "0"],
@@ -285,7 +295,7 @@
     const typeLabel = entry.type === "pitcher" ? "投手" : "打者";
     const heading = `${period === "recent" ? "直近6試合" : "シーズン"}・${fullTeamName(entry.row["チーム"])}・${entry.row["選手名"]}・${typeLabel}`;
     const metrics = profileMetricItems(row, entry.type, period);
-    const minimumReached = meetsMinimum(row, entry.type, period, metric?.roles?.[0] || "");
+    const minimumReached = meetsMinimum(row, entry.type, period, metric?.roles?.[0] || "", metric);
     const updateDate = row["更新日"] ? `データ更新日：${row["更新日"]}` : "";
     return `
       <section class="question-result">
@@ -317,9 +327,12 @@
     return true;
   }
 
-  function meetsMinimum(row, type, period, role = "") {
+  function meetsMinimum(row, type, period, role = "", metric = null) {
     const minimums = D.DATA_QUESTION_MINIMUMS;
-    if (period === "recent" && type === "batter") return D.toInt(row["打席"]) >= minimums.recentBatterPa;
+    if (period === "recent" && type === "batter") {
+      if (metric?.recentMinKey) return D.toNumber(row[metric.recentMinKey]) >= metric.recentMinValue;
+      return D.toInt(row["打席"]) >= minimums.recentBatterPa;
+    }
     if (period === "recent" && type === "pitcher") {
       return rowMatchesRole(row, role)
         && D.toInt(row["登板"]) >= minimums.recentPitcherGames
@@ -365,7 +378,7 @@
     const rows = source
       .filter((row) => !team || row["チーム"] === team)
       .filter((row) => !league || row["リーグ"] === league)
-      .filter((row) => meetsMinimum(row, type, period, role))
+      .filter((row) => meetsMinimum(row, type, period, role, metric))
       .filter((row) => metricHasValue(row, metric))
       .sort((a, b) => {
         const difference = metricNumber(a, metric, period) - metricNumber(b, metric, period);
@@ -389,7 +402,7 @@
     const directionLabel = direction === "asc" ? "低い順" : "高い順";
     const heading = `${period === "recent" ? "直近6試合" : "シーズン"}・${scopeLabel(team, league)}・${typeLabel}・${metric.label}${directionLabel}`;
     const minimumText = period === "recent"
-      ? (type === "pitcher" ? "12アウト以上かつ3登板以上" : "18打席以上")
+      ? (metric.recentMinimumLabel || (type === "pitcher" ? "12アウト以上かつ3登板以上" : "18打席以上"))
       : (type === "pitcher"
         ? (role === "starter"
           ? "5先発以上かつ30投球回以上"
@@ -439,9 +452,10 @@
       return unsupportedHtml("その指標は初版の検索対象に含まれていません。");
     }
 
-    const period = detectPeriod(text);
+    let period = detectPeriod(text);
     const explicitType = detectExplicitType(text);
     const metric = detectMetric(text, period, explicitType);
+    if (metric && !metric.season && metric.recent) period = "recent";
     const explicitRole = detectRole(text);
     const playerMatches = resolvePlayerMatches(text);
 

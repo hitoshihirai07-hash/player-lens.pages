@@ -201,6 +201,11 @@
     const pitchers = filterRecentRows(insight.recentPitchers)
       .filter(D.isRecentPitcherEligible)
       .sort((a, b) => D.toNumber(b["直近スコア"]) - D.toNumber(a["直近スコア"]));
+    const stealers = filterRecentRows(insight.recentBatters)
+      .filter((row) => D.toInt(row["盗塁企図"]) > 0)
+      .sort((a, b) => D.toInt(b["盗塁成功"]) - D.toInt(a["盗塁成功"])
+        || D.toNumber(b["盗塁成功率"]) - D.toNumber(a["盗塁成功率"])
+        || D.toInt(b["盗塁企図"]) - D.toInt(a["盗塁企図"]));
     const topBatter = batters[0];
     const topPitcher = pitchers[0];
     const scope = recentScopeLabel();
@@ -209,6 +214,7 @@
       ["表示範囲", scope],
       ["集計単位", "選手ごとの直近6試合"],
       ["対象野手", batters.length],
+      ["盗塁企図あり", stealers.length],
       ["対象投手", pitchers.length],
     ]);
 
@@ -225,6 +231,22 @@
           <td>${D.formatValue(row["OPS"], "OPS")}</td>
           <td>${D.escapeHtml(row["本塁打"])}</td>
           <td>${D.escapeHtml(row["打点"])}</td>
+          <td>${D.escapeHtml(row["盗塁成功"] || "0")}</td>
+        </tr>
+      `;
+    });
+    const stealRows = stealers.slice(0, 20).map((row, index) => {
+      const season = seasonRow(row, "batter");
+      return `
+        <tr>
+          <td class="rank">${index + 1}</td>
+          <td>${playerLink(row, "batter", season)}</td>
+          <td>${teamLink(row)}</td>
+          <td>${D.escapeHtml(row["ポジション"])}</td>
+          <td>${D.escapeHtml(row["盗塁成功"] || "0")}</td>
+          <td>${D.escapeHtml(row["盗塁死"] || "0")}</td>
+          <td>${D.escapeHtml(row["盗塁企図"] || "0")}</td>
+          <td>${row["盗塁成功率"] === "" ? "-" : D.formatValue(row["盗塁成功率"], "盗塁成功率")}</td>
         </tr>
       `;
     });
@@ -251,7 +273,8 @@
 
     mainEl.innerHTML = [
       card("この記事の見どころ", `${lead}<p>リーグと球団を切り替えると、その範囲の中で順位を付け直します。短期成績は好不調の波を見つけるための入口として、通算成績とあわせて見るのがおすすめです。</p>`),
-      card(`${D.escapeHtml(scope)} 直近6試合 野手ランキング`, table(["順位", "選手", "球団", "登録", "評価", "打率", "OPS", "本塁打", "打点"], batterRows)),
+      card(`${D.escapeHtml(scope)} 直近6試合 野手ランキング`, table(["順位", "選手", "球団", "登録", "評価", "打率", "OPS", "本塁打", "打点", "盗塁成功"], batterRows)),
+      card(`${D.escapeHtml(scope)} 直近6試合 盗塁ランキング`, table(["順位", "選手", "球団", "登録", "盗塁成功", "盗塁死", "盗塁企図", "盗塁成功率"], stealRows, "直近6試合で盗塁を企図した選手はいません。")),
       card(`${D.escapeHtml(scope)} 直近6試合 投手ランキング`, table(["順位", "選手", "球団", "登録", "評価", "投球回", "防御率", "奪三振", "WHIP"], pitcherRows)),
     ].join("");
     D.enhanceCompactTables(mainEl);
