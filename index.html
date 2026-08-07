@@ -110,33 +110,15 @@
         <div><p class="eyebrow">Watch Notes × Data</p><h2 id="watch-note-bridge-title">観戦メモからデータを見る</h2></div>
         <a href="https://pro-baseball-watch-guide.pages.dev/watch-notes/" target="_blank" rel="noopener">観戦メモ一覧</a>
       </div>
-      <p>プロ野球観戦メモで取り上げた選手を、Player Lensの成績から見返せます。感想と数字を行き来しながら、次の試合で見たいポイントを探します。</p>
-      <div class="watch-note-card-grid">
-        <article class="watch-note-data-card">
-          <p class="card-date">2026年7月14日〜16日</p>
-          <h3>笹原操希の勝ち越し弾とダルベックの2本塁打</h3>
-          <div class="watch-note-actions">
-            <a class="primary-link" href="https://pro-baseball-watch-guide.pages.dev/watch-notes/giants-swallows-2026-07-14-16" target="_blank" rel="noopener">観戦メモを読む</a>
-            <a href="./player.html?type=batter&team=%E5%B7%A8%E4%BA%BA&name=%E7%AC%B9%E5%8E%9F+%E6%93%8D%E5%B8%8C">笹原操希の成績</a><a href="./player.html?type=batter&team=%E5%B7%A8%E4%BA%BA&name=%E3%83%80%E3%83%AB%E3%83%99%E3%83%83%E3%82%AF">ダルベックの成績</a>
-          </div>
-        </article>
-        <article class="watch-note-data-card">
-          <p class="card-date">2026年7月13日</p>
-          <h3>浦田俊輔と田中瑛斗がオールスター初選出</h3>
-          <div class="watch-note-actions">
-            <a class="primary-link" href="https://pro-baseball-watch-guide.pages.dev/watch-notes/giants-all-star-2026-urata-tanaka-eito" target="_blank" rel="noopener">観戦メモを読む</a>
-            <a href="./player.html?type=batter&team=%E5%B7%A8%E4%BA%BA&name=%E6%B5%A6%E7%94%B0+%E4%BF%8A%E8%BC%94">浦田俊輔の成績</a><a href="./player.html?type=pitcher&team=%E5%B7%A8%E4%BA%BA&name=%E7%94%B0%E4%B8%AD+%E7%91%9B%E6%96%97">田中瑛斗の成績</a>
-          </div>
-        </article>
-        <article class="watch-note-data-card">
-          <p class="card-date">2026年7月10日〜12日</p>
-          <h3>浦田俊輔の出塁と救援陣の安定感</h3>
-          <div class="watch-note-actions">
-            <a class="primary-link" href="https://pro-baseball-watch-guide.pages.dev/watch-notes/giants-baystars-2026-07-10-12" target="_blank" rel="noopener">観戦メモを読む</a>
-            <a href="./player.html?type=batter&team=%E5%B7%A8%E4%BA%BA&name=%E6%B5%A6%E7%94%B0+%E4%BF%8A%E8%BC%94">浦田俊輔の成績</a><a href="./player.html?type=pitcher&team=%E5%B7%A8%E4%BA%BA&name=%E4%B8%AD%E5%B7%9D+%E7%9A%93%E5%A4%AA">中川皓太の成績</a>
-          </div>
+      <p>プロ野球観戦メモの最新記事を自動で読み込みます。試合で気になった内容を読んだあと、Player Lensのデータから選手や球団を見返せます。</p>
+      <div class="watch-note-card-grid" id="watchNotesFeed" aria-live="polite">
+        <article class="watch-note-data-card watch-note-loading">
+          <p class="card-date">最新記事を確認中</p>
+          <h3>プロ野球観戦メモを読み込んでいます</h3>
+          <p>公開済みの最新観戦メモを取得しています。</p>
         </article>
       </div>
+      <p class="small-note watch-note-feed-status" id="watchNotesFeedStatus">プロ野球観戦メモ側の更新内容を自動で反映します。</p>
     </section>
 
     <section class="content-card team-links-panel">
@@ -158,6 +140,7 @@
 
   <template id="summaryTemplate"><article class="summary-card"><span></span><strong></strong></article></template>
   <script src="./assets/app.js?v=20260805-recent-steals" defer></script>
+  <script src="./assets/watch-notes-feed.js?v=20260807-auto-watch-notes" defer></script>
   <footer class="site-footer">
     <a href="https://pro-baseball-watch-guide.pages.dev/" target="_blank" rel="noopener">プロ野球観戦メモ</a>
     <a href="./updates.html">更新履歴</a><a href="./insights.html">注目データ</a><a href="./defense.html">守備</a><a href="./articles">読み物</a><a href="./privacy.html">プライバシーポリシー</a><a href="./disclaimer.html">免責事項</a><a href="./contact.html">お問い合わせ</a>

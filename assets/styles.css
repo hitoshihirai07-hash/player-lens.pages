@@ -2845,3 +2845,29 @@ tbody tr.is-selected {
     min-width: 0;
   }
 }
+
+.watch-note-summary {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.watch-note-feed-status {
+  margin: 12px 0 0;
+}
+
+.watch-note-feed-status.is-error {
+  color: #8a3c20;
+}
+
+.watch-note-loading,
+.watch-note-feed-error {
+  grid-column: 1 / -1;
+  min-height: 0;
+}
+
+.watch-note-feed-error {
+  border-style: dashed;
+  background: #fffaf2;
+}
