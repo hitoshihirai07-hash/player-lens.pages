@@ -19,6 +19,7 @@
     starterPitchers: "./data/starter_pitcher_summary.csv",
     starterBatteries: "./data/starter_battery_summary.csv",
     starterGames: "./data/starter_game_results.csv",
+    pitcherDaily: "./data/pitcher_daily_results.csv",
   };
 
   const TEAM_TO_FULL = {
@@ -929,6 +930,25 @@
     };
   }
 
+  async function loadPitcherDailyData() {
+    const rows = await loadCsv(dataPath(DATA_FILES.pitcherDaily));
+    return rows
+      .map((row) => {
+        const team = shortTeam(row["球団"] || "");
+        const opponent = shortTeam(row["対戦球団"] || "");
+        const player = normalizeName(row["投手フルネーム"] || row["選手名"] || "");
+        return {
+          ...row,
+          球団: team,
+          対戦球団: opponent,
+          投手フルネーム: player,
+          選手名: player,
+          リーグ: leagueOfTeam(team),
+        };
+      })
+      .filter((row) => row["試合日"] && row["球団"] && row["選手名"]);
+  }
+
   window.PlayerLensData = {
     DATA_QUESTION_MINIMUMS,
     RANKINGS,
@@ -949,6 +969,7 @@
     loadInsightData,
     loadInterleagueData,
     loadOpponentStatsData,
+    loadPitcherDailyData,
     loadRosterData,
     loadStarterBatteryData,
     playerKey,

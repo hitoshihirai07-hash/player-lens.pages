@@ -19,6 +19,7 @@
     { label: "先発投手別成績", path: "./data/starter_pitcher_summary.csv" },
     { label: "先発バッテリー別成績", path: "./data/starter_battery_summary.csv" },
     { label: "先発バッテリー試合履歴", path: "./data/starter_game_results.csv" },
+    { label: "投手登板履歴", path: "./data/pitcher_daily_results.csv", dateField: "試合日" },
   ];
 
   const rowsEl = document.getElementById("updateRows");
@@ -79,7 +80,8 @@
     const response = await fetch(file.path, { cache: "no-store" });
     if (!response.ok) return { ...file, ok: false, rowCount: 0, dataDate: "", servedAt: "" };
     const rows = parseCsv(await response.text());
-    const dates = rows.map((row) => row["更新日"]).filter(Boolean).sort();
+    const dateField = file.dateField || "更新日";
+    const dates = rows.map((row) => row[dateField]).filter(Boolean).sort();
     return {
       ...file,
       ok: true,

@@ -180,6 +180,11 @@
     return `./starter-battery.html?${query.toString()}`;
   }
 
+  function pitcherUsageUrl(teamName, playerName) {
+    const query = new URLSearchParams({ team: teamName, player: playerName });
+    return `./pitcher-usage.html?${query.toString()}`;
+  }
+
   function starterPlayerLink(teamName, playerName, playerType) {
     const href = D.playerUrl({ チーム: teamName, 選手名: playerName }, playerType);
     return `<a href="${D.escapeHtml(href)}">${D.escapeHtml(playerName)}</a>`;
@@ -521,6 +526,7 @@
         <div class="resource-grid">
           <a href="${D.teamUrl(row["チーム"])}">${D.escapeHtml(row["チーム"])}のチーム別ランキング</a>
           ${(!isBatter && pitcherBatteryRows.length) || (isBatter && catcherBatteryRows.length) ? `<a href="${D.escapeHtml(starterDetailUrl(row["チーム"], row["選手名"]))}">先発バッテリー履歴</a>` : ""}
+          ${!isBatter ? `<a href="${D.escapeHtml(pitcherUsageUrl(row["チーム"], row["選手名"]))}">投手登板状況・投球数</a>` : ""}
           <a href="./insights.html">注目データ</a>
           <a href="./defense.html">守備データ</a>
           <a href="./guide.html">ランキングの見方</a>

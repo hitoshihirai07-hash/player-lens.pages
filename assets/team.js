@@ -54,10 +54,16 @@
     return `${root}starter-battery.html?${params.toString()}`;
   }
 
+  function pitcherUsageTeamUrl() {
+    const params = new URLSearchParams({ team });
+    return `${root}pitcher-usage.html?${params.toString()}`;
+  }
+
   function ensureStarterBatteryLink() {
     const links = document.querySelector(".team-overview .resource-grid");
     if (!links || links.querySelector("[data-starter-battery-link]")) return;
     links.insertAdjacentHTML("beforeend", `<a data-starter-battery-link href="${D.escapeHtml(starterBatteryTeamUrl())}">先発バッテリー成績</a>`);
+    links.insertAdjacentHTML("beforeend", `<a data-pitcher-usage-link href="${D.escapeHtml(pitcherUsageTeamUrl())}">投手登板状況</a>`);
   }
 
   function scoreCard(label, row, type, scoreKey, meta = "") {
@@ -125,6 +131,7 @@
           <a href="${teamScopedUrl("interleague.html")}">交流戦ランキングを見る</a>
           <a href="${teamScopedUrl("defense.html")}">守備データを見る</a>
           <a href="${starterBatteryTeamUrl()}">先発バッテリー成績を見る</a>
+          <a href="${pitcherUsageTeamUrl()}">投手登板状況を見る</a>
           <a href="${root}guide.html">スコアの見方を見る</a>
         </div>
       </section>
