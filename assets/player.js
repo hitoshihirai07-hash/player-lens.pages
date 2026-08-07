@@ -82,10 +82,10 @@
   }
 
   function hasOpponentResult(row, isBatter) {
-    if (isBatter) return String(row["試合"] ?? "").trim() !== "";
-    const appearanceFields = ["先発", "救援", "防御率"];
+    if (isBatter) return D.toNumber(row["試合"]) > 0;
+    const appearanceFields = ["先発", "救援"];
     const decisionFields = ["勝利", "敗戦", "HLD", "セーブ"];
-    return appearanceFields.some((field) => String(row[field] ?? "").trim() !== "")
+    return appearanceFields.some((field) => D.toNumber(row[field]) > 0)
       || decisionFields.some((field) => D.toNumber(row[field]) > 0);
   }
 

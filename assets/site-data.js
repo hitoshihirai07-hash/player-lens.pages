@@ -866,7 +866,7 @@
     return rows
       .map((row) => ({
         ...row,
-        選手名: normalizeName(row["選手名"]),
+        選手名: normalizeName(row["選手名"] || row["選手"] || ""),
         チーム: normalizedTeam(row),
         対球団名: shortTeam(row["対球団名"] || row["対戦球団"] || ""),
         試合: row["試合"] || row["試合数"] || "",
