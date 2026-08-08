@@ -403,13 +403,14 @@
   }
 
   try {
-    const [data, fieldingRows, opponentStats, insightData, rosterRows, starterData] = await Promise.all([
+    const [data, fieldingRows, opponentStats, insightData, rosterRows, starterData, pitcherDailyRows] = await Promise.all([
       D.loadData(),
       D.loadFieldingData(),
       D.loadOpponentStatsData(),
       D.loadInsightData(),
       D.loadRosterData(),
       D.loadStarterBatteryData(),
+      type === "pitcher" ? D.loadPitcherDailyData() : Promise.resolve([]),
     ]);
     const rows = type === "pitcher" ? data.pitchers : data.batters;
     const exactRow = rows.find((candidate) => candidate["チーム"] === team && playerNameKey(candidate["選手名"]) === playerNameKey(name));
@@ -446,6 +447,9 @@
     const catcherBatteryRows = isBatter
       ? starterData.batteries.filter((item) => item["球団"] === row["チーム"] && playerNameKey(item["先発捕手名"]) === playerNameKey(row["選手名"]))
       : [];
+    const scoreless = !isBatter
+      ? D.currentScorelessStreak(pitcherDailyRows.filter((item) => playerNameKey(item["選手名"]) === playerNameKey(row["選手名"])))
+      : { games: 0, startDate: "" };
 
     document.title = `${row["選手名"]} 2026成績 | Player Lens`;
     title.textContent = `${row["選手名"]} 2026成績`;
@@ -465,6 +469,8 @@
       : [
           ["登板", row["登板"] || "0"],
           ["先発 / 救援", `${row["先発"] || 0} / ${row["救援"] || 0}`],
+          ["無失点継続", `${scoreless.games}試合`],
+          ["無失点継続開始日", scoreless.startDate ? formatDate(scoreless.startDate) : "—"],
           ["投球回", row["投球回"]],
           ["防御率", D.formatValue(row["防御率"], "防御率")],
           ["WHIP", row["WHIP"] || "—"],

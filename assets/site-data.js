@@ -949,6 +949,44 @@
       .filter((row) => row["試合日"] && row["球団"] && row["選手名"]);
   }
 
+  function currentScorelessStreak(rows, referenceDate = "") {
+    const games = new Map();
+
+    rows.forEach((row) => {
+      const date = String(row["試合日"] || "").trim();
+      if (!date || (referenceDate && date > referenceDate)) return;
+
+      const gameId = String(row["試合ID"] || "").trim()
+        || `${date}|${row["対戦球団"] || ""}|${row["ホーム/ビジター"] || ""}`;
+      const key = `${date}|${gameId}`;
+      const current = games.get(key) || { date, gameId, runs: 0, hasRunsValue: false };
+      const runs = String(row["失点"] ?? "").trim();
+      if (runs !== "") {
+        current.runs += toNumber(runs);
+        current.hasRunsValue = true;
+      }
+      games.set(key, current);
+    });
+
+    const sorted = [...games.values()].sort((a, b) =>
+      b.date.localeCompare(a.date) || b.gameId.localeCompare(a.gameId)
+    );
+    let count = 0;
+    let startDate = "";
+
+    for (const game of sorted) {
+      if (!game.hasRunsValue || game.runs !== 0) break;
+      count += 1;
+      startDate = game.date;
+    }
+
+    return {
+      games: count,
+      startDate,
+      latestDate: sorted[0]?.date || "",
+    };
+  }
+
   window.PlayerLensData = {
     DATA_QUESTION_MINIMUMS,
     RANKINGS,
@@ -957,6 +995,7 @@
     TEAM_TO_FULL,
     TEAM_SLUGS,
     buildTeamTotals,
+    currentScorelessStreak,
     escapeHtml,
     formatValue,
     inningsFromOuts,

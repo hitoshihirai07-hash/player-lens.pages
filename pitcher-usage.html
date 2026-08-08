@@ -3,30 +3,30 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="2026年NPBの投手登板履歴から、連投状況、直近3日・7日の登板数と投球数、試合ごとの投球内容を12球団で確認できます。">
-  <title>投手登板状況・直近投球数 | Player Lens</title>
+  <meta name="description" content="2026年NPBの投手登板履歴から、無失点継続試合、連投状況、直近3日・7日の登板数と投球数を12球団で確認できます。">
+  <title>投手登板状況・無失点継続 | Player Lens</title>
   <link rel="canonical" href="https://player-lens-pages.pages.dev/pitcher-usage">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="投手登板状況・直近投球数 | Player Lens">
-  <meta property="og:description" content="12球団の投手について、連投状況、直近3日・7日の登板数と投球数、登板履歴を確認できます。">
+  <meta property="og:title" content="投手登板状況・無失点継続 | Player Lens">
+  <meta property="og:description" content="12球団の投手について、無失点継続試合、連投状況、直近3日・7日の登板数と投球数を確認できます。">
   <meta property="og:url" content="https://player-lens-pages.pages.dev/pitcher-usage">
   <meta property="og:image" content="https://player-lens-pages.pages.dev/assets/player-lens-ogp.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="投手登板状況・直近投球数 | Player Lens">
-  <meta name="twitter:description" content="12球団の投手について、連投状況、直近3日・7日の登板数と投球数、登板履歴を確認できます。">
+  <meta name="twitter:title" content="投手登板状況・無失点継続 | Player Lens">
+  <meta name="twitter:description" content="12球団の投手について、無失点継続試合、連投状況、直近3日・7日の登板数と投球数を確認できます。">
   <meta name="twitter:image" content="https://player-lens-pages.pages.dev/assets/player-lens-ogp.png">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7687416670736373" crossorigin="anonymous"></script>
   <link rel="icon" href="./assets/player-lens-icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./assets/styles.css?v=20260807-pitcher-usage">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"投手登板状況・直近投球数 | Player Lens","url":"https://player-lens-pages.pages.dev/pitcher-usage","description":"2026年NPBの1試合ごとの投手登板データから、連投状況、直近3日・7日の登板数と投球数、登板履歴を確認できるデータページです。","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"Player Lens","url":"https://player-lens-pages.pages.dev/"}}</script>
+  <link rel="stylesheet" href="./assets/styles.css?v=20260808-scoreless-streak">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"投手登板状況・無失点継続 | Player Lens","url":"https://player-lens-pages.pages.dev/pitcher-usage","description":"2026年NPBの1試合ごとの投手登板データから、無失点継続試合、連投状況、直近3日・7日の投球数を確認できるデータページです。","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"Player Lens","url":"https://player-lens-pages.pages.dev/"}}</script>
 </head>
 <body>
   <header class="page-header">
     <a class="brand-mini" href="./index.html"><img src="./assets/player-lens-icon.svg" alt="">Player Lens</a>
-    <h1>投手登板状況・直近投球数</h1>
-    <p>1試合ごとの登板記録から、連投と直近の投球数を12球団まとめて確認できます。</p>
+    <h1>投手登板状況・無失点継続</h1>
+    <p>1試合ごとの登板記録から、無失点継続、連投、直近の投球数を12球団まとめて確認できます。</p>
   </header>
   <nav class="site-nav" aria-label="サイト内メニュー">
     <a href="./index.html">ランキング</a>
@@ -50,7 +50,7 @@
       <div>
         <p class="eyebrow">Pitcher Usage</p>
         <h2>「いつ投げたか」と「何球投げたか」を一緒に見る</h2>
-        <p>基準日までの登板履歴を使い、現在の連投、直近3日・7日の登板数と投球数、最新登板を集計します。基準日を変えると、過去時点の登板状況も確認できます。</p>
+        <p>基準日までの登板履歴を使い、無失点継続試合、現在の連投、直近3日・7日の登板数と投球数、最新登板を集計します。基準日を変えると、過去時点の登板状況も確認できます。</p>
         <p class="small-note">投球数は試合で記録された球数のみです。ブルペンでの投球やコンディションは含まれないため、登板可否を断定する指標ではありません。</p>
       </div>
       <a class="text-link" href="./updates.html">更新日を見る</a>
@@ -86,7 +86,7 @@
         <label class="starter-search-filter"><span>投手名</span><input id="usageSearch" type="search" autocomplete="off" placeholder="例：田中 瑛斗"></label>
         <label><span>並び順</span><select id="usageSort"></select></label>
       </div>
-      <p class="small-note usage-filter-note">「救援のみ」「先発のみ」を選んだ場合、直近3日・7日の投球数もその登板区分だけを集計します。</p>
+      <p class="small-note usage-filter-note">「救援のみ」「先発のみ」を選んだ場合、無失点継続試合と直近3日・7日の投球数もその登板区分だけを集計します。</p>
     </section>
 
     <section class="content-card usage-results-card">
@@ -113,6 +113,7 @@
     <section class="content-card soft-callout">
       <h2>見方の目安</h2>
       <p>連投は「基準日に登板し、前日・前々日…にも連続して登板しているか」を日付で判定します。直近3日は基準日を含む3日間、直近7日は基準日を含む7日間です。試合がない日も1日として数えます。</p>
+      <p>無失点継続は、最新登板から「失点」が0の試合をさかのぼって数えます。「開始日」は、その連続記録で最初に無失点だった登板日です。</p>
     </section>
   </main>
 
@@ -126,7 +127,7 @@
     <a href="./disclaimer.html">免責事項</a>
     <a href="./contact.html">お問い合わせ</a>
   </footer>
-  <script src="./assets/site-data.js?v=20260807-pitcher-usage"></script>
-  <script src="./assets/pitcher-usage.js?v=20260807-pitcher-usage"></script>
+  <script src="./assets/site-data.js?v=20260808-scoreless-streak"></script>
+  <script src="./assets/pitcher-usage.js?v=20260808-scoreless-streak"></script>
 </body>
 </html>

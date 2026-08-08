@@ -117,6 +117,7 @@
       ? [
           ["pitches3-desc", "直近3日 投球数が多い順"],
           ["pitches7-desc", "直近7日 投球数が多い順"],
+          ["scoreless-desc", "無失点継続が多い順"],
           ["streak-desc", "連投が多い順"],
           ["latest-desc", "最新登板が新しい順"],
           ["name-asc", "投手名順"],
@@ -176,6 +177,7 @@
         }
       }
       const recent = sorted.slice(0, 5).map((row) => `${formatDate(row["試合日"])} ${D.toInt(row["投球数"])}球`).join(" / ");
+      const scoreless = D.currentScorelessStreak(sorted, referenceDate);
       return {
         team: sorted[0]["球団"],
         player: sorted[0]["選手名"],
@@ -189,6 +191,8 @@
         games7: rows7.length,
         pitches7: rows7.reduce((sum, row) => sum + D.toInt(row["投球数"]), 0),
         seasonGames: sorted.length,
+        scorelessGames: scoreless.games,
+        scorelessStartDate: scoreless.startDate,
         recent,
       };
     });
@@ -198,6 +202,7 @@
     const sort = refs.sort.value;
     return [...rows].sort((a, b) => {
       if (sort === "pitches7-desc") return b.pitches7 - a.pitches7 || b.pitches3 - a.pitches3 || b.latestDate.localeCompare(a.latestDate);
+      if (sort === "scoreless-desc") return b.scorelessGames - a.scorelessGames || b.latestDate.localeCompare(a.latestDate) || a.player.localeCompare(b.player, "ja");
       if (sort === "streak-desc") return b.streak - a.streak || b.pitches3 - a.pitches3 || b.latestDate.localeCompare(a.latestDate);
       if (sort === "latest-desc") return b.latestDate.localeCompare(a.latestDate) || b.latestPitches - a.latestPitches;
       if (sort === "name-asc") return a.player.localeCompare(b.player, "ja") || a.team.localeCompare(b.team, "ja");
@@ -229,13 +234,15 @@
 
   function summaryTable(rows) {
     refs.table.classList.remove("usage-history-table");
-    refs.head.innerHTML = '<tr><th>球団</th><th>投手</th><th>最新登板</th><th>区分</th><th>連投</th><th>最新日投球数</th><th>直近3日</th><th>直近7日</th><th>今季登板</th><th>直近5登板</th></tr>';
+    refs.head.innerHTML = '<tr><th>球団</th><th>投手</th><th>最新登板</th><th>区分</th><th>連投</th><th>無失点継続</th><th>開始日</th><th>最新日投球数</th><th>直近3日</th><th>直近7日</th><th>今季登板</th><th>直近5登板</th></tr>';
     refs.body.innerHTML = rows.map((row) => `<tr>
       <td>${teamLink(row.team)}</td>
       <td>${playerLink(row.team, row.player)}</td>
       <td><strong>${D.escapeHtml(formatDate(row.latestDate))}</strong><small class="usage-subtext">${D.escapeHtml(row.rest)}</small></td>
       <td>${roleBadge(row.latestRole)}</td>
       <td>${streakBadge(row.streak)}</td>
+      <td><strong>${row.scorelessGames.toLocaleString("ja-JP")}試合</strong></td>
+      <td>${D.escapeHtml(row.scorelessStartDate ? formatDate(row.scorelessStartDate) : "-")}</td>
       <td><strong>${row.latestPitches.toLocaleString("ja-JP")}球</strong></td>
       <td><strong>${row.pitches3.toLocaleString("ja-JP")}球</strong><small class="usage-subtext">${row.games3}登板</small></td>
       <td><strong>${row.pitches7.toLocaleString("ja-JP")}球</strong><small class="usage-subtext">${row.games7}登板</small></td>
