@@ -1,6 +1,6 @@
 (() => {
-  const ARTICLES_URL = "https://pro-baseball-watch-guide.pages.dev/data/articles.json";
-  const WATCH_NOTES_URL = "https://pro-baseball-watch-guide.pages.dev/watch-notes/";
+  const ARTICLES_URL = "https://pro-baseball-watch-guide.com/data/articles.json";
+  const WATCH_NOTES_URL = "https://pro-baseball-watch-guide.com/watch-notes/";
   const GIANTS_DATA_URL = "./teams/giants";
   const PLAYER_LENS_HOME = "./";
 
@@ -24,7 +24,7 @@
   }
 
   function absoluteArticleUrl(baseUrl, path) {
-    const base = String(baseUrl || "https://pro-baseball-watch-guide.pages.dev").replace(/\/+$/, "");
+    const base = String(baseUrl || "https://pro-baseball-watch-guide.com").replace(/\/+$/, "");
     const suffix = String(path || "").startsWith("/") ? path : `/${path || ""}`;
     return `${base}${suffix}`;
   }
