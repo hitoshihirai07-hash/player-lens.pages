@@ -119,7 +119,7 @@
 
   function teamUrl(team) {
     const slug = D.TEAM_SLUGS[team];
-    return slug ? `./teams/${slug}` : "./teams.html";
+    return slug ? `./teams/${slug}` : "./teams";
   }
 
   function renderSummary(rows) {

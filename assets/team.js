@@ -37,7 +37,7 @@
       <article class="content-card">
         <div class="section-heading">
           <h2>${D.escapeHtml(title)}</h2>
-          <a href="${root}guide.html">見方</a>
+          <a href="${root}guide">見方</a>
         </div>
         ${table(rows, type, scoreKey, columns)}
       </article>
@@ -51,12 +51,12 @@
 
   function starterBatteryTeamUrl() {
     const params = new URLSearchParams({ view: "batteries", team });
-    return `${root}starter-battery.html?${params.toString()}`;
+    return `${root}starter-battery?${params.toString()}`;
   }
 
   function pitcherUsageTeamUrl() {
     const params = new URLSearchParams({ team });
-    return `${root}pitcher-usage.html?${params.toString()}`;
+    return `${root}pitcher-usage?${params.toString()}`;
   }
 
   function ensureStarterBatteryLink() {
@@ -127,12 +127,12 @@
           ${scoreCard("交流戦投手", interleaguePitcher, "pitcher", "交流戦スコア", "交流戦")}
         </div>
         <div class="resource-grid compact-links">
-          <a href="${teamScopedUrl("insights.html")}">直近・新人王候補を見る</a>
-          <a href="${teamScopedUrl("interleague.html")}">交流戦ランキングを見る</a>
-          <a href="${teamScopedUrl("defense.html")}">守備データを見る</a>
+          <a href="${teamScopedUrl("insights")}">直近・新人王候補を見る</a>
+          <a href="${teamScopedUrl("interleague")}">交流戦ランキングを見る</a>
+          <a href="${teamScopedUrl("defense")}">守備データを見る</a>
           <a href="${starterBatteryTeamUrl()}">先発バッテリー成績を見る</a>
           <a href="${pitcherUsageTeamUrl()}">投手登板状況を見る</a>
-          <a href="${root}guide.html">スコアの見方を見る</a>
+          <a href="${root}guide">スコアの見方を見る</a>
         </div>
       </section>
     `;
@@ -173,7 +173,7 @@
       <article class="content-card">
         <div class="section-heading">
           <h2>守備評価</h2>
-          <a href="${root}defense.html">守備データ</a>
+          <a href="${root}defense">守備データ</a>
         </div>
         ${tableHtml}
       </article>
@@ -198,10 +198,10 @@
       .slice(0, 10);
     const profile = D.teamProfile(team);
     const fullTeam = profile.full;
-    document.title = `${team} チーム別ランキング | Player Lens`;
-    teamTitle.textContent = `${team} チーム別ランキング`;
-    teamLead.textContent = `${fullTeam}の打者、投手、守備、若手、左右別、交流戦の注目選手をまとめています。`;
-    if (overviewTitle) overviewTitle.textContent = `${fullTeam}をデータで見る`;
+    document.title = profile.seoTitle;
+    teamTitle.textContent = profile.seoHeading;
+    teamLead.textContent = profile.lead;
+    if (overviewTitle) overviewTitle.textContent = `${fullTeam}（${team}）をデータで見る`;
     if (overviewText) overviewText.textContent = profile.description;
 
     summary.innerHTML = [

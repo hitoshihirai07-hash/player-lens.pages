@@ -1,0 +1,4 @@
+# Canonical URL redirects (SEO)
+/index.html / 301
+/teams/:team.html /teams/:team 301
+/:page.html /:page 301

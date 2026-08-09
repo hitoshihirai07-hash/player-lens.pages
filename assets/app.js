@@ -325,13 +325,13 @@ function playerKey(row) {
 
 function playerDetailUrl(row, type) {
   const params = new URLSearchParams({ type, team: row["チーム"], name: row["選手名"] });
-  return `./player.html?${params.toString()}`;
+  return `./player?${params.toString()}`;
 }
 
 function teamDetailUrl(team) {
-  if (TEAM_SLUGS[team]) return `./teams/${TEAM_SLUGS[team]}.html`;
+  if (TEAM_SLUGS[team]) return `./teams/${TEAM_SLUGS[team]}`;
   const params = new URLSearchParams({ team });
-  return `./team.html?${params.toString()}`;
+  return `./team?${params.toString()}`;
 }
 
 function parseCsv(text) {

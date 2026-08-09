@@ -177,12 +177,12 @@
 
   function starterDetailUrl(teamName, playerName, view = "batteries") {
     const query = new URLSearchParams({ view, team: teamName, search: playerName });
-    return `./starter-battery.html?${query.toString()}`;
+    return `./starter-battery?${query.toString()}`;
   }
 
   function pitcherUsageUrl(teamName, playerName) {
     const query = new URLSearchParams({ team: teamName, player: playerName });
-    return `./pitcher-usage.html?${query.toString()}`;
+    return `./pitcher-usage?${query.toString()}`;
   }
 
   function starterPlayerLink(teamName, playerName, playerType) {
@@ -362,7 +362,7 @@
         ];
     return `
       <section class="content-card recent-player-section">
-        <div class="section-heading"><div><p class="eyebrow">Recent Form</p><h2>出場した直近6試合の成績</h2></div><a href="./recent-form.html">直近成績一覧</a></div>
+        <div class="section-heading"><div><p class="eyebrow">Recent Form</p><h2>出場した直近6試合の成績</h2></div><a href="./recent-form">直近成績一覧</a></div>
         ${metricCards(items)}
       </section>
     `;
@@ -372,7 +372,7 @@
     if (!rosterRow) {
       return `
         <section class="content-card registration-card">
-          <div class="section-heading"><div><p class="eyebrow">Roster</p><h2>現在の登録状況</h2></div><a href="./roster.html">登録状況一覧</a></div>
+          <div class="section-heading"><div><p class="eyebrow">Roster</p><h2>現在の登録状況</h2></div><a href="./roster">登録状況一覧</a></div>
           <p class="empty-state">登録履歴データで確認できませんでした。</p>
         </section>
       `;
@@ -382,7 +382,7 @@
     const statusClass = isRegistered ? "is-registered" : "is-off-roster";
     return `
       <section class="content-card registration-card">
-        <div class="section-heading"><div><p class="eyebrow">Roster</p><h2>現在の登録状況</h2></div><a href="./roster.html">登録状況一覧</a></div>
+        <div class="section-heading"><div><p class="eyebrow">Roster</p><h2>現在の登録状況</h2></div><a href="./roster">登録状況一覧</a></div>
         <div class="registration-summary ${statusClass}">
           <strong>${D.escapeHtml(status)}</strong>
           <dl>
@@ -533,10 +533,10 @@
           <a href="${D.teamUrl(row["チーム"])}">${D.escapeHtml(row["チーム"])}のチーム別ランキング</a>
           ${(!isBatter && pitcherBatteryRows.length) || (isBatter && catcherBatteryRows.length) ? `<a href="${D.escapeHtml(starterDetailUrl(row["チーム"], row["選手名"]))}">先発バッテリー履歴</a>` : ""}
           ${!isBatter ? `<a href="${D.escapeHtml(pitcherUsageUrl(row["チーム"], row["選手名"]))}">投手登板状況・投球数</a>` : ""}
-          <a href="./insights.html">注目データ</a>
-          <a href="./defense.html">守備データ</a>
-          <a href="./guide.html">ランキングの見方</a>
-          <a href="./index.html">全体ランキングへ戻る</a>
+          <a href="./insights">注目データ</a>
+          <a href="./defense">守備データ</a>
+          <a href="./guide">ランキングの見方</a>
+          <a href="./">全体ランキングへ戻る</a>
         </div>
       </section>
     `;

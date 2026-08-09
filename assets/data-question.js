@@ -9,20 +9,7 @@
     examples: Array.from(document.querySelectorAll("[data-question-example]")),
   };
 
-  const TEAM_ALIASES = {
-    "巨人": ["読売ジャイアンツ", "読売", "ジャイアンツ", "巨人"],
-    "阪神": ["阪神タイガース", "タイガース", "阪神"],
-    "DeNA": ["横浜DeNAベイスターズ", "横浜DeNA", "ベイスターズ", "DeNA", "横浜"],
-    "広島": ["広島東洋カープ", "広島カープ", "カープ", "広島"],
-    "ヤクルト": ["東京ヤクルトスワローズ", "東京ヤクルト", "スワローズ", "ヤクルト"],
-    "中日": ["中日ドラゴンズ", "ドラゴンズ", "中日"],
-    "オリックス": ["オリックス・バファローズ", "オリックスバファローズ", "バファローズ", "オリックス"],
-    "ソフトバンク": ["福岡ソフトバンクホークス", "福岡ソフトバンク", "ソフトバンク", "ホークス"],
-    "ロッテ": ["千葉ロッテマリーンズ", "千葉ロッテ", "マリーンズ", "ロッテ"],
-    "楽天": ["東北楽天ゴールデンイーグルス", "楽天イーグルス", "東北楽天", "イーグルス", "楽天"],
-    "西武": ["埼玉西武ライオンズ", "埼玉西武", "ライオンズ", "西武"],
-    "日本ハム": ["北海道日本ハムファイターズ", "北海道日本ハム", "日本ハム", "ファイターズ", "日ハム"],
-  };
+  const TEAM_ALIASES = D.TEAM_ALIASES;
 
   const METRICS = [
     { id: "kbb", label: "K-BB%", type: "pitcher", aliases: ["k-bb%", "kbb%", "奪三振率と与四球率の差"], season: true, recent: true, key: "K-BB%", direction: "desc" },
@@ -438,7 +425,7 @@
         </ol>
         <div class="question-related-links">
           ${team ? `<a href="${D.escapeHtml(D.teamUrl(team))}">${D.escapeHtml(fullTeamName(team))}のページ</a>` : ""}
-          <a href="${period === "recent" ? "./recent-form.html" : "./index.html"}">${period === "recent" ? "直近6試合一覧" : "ランキング一覧"}</a>
+          <a href="${period === "recent" ? "./recent-form" : "./"}">${period === "recent" ? "直近6試合一覧" : "ランキング一覧"}</a>
         </div>
       </section>
     `;

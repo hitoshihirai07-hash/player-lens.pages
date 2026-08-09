@@ -37,6 +37,83 @@
     "日本ハム": "北海道日本ハムファイターズ",
   };
 
+  const TEAM_ALIASES = {
+    "巨人": [
+      "巨人",
+      "読売",
+      "読売ジャイアンツ",
+      "ジャイアンツ"
+    ],
+    "阪神": [
+      "阪神",
+      "阪神タイガース",
+      "タイガース"
+    ],
+    "DeNA": [
+      "DeNA",
+      "横浜DeNA",
+      "横浜DeNAベイスターズ",
+      "ベイスターズ",
+      "横浜"
+    ],
+    "広島": [
+      "広島",
+      "広島東洋",
+      "広島東洋カープ",
+      "広島カープ",
+      "カープ"
+    ],
+    "ヤクルト": [
+      "ヤクルト",
+      "東京ヤクルト",
+      "東京ヤクルトスワローズ",
+      "スワローズ"
+    ],
+    "中日": [
+      "中日",
+      "中日ドラゴンズ",
+      "ドラゴンズ"
+    ],
+    "オリックス": [
+      "オリックス",
+      "オリックス・バファローズ",
+      "オリックスバファローズ",
+      "バファローズ"
+    ],
+    "ソフトバンク": [
+      "ソフトバンク",
+      "福岡ソフトバンク",
+      "福岡ソフトバンクホークス",
+      "ホークス"
+    ],
+    "ロッテ": [
+      "ロッテ",
+      "千葉ロッテ",
+      "千葉ロッテマリーンズ",
+      "マリーンズ"
+    ],
+    "楽天": [
+      "楽天",
+      "東北楽天",
+      "東北楽天ゴールデンイーグルス",
+      "楽天イーグルス",
+      "イーグルス"
+    ],
+    "西武": [
+      "西武",
+      "埼玉西武",
+      "埼玉西武ライオンズ",
+      "ライオンズ"
+    ],
+    "日本ハム": [
+      "日本ハム",
+      "北海道日本ハム",
+      "北海道日本ハムファイターズ",
+      "日ハム",
+      "ファイターズ"
+    ]
+  };
+  const TEAM_ALIAS_TO_SHORT = Object.fromEntries(Object.entries(TEAM_ALIASES).flatMap(([short, aliases]) => aliases.map((alias) => [alias, short])));
   const FULL_TO_TEAM = Object.fromEntries(Object.entries(TEAM_TO_FULL).map(([short, full]) => [full, short]));
   const CENTRAL_TEAMS = ["巨人", "阪神", "DeNA", "広島", "ヤクルト", "中日"];
   const PACIFIC_TEAMS = ["オリックス", "ソフトバンク", "ロッテ", "楽天", "西武", "日本ハム"];
@@ -182,7 +259,8 @@
   }
 
   function shortTeam(team) {
-    return FULL_TO_TEAM[team] || team;
+    const value = String(team ?? "").trim();
+    return TEAM_ALIAS_TO_SHORT[value] || FULL_TO_TEAM[value] || value;
   }
 
   function leagueOfTeam(team) {
@@ -742,24 +820,32 @@
 
   function playerUrl(row, type) {
     const params = new URLSearchParams({ type, team: row["チーム"], name: row["選手名"] });
-    return `${rootPath()}player.html?${params.toString()}`;
+    return `${rootPath()}player?${params.toString()}`;
   }
 
   function teamUrl(team) {
     const slug = TEAM_SLUGS[team];
-    if (slug) return `${rootPath()}teams/${slug}.html`;
+    if (slug) return `${rootPath()}teams/${slug}`;
     const params = new URLSearchParams({ team });
-    return `${rootPath()}team.html?${params.toString()}`;
+    return `${rootPath()}team?${params.toString()}`;
   }
 
   function teamProfile(team) {
     const full = TEAM_TO_FULL[team] || team;
+    const aliases = TEAM_ALIASES[team] || [team, full];
+    const extraAliases = aliases.filter((alias) => alias !== team && alias !== full);
+    const aliasLabel = [team, ...extraAliases].join("・");
     return {
       team,
       full,
+      aliases,
+      aliasLabel,
       league: leagueOfTeam(team),
       slug: TEAM_SLUGS[team] || "",
-      description: TEAM_PROFILES[team] || `${full}の打者、投手、守備、若手、交流戦をまとめて確認できます。`,
+      seoTitle: `${team}（${full}）2026年選手成績・データ | Player Lens`,
+      seoHeading: `${team}（${full}）2026年選手成績`,
+      lead: `${full}（${aliasLabel}）の2026年成績を、打者・投手・直近6試合・守備・左右別・対球団別などから確認できます。`,
+      description: `${full}（${aliasLabel}）の打者・投手・直近6試合・守備・左右別・対球団別・先発バッテリー・投手登板状況をまとめて確認できます。`,
     };
   }
 
@@ -993,6 +1079,7 @@
     START_POSITIONS,
     FIELDING_POSITIONS,
     TEAM_TO_FULL,
+    TEAM_ALIASES,
     TEAM_SLUGS,
     buildTeamTotals,
     currentScorelessStreak,
