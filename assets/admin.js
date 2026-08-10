@@ -11,6 +11,7 @@
     { label: "守備位置別出場数", path: "./data/starter_positions.csv" },
     { label: "直近6試合野手", path: "./data/recent_batter_6days.csv" },
     { label: "野手1試合成績", path: "./data/batter_game_result.csv", dateField: "試合日" },
+    { label: "投手1試合成績", path: "./data/pitcher_daily_results.csv", dateField: "試合日" },
     { label: "直近6試合盗塁", path: "./data/recent_steal_6days.csv" },
     { label: "直近6試合投手", path: "./data/recent_pitcher_6days.csv" },
     { label: "守備成績", path: "./data/fielding_summary.csv" },
@@ -64,9 +65,14 @@
   let loadedInsight = null;
   let loadedFielding = [];
   let loadedInterleague = { batters: [], pitchers: [] };
+  let loadedBatterGames = [];
+  let loadedPitcherDaily = [];
   let fileReports = [];
   let batterMap = new Map();
   let pitcherMap = new Map();
+  let positionPlayerNames = new Set();
+  let batterReferenceDate = "";
+  let pitcherReferenceDate = "";
 
   async function sha256(text) {
     const buffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
@@ -216,6 +222,85 @@
       .slice(0, limit);
   }
 
+  function playerNameKey(value) {
+    return String(value ?? "").normalize("NFKC").replace(/[\s\u3000]/g, "");
+  }
+
+  function shortDate(value) {
+    const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return value || "-";
+    return `${Number(match[2])}/${Number(match[3])}`;
+  }
+
+  function rowsForBatterStreak(kind, league, limit = 5, team = "all") {
+    const grouped = new Map();
+    loadedBatterGames.forEach((row) => {
+      if (!positionPlayerNames.has(playerNameKey(row["選手名"]))) return;
+      const key = playerNameKey(row["選手名"]);
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key).push(row);
+    });
+
+    const currentKey = kind === "onbase" ? "currentOnBaseGames" : "currentHitGames";
+    const longestKey = kind === "onbase" ? "longestOnBaseGames" : "longestHitGames";
+
+    return [...grouped.values()]
+      .map((items) => {
+        const sorted = [...items].sort((a, b) =>
+          String(a["試合日"]).localeCompare(String(b["試合日"])) || String(a["試合ID"]).localeCompare(String(b["試合ID"]))
+        );
+        const latest = [...sorted].reverse().find((row) => D.toNumber(row["打席"]) > 0) || sorted.at(-1);
+        const summary = D.batterStreakSummary(items, batterReferenceDate);
+        return {
+          選手名: latest?.["選手名"] || items[0]["選手名"],
+          チーム: latest?.["球団"] || items[0]["球団"],
+          リーグ: D.leagueOfTeam(latest?.["球団"] || items[0]["球団"]),
+          ...summary,
+        };
+      })
+      .filter((row) => inTweetScope(row, league, team))
+      .filter((row) => D.toInt(row[currentKey]) > 0)
+      .sort((a, b) =>
+        D.toInt(b[currentKey]) - D.toInt(a[currentKey])
+        || D.toInt(b[longestKey]) - D.toInt(a[longestKey])
+        || String(b.latestDate || "").localeCompare(String(a.latestDate || ""))
+      )
+      .slice(0, limit);
+  }
+
+  function rowsForPitcherScoreless(league, limit = 5, team = "all") {
+    const grouped = new Map();
+    loadedPitcherDaily.forEach((row) => {
+      const key = playerNameKey(row["選手名"] || row["投手フルネーム"]);
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key).push(row);
+    });
+
+    return [...grouped.values()]
+      .map((items) => {
+        const sorted = [...items].sort((a, b) =>
+          String(a["試合日"]).localeCompare(String(b["試合日"])) || String(a["試合ID"]).localeCompare(String(b["試合ID"]))
+        );
+        const latest = sorted.at(-1);
+        const streak = D.currentScorelessStreak(items, pitcherReferenceDate);
+        return {
+          選手名: latest?.["選手名"] || latest?.["投手フルネーム"] || items[0]["選手名"] || items[0]["投手フルネーム"],
+          チーム: latest?.["球団"] || items[0]["球団"],
+          リーグ: D.leagueOfTeam(latest?.["球団"] || items[0]["球団"]),
+          scorelessGames: streak.games,
+          scorelessStartDate: streak.startDate,
+          latestDate: streak.latestDate,
+        };
+      })
+      .filter((row) => inTweetScope(row, league, team))
+      .filter((row) => D.toInt(row.scorelessGames) > 0)
+      .sort((a, b) =>
+        D.toInt(b.scorelessGames) - D.toInt(a.scorelessGames)
+        || String(b.latestDate || "").localeCompare(String(a.latestDate || ""))
+      )
+      .slice(0, limit);
+  }
+
   function renderSummary() {
     const qualifiedBatters = loadedData.batters.filter((row) => row["規定打席到達"] === "到達").length;
     const qualifiedPitchers = loadedData.pitchers.filter((row) => row["規定投球回到達"] === "到達").length;
@@ -266,8 +351,27 @@
     let title;
     let lines;
     let url = SITE_URL;
+    let footerText = "プロ野球2026データランキング";
 
-    if (theme === "recent-batter" || theme === "recent-pitcher") {
+    if (theme === "batter-hit-streak" || theme === "batter-onbase-streak") {
+      const kind = theme === "batter-onbase-streak" ? "onbase" : "hit";
+      const currentKey = kind === "onbase" ? "currentOnBaseGames" : "currentHitGames";
+      const startKey = kind === "onbase" ? "currentOnBaseStartDate" : "currentHitStartDate";
+      const longestKey = kind === "onbase" ? "longestOnBaseGames" : "longestHitGames";
+      title = kind === "onbase" ? "現在の連続出塁トップ5" : "現在の連続安打トップ5";
+      lines = rowsForBatterStreak(kind, league, 5, team).map((row, index) =>
+        `${index + 1}. ${row["選手名"]}（${row["チーム"]}）${row[currentKey]}試合連続 / ${shortDate(row[startKey])}〜 / 今季最長${row[longestKey]}試合`
+      );
+      url = scopedPageUrl("batter-streaks.html", team);
+      footerText = "2026年プロ野球 野手の連続記録";
+    } else if (theme === "pitcher-scoreless-streak") {
+      title = "投手 無失点継続トップ5";
+      lines = rowsForPitcherScoreless(league, 5, team).map((row, index) =>
+        `${index + 1}. ${row["選手名"]}（${row["チーム"]}）${row.scorelessGames}試合連続無失点 / ${shortDate(row.scorelessStartDate)}〜`
+      );
+      url = scopedPageUrl("pitcher-usage.html", team);
+      footerText = "2026年プロ野球 投手の無失点継続";
+    } else if (theme === "recent-batter" || theme === "recent-pitcher") {
       const type = theme === "recent-pitcher" ? "pitcher" : "batter";
       title = type === "pitcher" ? "直近6試合 投手トップ5" : "直近6試合 野手トップ5";
       lines = rowsForRecent(type, league, 5, team).map((row, index) => `${index + 1}. ${row["選手名"]}（${row["チーム"]}/${row["ポジション"]}）${D.formatValue(row["直近スコア"], "スコア")}`);
@@ -302,7 +406,7 @@
       `【Player Lens】${scopeText} ${title}`,
       ...lines,
       "",
-      "プロ野球2026データランキング",
+      footerText,
       url,
     ].join("\n");
   }
@@ -408,20 +512,37 @@
       const scoreSource = item.season || item;
       return `<article class="candidate-card"><span>${D.escapeHtml(label)}</span><strong>${D.escapeHtml(row["選手名"])}</strong><small>${D.escapeHtml(row["チーム"])} / ${D.formatValue(scoreSource[key], "スコア")}</small></article>`;
     }).filter(Boolean);
-    els.postCandidates.innerHTML = candidates.concat(extraCandidates).join("");
+    const hit = rowsForBatterStreak("hit", "all", 1)[0];
+    const onBase = rowsForBatterStreak("onbase", "all", 1)[0];
+    const scoreless = rowsForPitcherScoreless("all", 1)[0];
+    const streakCandidates = [
+      hit ? `<article class="candidate-card"><span>連続安打</span><strong>${D.escapeHtml(hit["選手名"])}</strong><small>${D.escapeHtml(hit["チーム"])} / ${hit.currentHitGames}試合連続 / ${D.escapeHtml(shortDate(hit.currentHitStartDate))}〜</small></article>` : "",
+      onBase ? `<article class="candidate-card"><span>連続出塁</span><strong>${D.escapeHtml(onBase["選手名"])}</strong><small>${D.escapeHtml(onBase["チーム"])} / ${onBase.currentOnBaseGames}試合連続 / ${D.escapeHtml(shortDate(onBase.currentOnBaseStartDate))}〜</small></article>` : "",
+      scoreless ? `<article class="candidate-card"><span>投手無失点</span><strong>${D.escapeHtml(scoreless["選手名"])}</strong><small>${D.escapeHtml(scoreless["チーム"])} / ${scoreless.scorelessGames}試合連続無失点 / ${D.escapeHtml(shortDate(scoreless.scorelessStartDate))}〜</small></article>` : "",
+    ].filter(Boolean);
+    els.postCandidates.innerHTML = streakCandidates.concat(candidates, extraCandidates).join("");
   }
 
   async function loadAdmin() {
     els.updateRows.innerHTML = `<tr><td colspan="4">読込中</td></tr>`;
-    [loadedData, loadedInsight, loadedFielding, loadedInterleague, fileReports] = await Promise.all([
+    [loadedData, loadedInsight, loadedFielding, loadedInterleague, loadedBatterGames, loadedPitcherDaily, fileReports] = await Promise.all([
       D.loadData(),
       D.loadInsightData(),
       D.loadFieldingData(),
       D.loadInterleagueData(),
+      D.loadBatterGameData(),
+      D.loadPitcherDailyData(),
       Promise.all(FILES.map(fetchReport)),
     ]);
     batterMap = new Map(loadedData.batters.map((row) => [D.playerKey(row), row]));
     pitcherMap = new Map(loadedData.pitchers.map((row) => [D.playerKey(row), row]));
+    positionPlayerNames = new Set(
+      loadedData.batters
+        .filter((row) => row["ポジション"] !== "投手")
+        .map((row) => playerNameKey(row["選手名"]))
+    );
+    batterReferenceDate = loadedBatterGames.map((row) => row["試合日"]).filter(Boolean).sort().at(-1) || "";
+    pitcherReferenceDate = loadedPitcherDaily.map((row) => row["試合日"]).filter(Boolean).sort().at(-1) || "";
     renderTweetTeams();
     renderSummary();
     renderUpdateRows();

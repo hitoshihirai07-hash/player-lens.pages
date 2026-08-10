@@ -11,7 +11,10 @@
     "新人王候補投手": "rookie-pitcher",
     "交流戦野手": "interleague-batter",
     "交流戦投手": "interleague-pitcher",
-    "守備評価": "fielding"
+    "守備評価": "fielding",
+    "連続安打": "batter-hit-streak",
+    "連続出塁": "batter-onbase-streak",
+    "投手無失点": "pitcher-scoreless-streak"
   };
 
   let sourceTweet = "";
