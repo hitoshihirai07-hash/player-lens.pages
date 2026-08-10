@@ -2871,3 +2871,143 @@ tbody tr.is-selected {
   border-style: dashed;
   background: #fffaf2;
 }
+
+/* ADMIN: X post studio */
+.x-post-workspace {
+  display: grid;
+  gap: 16px;
+}
+
+.x-post-lead {
+  margin-top: -4px;
+}
+
+.x-post-step {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fbfdfd;
+}
+
+.x-post-step-heading {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.x-post-step-heading h3,
+.x-post-step-heading p {
+  margin: 0;
+}
+
+.x-post-step-heading p {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.x-post-step-number {
+  display: grid;
+  place-items: center;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800;
+}
+
+.draft-style-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.draft-style-button {
+  padding: 7px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.draft-style-button.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.tweet-meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.tweet-meta-row .is-over {
+  color: var(--danger);
+  font-weight: 800;
+}
+
+#postCandidates .candidate-card[data-candidate-theme] {
+  cursor: pointer;
+  transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+
+#postCandidates .candidate-card[data-candidate-theme]:hover,
+#postCandidates .candidate-card[data-candidate-theme]:focus {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  box-shadow: 0 8px 22px rgba(20, 33, 48, 0.08);
+  outline: none;
+}
+
+.candidate-action {
+  margin-top: 6px;
+  color: var(--accent-dark);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.tweet-image-shell {
+  overflow: hidden;
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(20, 33, 48, 0.06);
+}
+
+#tweetImageCanvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+
+.x-post-copy-button {
+  min-width: 160px;
+}
+
+@media (min-width: 760px) {
+  #postCandidates {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .tweet-meta-row {
+    display: grid;
+  }
+
+  .x-post-step {
+    padding: 13px;
+  }
+}
