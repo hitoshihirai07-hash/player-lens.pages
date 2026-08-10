@@ -127,10 +127,7 @@
     copyActions.append(copyButton);
     copyStep.append(copyActions, copyMessage);
 
-    controls.remove();
-    textarea.remove();
     actions.remove();
-    candidates.remove();
 
     composer.append(candidateStep, draftStep, imageStep, copyStep);
     if (candidateSection) candidateSection.remove();
