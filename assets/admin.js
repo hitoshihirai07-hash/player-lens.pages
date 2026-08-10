@@ -10,6 +10,7 @@
     { label: "新人王候補", path: "./data/rookie_candidates.csv" },
     { label: "守備位置別出場数", path: "./data/starter_positions.csv" },
     { label: "直近6試合野手", path: "./data/recent_batter_6days.csv" },
+    { label: "野手1試合成績", path: "./data/batter_game_result.csv", dateField: "試合日" },
     { label: "直近6試合盗塁", path: "./data/recent_steal_6days.csv" },
     { label: "直近6試合投手", path: "./data/recent_pitcher_6days.csv" },
     { label: "守備成績", path: "./data/fielding_summary.csv" },
@@ -23,6 +24,7 @@
     ["チーム別", "./teams.html", "https://player-lens-pages.pages.dev/teams"],
     ["注目データ", "./insights.html", "https://player-lens-pages.pages.dev/insights"],
     ["守備", "./defense.html", "https://player-lens-pages.pages.dev/defense"],
+    ["野手試合状況", "./batter-streaks.html", "https://player-lens-pages.pages.dev/batter-streaks"],
     ["交流戦", "./interleague.html", "https://player-lens-pages.pages.dev/interleague"],
     ["対球団別相性", "./opponent-watch.html", "https://player-lens-pages.pages.dev/opponent-watch"],
     ["読み物", "./articles.html", "https://player-lens-pages.pages.dev/articles"],
@@ -111,7 +113,7 @@
     const response = await fetch(file.path, { cache: "no-store" });
     const text = response.ok ? await response.text() : "";
     const rows = text ? parseCsv(text) : [];
-    const dates = rows.map((row) => row["更新日"]).filter(Boolean).sort();
+    const dates = rows.map((row) => row[file.dateField || "更新日"]).filter(Boolean).sort();
     return {
       ...file,
       ok: response.ok,

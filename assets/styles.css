@@ -3011,3 +3011,58 @@ tbody tr.is-selected {
     padding: 13px;
   }
 }
+
+/* Batter game status / streaks */
+.batter-status-shell {
+  display: grid;
+  gap: 16px;
+}
+
+.batter-status-intro {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.batter-status-table-wrap .streak-cell {
+  min-width: 118px;
+}
+
+.streak-cell strong,
+.streak-cell small {
+  display: block;
+}
+
+.streak-cell strong {
+  color: var(--ink);
+}
+
+.streak-cell small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.streak-zero {
+  color: var(--muted);
+}
+
+.player-streak-section .wide-metrics {
+  margin-top: 12px;
+}
+
+@media (max-width: 720px) {
+  .batter-status-intro {
+    display: grid;
+  }
+
+  .batter-status-table-wrap {
+    overflow-x: auto;
+  }
+
+  .batter-status-table-wrap table {
+    min-width: 980px;
+  }
+}

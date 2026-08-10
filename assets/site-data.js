@@ -20,6 +20,7 @@
     starterBatteries: "./data/starter_battery_summary.csv",
     starterGames: "./data/starter_game_results.csv",
     pitcherDaily: "./data/pitcher_daily_results.csv",
+    batterGames: "./data/batter_game_result.csv",
   };
 
   const TEAM_TO_FULL = {
@@ -1035,6 +1036,101 @@
       .filter((row) => row["試合日"] && row["球団"] && row["選手名"]);
   }
 
+  async function loadBatterGameData() {
+    const rows = await loadCsv(dataPath(DATA_FILES.batterGames));
+    return rows
+      .map((row) => {
+        const team = shortTeam(row["球団"] || "");
+        const opponent = shortTeam(row["対戦相手"] || row["対戦球団"] || "");
+        const player = normalizeName(row["選手名"] || "");
+        return {
+          ...row,
+          球団: team,
+          対戦相手: opponent,
+          選手名: player,
+          リーグ: leagueOfTeam(team),
+        };
+      })
+      .filter((row) => row["試合日"] && row["球団"] && row["選手名"]);
+  }
+
+  function batterStreakSummary(rows, referenceDate = "") {
+    const games = new Map();
+
+    rows.forEach((row) => {
+      const date = String(row["試合日"] || "").trim();
+      if (!date || (referenceDate && date > referenceDate)) return;
+      if (toNumber(row["打席"]) <= 0) return;
+
+      const gameId = String(row["試合ID"] || "").trim()
+        || `${date}|${row["対戦相手"] || ""}|${row["球団"] || ""}`;
+      const key = `${date}|${gameId}`;
+      const current = games.get(key) || {
+        date,
+        gameId,
+        plateAppearances: 0,
+        hits: 0,
+        onBase: 0,
+      };
+      current.plateAppearances += toNumber(row["打席"]);
+      current.hits += toNumber(row["安打"]);
+      current.onBase += toNumber(row["出塁数"]);
+      games.set(key, current);
+    });
+
+    const sorted = [...games.values()].sort((a, b) =>
+      a.date.localeCompare(b.date) || a.gameId.localeCompare(b.gameId)
+    );
+
+    function calculate(field) {
+      let run = 0;
+      let runStart = "";
+      let longest = 0;
+      let longestStart = "";
+      let longestEnd = "";
+
+      sorted.forEach((game) => {
+        if (toNumber(game[field]) > 0) {
+          if (run === 0) runStart = game.date;
+          run += 1;
+          if (run > longest) {
+            longest = run;
+            longestStart = runStart;
+            longestEnd = game.date;
+          }
+        } else {
+          run = 0;
+          runStart = "";
+        }
+      });
+
+      return {
+        current: run,
+        currentStart: run > 0 ? runStart : "",
+        longest,
+        longestStart,
+        longestEnd,
+      };
+    }
+
+    const hit = calculate("hits");
+    const onBase = calculate("onBase");
+    return {
+      games: sorted.length,
+      latestDate: sorted.at(-1)?.date || "",
+      currentHitGames: hit.current,
+      currentHitStartDate: hit.currentStart,
+      longestHitGames: hit.longest,
+      longestHitStartDate: hit.longestStart,
+      longestHitEndDate: hit.longestEnd,
+      currentOnBaseGames: onBase.current,
+      currentOnBaseStartDate: onBase.currentStart,
+      longestOnBaseGames: onBase.longest,
+      longestOnBaseStartDate: onBase.longestStart,
+      longestOnBaseEndDate: onBase.longestEnd,
+    };
+  }
+
   function currentScorelessStreak(rows, referenceDate = "") {
     const games = new Map();
 
@@ -1096,6 +1192,8 @@
     loadInterleagueData,
     loadOpponentStatsData,
     loadPitcherDailyData,
+    loadBatterGameData,
+    batterStreakSummary,
     loadRosterData,
     loadStarterBatteryData,
     playerKey,

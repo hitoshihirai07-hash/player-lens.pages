@@ -185,6 +185,45 @@
     return `./pitcher-usage?${query.toString()}`;
   }
 
+  function batterStreakUrl(teamName, playerName) {
+    const query = new URLSearchParams({ team: teamName, player: playerName });
+    return `./batter-streaks?${query.toString()}`;
+  }
+
+  function batterStreakMarkup(streak) {
+    const currentHit = streak.currentHitGames
+      ? `${streak.currentHitGames}試合（${formatDate(streak.currentHitStartDate)}〜）`
+      : "—";
+    const longestHit = streak.longestHitGames
+      ? `${streak.longestHitGames}試合（${formatDate(streak.longestHitStartDate)}〜${formatDate(streak.longestHitEndDate)}）`
+      : "—";
+    const currentOnBase = streak.currentOnBaseGames
+      ? `${streak.currentOnBaseGames}試合（${formatDate(streak.currentOnBaseStartDate)}〜）`
+      : "—";
+    const longestOnBase = streak.longestOnBaseGames
+      ? `${streak.longestOnBaseGames}試合（${formatDate(streak.longestOnBaseStartDate)}〜${formatDate(streak.longestOnBaseEndDate)}）`
+      : "—";
+
+    return `
+      <section class="content-card player-streak-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Batter Streaks</p>
+            <h2>連続安打・連続出塁</h2>
+          </div>
+          <a class="text-link" href="${D.escapeHtml(batterStreakUrl(activeTeam, activeName))}">野手の試合状況を見る</a>
+        </div>
+        ${metricCards([
+          ["現在の連続安打", currentHit],
+          ["今季最長 連続安打", longestHit],
+          ["現在の連続出塁", currentOnBase],
+          ["今季最長 連続出塁", longestOnBase],
+        ])}
+        <p class="small-note">打席が1以上ある試合を対象に、安打または出塁があった試合を連続記録として数えています。</p>
+      </section>
+    `;
+  }
+
   function starterPlayerLink(teamName, playerName, playerType) {
     const href = D.playerUrl({ チーム: teamName, 選手名: playerName }, playerType);
     return `<a href="${D.escapeHtml(href)}">${D.escapeHtml(playerName)}</a>`;
@@ -403,7 +442,7 @@
   }
 
   try {
-    const [data, fieldingRows, opponentStats, insightData, rosterRows, starterData, pitcherDailyRows] = await Promise.all([
+    const [data, fieldingRows, opponentStats, insightData, rosterRows, starterData, pitcherDailyRows, batterGameRows] = await Promise.all([
       D.loadData(),
       D.loadFieldingData(),
       D.loadOpponentStatsData(),
@@ -411,6 +450,7 @@
       D.loadRosterData(),
       D.loadStarterBatteryData(),
       type === "pitcher" ? D.loadPitcherDailyData() : Promise.resolve([]),
+      type !== "pitcher" ? D.loadBatterGameData() : Promise.resolve([]),
     ]);
     const rows = type === "pitcher" ? data.pitchers : data.batters;
     const exactRow = rows.find((candidate) => candidate["チーム"] === team && playerNameKey(candidate["選手名"]) === playerNameKey(name));
@@ -450,6 +490,9 @@
     const scoreless = !isBatter
       ? D.currentScorelessStreak(pitcherDailyRows.filter((item) => playerNameKey(item["選手名"]) === playerNameKey(row["選手名"])))
       : { games: 0, startDate: "" };
+    const batterStreak = isBatter
+      ? D.batterStreakSummary(batterGameRows.filter((item) => playerNameKey(item["選手名"]) === playerNameKey(row["選手名"])))
+      : null;
 
     document.title = `${row["選手名"]} 2026成績 | Player Lens`;
     title.textContent = `${row["選手名"]} 2026成績`;
@@ -513,6 +556,8 @@
 
       ${recentFormMarkup(recentRow, isBatter)}
 
+      ${isBatter && batterStreak ? batterStreakMarkup(batterStreak) : ""}
+
       ${isBatter ? catcherStarterMaskMarkup(catcherBatteryRows) : pitcherBatteryMarkup(pitcherStarterSummary, pitcherBatteryRows)}
 
       <section class="content-card">
@@ -533,6 +578,7 @@
           <a href="${D.teamUrl(row["チーム"])}">${D.escapeHtml(row["チーム"])}のチーム別ランキング</a>
           ${(!isBatter && pitcherBatteryRows.length) || (isBatter && catcherBatteryRows.length) ? `<a href="${D.escapeHtml(starterDetailUrl(row["チーム"], row["選手名"]))}">先発バッテリー履歴</a>` : ""}
           ${!isBatter ? `<a href="${D.escapeHtml(pitcherUsageUrl(row["チーム"], row["選手名"]))}">投手登板状況・投球数</a>` : ""}
+          ${isBatter ? `<a href="${D.escapeHtml(batterStreakUrl(row["チーム"], row["選手名"]))}">野手の試合状況・連続記録</a>` : ""}
           <a href="./insights">注目データ</a>
           <a href="./defense">守備データ</a>
           <a href="./guide">ランキングの見方</a>
