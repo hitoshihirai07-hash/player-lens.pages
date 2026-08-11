@@ -104,7 +104,7 @@
     draftActions.append(buildButton);
     draftStep.append(draftActions);
 
-    const imageStep = makeStep(3, "画像", "選択中のランキングから1200×675の投稿画像を作成します。");
+    const imageStep = makeStep(3, "画像", "選択中のデータから1200×675の投稿画像を作成します。");
     const imageShell = el("div", "tweet-image-shell");
     canvas = document.createElement("canvas");
     canvas.id = "tweetImageCanvas";
@@ -159,7 +159,7 @@
   function enhanceCandidateCards() {
     document.querySelectorAll("#postCandidates .candidate-card").forEach((card) => {
       const label = card.querySelector("span")?.textContent.trim() || "";
-      const theme = THEME_BY_LABEL[label];
+      const theme = card.dataset.candidateTheme || THEME_BY_LABEL[label];
       if (!theme) return;
       card.dataset.candidateTheme = theme;
       card.setAttribute("role", "button");
@@ -173,7 +173,7 @@
 
   function onCandidateClick(event) {
     const card = event.target.closest("[data-candidate-theme]");
-    if (card) selectCandidate(card.dataset.candidateTheme);
+    if (card) selectCandidate(card.dataset.candidateTheme, card.dataset.candidateLeague, card.dataset.candidateTeam);
   }
 
   function onCandidateKeydown(event) {
@@ -181,19 +181,19 @@
     const card = event.target.closest("[data-candidate-theme]");
     if (!card) return;
     event.preventDefault();
-    selectCandidate(card.dataset.candidateTheme);
+    selectCandidate(card.dataset.candidateTheme, card.dataset.candidateLeague, card.dataset.candidateTeam);
   }
 
-  function selectCandidate(theme) {
+  function selectCandidate(theme, selectedLeague = "all", selectedTeam = "all") {
     const league = document.getElementById("tweetLeague");
     const team = document.getElementById("tweetTeam");
     const themeSelect = document.getElementById("tweetTheme");
     if (!league || !team || !themeSelect) return;
 
-    league.value = "all";
+    league.value = selectedLeague || "all";
     league.dispatchEvent(new Event("change", { bubbles: true }));
     window.setTimeout(() => {
-      team.value = "all";
+      team.value = [...team.options].some((option) => option.value === selectedTeam) ? selectedTeam : "all";
       themeSelect.value = theme;
       themeSelect.dispatchEvent(new Event("change", { bubbles: true }));
       currentDraftStyle = "data";
@@ -211,7 +211,8 @@
     return {
       header: nonEmpty[0] || "【Player Lens】2026プロ野球データ",
       url: [...nonEmpty].reverse().find((line) => /^https?:\/\//.test(line)) || "https://player-lens-pages.pages.dev/",
-      rankingLines: nonEmpty.filter((line) => /^\d+\.\s*/.test(line)).slice(0, 5)
+      rankingLines: nonEmpty.filter((line) => /^\d+\.\s*/.test(line)).slice(0, 5),
+      bodyLines: nonEmpty.slice(1).filter((line) => !/^https?:\/\//.test(line))
     };
   }
 
@@ -223,6 +224,26 @@
 
   function buildDraft(style) {
     const parsed = parseSource();
+    const imageData = window.PlayerLensAdminXData?.getImageData?.();
+    if (imageData?.kind === "standings" && style !== "data") {
+      if (style === "short") {
+        return [
+          parsed.header,
+          `${imageData.headlineLabel}：${imageData.headlineValue}`,
+          imageData.headlineDetail || "",
+          "",
+          "詳しい順位・残り試合はこちら",
+          parsed.url
+        ].filter((line, index, values) => line || values[index - 1] !== "").join("\n");
+      }
+      return [
+        `注目したいのは「${imageData.headlineLabel}：${imageData.headlineValue}」。`,
+        imageData.headlineDetail || "順位の先が気になる状況です。",
+        "順位表だけでなく、残りカードや勝利数の目安もPlayer Lensで見られます。",
+        "",
+        parsed.url
+      ].join("\n");
+    }
     const first = parseRankingLine(parsed.rankingLines[0] || "");
     if (style === "data" || !parsed.rankingLines.length) return sourceTweet;
 
@@ -312,6 +333,83 @@
       .trim() || "2026プロ野球データ";
   }
 
+  function drawStandingsImage(ctx, data) {
+    const W = canvas.width;
+    const H = canvas.height;
+    const cards = (data.cards || []).slice(0, 3);
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = "#f5faf9";
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "#0f766e";
+    ctx.fillRect(0, 0, 18, H);
+
+    ctx.fillStyle = "#0f766e";
+    ctx.font = '800 27px "Yu Gothic", "Meiryo", sans-serif';
+    ctx.fillText("PLAYER LENS", 70, 64);
+    ctx.fillStyle = "#657385";
+    ctx.font = '700 19px "Yu Gothic", "Meiryo", sans-serif';
+    ctx.fillText("2026 NPB STANDINGS", 70, 96);
+    ctx.textAlign = "right";
+    ctx.fillText(fitText(ctx, data.updated || "", 360), W - 70, 64);
+    ctx.textAlign = "left";
+
+    ctx.fillStyle = "#16202e";
+    ctx.font = '800 48px "Yu Gothic", "Meiryo", sans-serif';
+    ctx.fillText(fitText(ctx, data.title || "2026年プロ野球 順位", W - 140), 70, 160);
+
+    roundedRect(ctx, 70, 190, W - 140, 155, 18);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+    ctx.strokeStyle = "#9ed6ce";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = "#0f766e";
+    ctx.font = '800 24px "Yu Gothic", "Meiryo", sans-serif';
+    ctx.fillText(fitText(ctx, data.headlineLabel || "現在地", W - 210), 104, 230);
+    ctx.fillStyle = "#16202e";
+    ctx.font = '900 64px "Yu Gothic", "Meiryo", sans-serif';
+    ctx.fillText(fitText(ctx, data.headlineValue || "-", W - 210), 102, 300);
+    ctx.fillStyle = "#657385";
+    ctx.font = '700 22px "Yu Gothic", "Meiryo", sans-serif';
+    ctx.textAlign = "right";
+    ctx.fillText(fitText(ctx, data.headlineDetail || "", 590), W - 104, 300);
+    ctx.textAlign = "left";
+
+    if (cards.length) {
+      const gap = 16;
+      const totalWidth = W - 140;
+      const width = (totalWidth - gap * (cards.length - 1)) / cards.length;
+      cards.forEach((card, index) => {
+        const x = 70 + index * (width + gap);
+        roundedRect(ctx, x, 370, width, 178, 16);
+        ctx.fillStyle = index === 0 ? "#eaf7f4" : "#ffffff";
+        ctx.fill();
+        ctx.strokeStyle = index === 0 ? "#9ed6ce" : "#d9e0e8";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = "#657385";
+        ctx.font = '800 21px "Yu Gothic", "Meiryo", sans-serif';
+        ctx.fillText(fitText(ctx, card.label || "", width - 48), x + 24, 411);
+        ctx.fillStyle = "#16202e";
+        ctx.font = '900 36px "Yu Gothic", "Meiryo", sans-serif';
+        ctx.fillText(fitText(ctx, card.value || "-", width - 48), x + 24, 466);
+        ctx.fillStyle = "#657385";
+        ctx.font = '700 18px "Yu Gothic", "Meiryo", sans-serif';
+        ctx.fillText(fitText(ctx, card.detail || "", width - 48), x + 24, 510);
+      });
+    }
+
+    ctx.fillStyle = "#657385";
+    ctx.font = '700 18px "Yu Gothic", "Meiryo", sans-serif';
+    ctx.fillText("player-lens-pages.pages.dev/standings", 70, H - 42);
+    ctx.textAlign = "right";
+    ctx.fillText("Player Lens", W - 70, H - 42);
+    ctx.textAlign = "left";
+  }
+
   function drawImage() {
     if (!canvas) return;
     const parsed = parseSource();
@@ -319,6 +417,13 @@
     const ctx = canvas.getContext("2d");
     const W = canvas.width;
     const H = canvas.height;
+
+    const imageData = window.PlayerLensAdminXData?.getImageData?.();
+    if (imageData?.kind === "standings") {
+      drawStandingsImage(ctx, imageData);
+      if (imageMessage) imageMessage.textContent = "順位専用画像を更新しました。";
+      return;
+    }
 
     ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = "#f5faf9";
