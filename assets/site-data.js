@@ -21,6 +21,7 @@
     starterGames: "./data/starter_game_results.csv",
     pitcherDaily: "./data/pitcher_daily_results.csv",
     batterGames: "./data/batter_game_result.csv",
+    standings: "./data/npb_standings.csv",
   };
 
   const TEAM_TO_FULL = {
@@ -898,6 +899,13 @@
     return location.pathname.includes("/teams/") ? "../" : "./";
   }
 
+  async function loadStandingsData() {
+    const rows = await loadCsv(dataPath(DATA_FILES.standings));
+    return rows
+      .map((row) => ({ ...row, 球団: shortTeam(row["球団"] || "") }))
+      .filter((row) => row["球団"] && row["リーグ"]);
+  }
+
   async function loadData() {
     const [battersRaw, pitchersRaw, masterRaw, batterSplitsRaw, pitcherSplitsRaw] = await Promise.all([
       loadCsv(dataPath(DATA_FILES.batters)),
@@ -1169,6 +1177,35 @@
     };
   }
 
+  function addStandingsNavigation() {
+    const nav = document.querySelector(".site-nav");
+    if (nav && !Array.from(nav.querySelectorAll("a")).some((link) => /\/standings(?:$|[?#])/.test(link.href))) {
+      const teamsLink = Array.from(nav.querySelectorAll("a")).find((link) => /\/teams(?:$|[?#])/.test(link.href));
+      if (teamsLink) {
+        const link = document.createElement("a");
+        link.href = dataPath("./standings");
+        link.textContent = "順位・残り試合";
+        teamsLink.insertAdjacentElement("afterend", link);
+      }
+    }
+
+    const team = String(document.body?.dataset?.team || "").trim();
+    const quickLinks = document.querySelector(".team-overview .resource-grid.compact-links");
+    if (team && quickLinks && !quickLinks.querySelector('[data-standings-link]')) {
+      const link = document.createElement("a");
+      link.href = `${dataPath("./standings")}?team=${encodeURIComponent(team)}`;
+      link.textContent = "順位・残り試合";
+      link.dataset.standingsLink = "true";
+      quickLinks.prepend(link);
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", addStandingsNavigation, { once: true });
+  } else {
+    addStandingsNavigation();
+  }
+
   window.PlayerLensData = {
     DATA_QUESTION_MINIMUMS,
     RANKINGS,
@@ -1196,6 +1233,7 @@
     batterStreakSummary,
     loadRosterData,
     loadStarterBatteryData,
+    loadStandingsData,
     playerKey,
     playerUrl,
     rankRows,
