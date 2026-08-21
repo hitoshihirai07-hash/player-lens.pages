@@ -36,7 +36,7 @@
         </div>
       </div>
     </div>
-    <div class="status" id="status">データ読込中</div>
+    <div class="status is-ready" id="status">2026年データ</div>
   </header>
 
   <nav class="site-nav" aria-label="サイト内メニュー">
@@ -73,7 +73,12 @@
         <div><p class="eyebrow">Data Status</p><h2 id="data-status-title">データの最終更新</h2></div>
         <a href="./updates">更新履歴を見る</a>
       </div>
-      <div class="data-status-grid" id="dataStatus"><article class="status-card">更新日を確認中</article></div>
+      <div class="data-status-grid" id="dataStatus">
+        <article class="status-card"><span>基本成績</span><strong>公開中</strong><small>打者・投手ランキング</small></article>
+        <article class="status-card"><span>左右別</span><strong>左右別あり</strong><small>対右・対左の成績</small></article>
+        <article class="status-card"><span>直近6試合</span><strong>直近6試合</strong><small>選手ごとに集計</small></article>
+        <article class="status-card"><span>守備・登録状況</span><strong>専用ページ</strong><small>守備・登録・守備位置は各ページで確認</small></article>
+      </div>
       <p class="small-note">項目ごとに更新タイミングが異なります。各カードの日付・期間を確認してください。</p>
     </section>
 
@@ -85,7 +90,7 @@
       <div class="rank-switch" id="rankingButtons"></div>
       <div class="filters">
         <label><span>リーグ</span><select id="leagueFilter"><option value="all">全リーグ</option><option value="セ">セ・リーグ</option><option value="パ">パ・リーグ</option></select></label>
-        <label><span>球団</span><select id="teamFilter"></select></label>
+        <label><span>球団</span><select id="teamFilter"><option value="all">全12球団</option></select></label>
         <label class="search-filter"><span>選手名検索</span><input id="searchInput" type="search" autocomplete="off" placeholder="例：坂本 勇人、笹原 操希"></label>
       </div>
     </section>
@@ -95,16 +100,16 @@
     <section class="workspace">
       <div class="ranking-panel">
         <div class="panel-heading"><div><p class="eyebrow" id="rankingGroup">打者</p><h2 id="rankingTitle">打者総合</h2></div><div class="count" id="resultCount"></div></div>
-        <div class="table-wrap"><table><thead id="rankingHead"></thead><tbody id="rankingBody"></tbody></table></div>
+        <div class="table-wrap"><table><thead id="rankingHead"></thead><tbody id="rankingBody"><tr><td colspan="12" class="empty-state">球団別・順位・各データページからも確認できます。</td></tr></tbody></table></div>
       </div>
       <aside class="detail-panel" id="detailPanel"><div class="empty-detail">選手を選択</div></aside>
     </section>
 
-    <section class="focus-band" id="dailyFocus" aria-label="今日の注目"><article class="content-card">データ読込中</article></section>
+    <section class="focus-band" id="dailyFocus" aria-label="今日の注目"><article class="content-card">ランキングから注目選手を確認できます。</article></section>
 
     <section class="recent-home-panel" id="recentForm" aria-labelledby="recent-home-title">
       <div class="section-heading"><div><p class="eyebrow">Recent Form</p><h2 id="recent-home-title">直近6試合の好調選手</h2></div><a href="./recent-form">一覧を見る</a></div>
-      <div class="recent-home-grid"><article class="content-card">データ読込中</article></div>
+      <div class="recent-home-grid"><article class="content-card"><a href="./recent-form">直近6試合の一覧を見る</a></article></div>
     </section>
 
     <section class="watch-note-bridge" aria-labelledby="watch-note-bridge-title">
@@ -114,10 +119,11 @@
       </div>
       <p>プロ野球観戦メモの最新記事を自動で読み込みます。試合で気になった内容を読んだあと、Player Lensのデータから選手や球団を見返せます。</p>
       <div class="watch-note-card-grid" id="watchNotesFeed" aria-live="polite">
-        <article class="watch-note-data-card watch-note-loading">
-          <p class="card-date">最新記事を確認中</p>
-          <h3>プロ野球観戦メモを読み込んでいます</h3>
-          <p>公開済みの最新観戦メモを取得しています。</p>
+        <article class="watch-note-data-card">
+          <p class="card-date">プロ野球観戦メモ</p>
+          <h3>最新の観戦メモを見る</h3>
+          <p>公開済みの観戦メモから、気になった試合や選手を確認できます。</p>
+          <div class="watch-note-actions"><a class="primary-link" href="https://pro-baseball-watch-guide.com/watch-notes/" target="_blank" rel="noopener">観戦メモ一覧を開く</a></div>
         </article>
       </div>
       <p class="small-note watch-note-feed-status" id="watchNotesFeedStatus">プロ野球観戦メモ側の更新内容を自動で反映します。</p>
@@ -141,7 +147,7 @@
   </main>
 
   <template id="summaryTemplate"><article class="summary-card"><span></span><strong></strong></article></template>
-  <script src="./assets/app.js?v=20260805-recent-steals" defer></script>
+  <script src="./assets/app.js?v=20260822-progressive-home" defer></script>
   <script src="./assets/watch-notes-feed.js?v=20260807-auto-watch-notes" defer></script>
   <footer class="site-footer">
     <a href="https://pro-baseball-watch-guide.com/" target="_blank" rel="noopener">プロ野球観戦メモ</a>
