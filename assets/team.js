@@ -1,4 +1,19 @@
+function ensurePlayerLensDataRuntimeFix() {
+  if (window.__playerLensDataRuntimeFixLoaded) return Promise.resolve();
+  if (window.__playerLensDataRuntimeFixPromise) return window.__playerLensDataRuntimeFixPromise;
+  window.__playerLensDataRuntimeFixPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    const prefix = location.pathname.includes("/teams/") ? "../" : "./";
+    script.src = `${prefix}assets/site-data-runtime-fix.js?v=20260822-batter-team-fix`;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("データ修正スクリプトを読み込めませんでした"));
+    document.head.appendChild(script);
+  });
+  return window.__playerLensDataRuntimeFixPromise;
+}
+
 (async function () {
+  await ensurePlayerLensDataRuntimeFix();
   const D = window.PlayerLensData;
   const params = new URLSearchParams(location.search);
   const root = location.pathname.includes("/teams/") ? "../" : "./";
