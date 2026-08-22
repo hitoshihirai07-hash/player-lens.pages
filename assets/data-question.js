@@ -9,8 +9,9 @@
     examples: Array.from(document.querySelectorAll("[data-question-example]")),
   };
 
-  const TEAM_ALIASES = D.TEAM_ALIASES;
+  if (!D) return;
 
+  const TEAM_ALIASES = D.TEAM_ALIASES;
   const METRICS = [
     { id: "kbb", label: "K-BB%", type: "pitcher", aliases: ["k-bb%", "kbb%", "奪三振率と与四球率の差"], season: true, recent: true, key: "K-BB%", direction: "desc" },
     { id: "kRate", label: "K%", type: "pitcher", aliases: ["k%", "奪三振割合", "奪三振率"], season: true, recent: true, key: "K%", direction: "desc" },
@@ -36,44 +37,60 @@
     { id: "average", label: "打率", type: "batter", aliases: ["打率"], season: true, recent: true, key: "打率", direction: "desc" },
     { id: "innings", label: "投球回", type: "pitcher", aliases: ["投球回", "イニング"], season: true, recent: true, key: "投球回", direction: "desc" },
     { id: "wins", label: "勝利", type: "pitcher", aliases: ["勝利", "勝ち星", "最多勝"], season: true, recent: true, key: "勝利", direction: "desc" },
+    { id: "losses", label: "敗戦", type: "pitcher", aliases: ["敗戦", "負け", "黒星"], season: true, recent: true, key: "敗戦", direction: "desc" },
+    { id: "allowedHits", label: "被安打", type: "pitcher", aliases: ["被安打"], season: true, recent: true, key: "被安打", direction: "asc" },
+    { id: "allowedHr", label: "被本塁打", type: "pitcher", aliases: ["被本塁打", "被ホームラン"], season: true, recent: true, key: "被本塁打", direction: "asc" },
     { id: "hits", label: "安打", type: "batter", aliases: ["安打", "ヒット"], season: true, recent: true, key: "安打", direction: "desc" },
   ];
 
-  const UNSUPPORTED_TOPICS = [
-    "明日", "今日の試合", "試合速報", "速報", "スタメン", "先発予想", "予想", "怪我", "けが", "故障", "離脱", "今後", "将来", "おすすめ", "感想",
-  ];
+  const UNSUPPORTED_TOPICS = ["明日", "今日の試合", "試合速報", "速報", "スタメン", "先発予想", "予想", "怪我", "けが", "故障", "離脱", "今後", "将来", "おすすめ", "感想"];
   const RECENT_WORDS = ["直近6試合", "6試合", "直近6日", "直近", "最近", "好調", "6日"];
   const STARTER_WORDS = ["先発投手", "先発", "スターター"];
   const RELIEVER_WORDS = ["救援投手", "救援", "中継ぎ", "リリーフ", "抑え", "クローザー"];
   const LOW_WORDS = ["低い", "少ない", "少な", "低く"];
   const HIGH_WORDS = ["高い", "多い", "多く", "上位", "最多"];
+
   const state = {
     ready: false,
     season: null,
     insight: null,
-    players: [],
     seasonBatters: [],
+    players: [],
     seasonMaps: { batter: new Map(), pitcher: new Map() },
     recentMaps: { batter: new Map(), pitcher: new Map() },
   };
 
   function normalizeText(value) {
-    return String(value ?? "")
-      .normalize("NFKC")
-      .toLowerCase()
-      .replace(/[\s\u3000・･?？!！。、，,.…「」『』()（）【】\[\]「」]/g, "");
+    return String(value ?? "").normalize("NFKC").toLowerCase().replace(/[\s\u3000・･?？!！。、，,.…「」『』()（）【】\[\]]/g, "");
   }
 
-  function includesAny(text, words) {
-    return words.some((word) => text.includes(normalizeText(word)));
+  function includesAny(text, words) { return words.some((word) => text.includes(normalizeText(word))); }
+  function fullTeamName(team) { return D.TEAM_TO_FULL[team] || team; }
+
+  function normalizedTeam(row) {
+    return D.shortTeam(row?.["チーム"] || row?.["球団"] || row?.["球団名"] || "");
+  }
+
+  function normalizeRow(row) {
+    const team = normalizedTeam(row);
+    const wins = row?.["勝利"] ?? row?.["勝"] ?? "";
+    const losses = row?.["敗戦"] ?? row?.["敗"] ?? "";
+    const holds = row?.["ホールド"] ?? row?.["ＨＰ"] ?? row?.["HLD"] ?? "";
+    const outs = row?.["投球アウト数"] ?? row?.["投球回(アウト)"] ?? "";
+    return {
+      ...row,
+      チーム: team,
+      リーグ: row?.["リーグ"] || D.leagueOfTeam(team),
+      勝利: wins,
+      敗戦: losses,
+      ホールド: holds,
+      ＨＰ: holds,
+      投球アウト数: outs,
+    };
   }
 
   function playerMapKey(row) {
-    return `${normalizeText(row["選手名"])}|${row["チーム"]}`;
-  }
-
-  function fullTeamName(team) {
-    return D.TEAM_TO_FULL[team] || team;
+    return `${normalizeText(row?.["選手名"])}|${normalizedTeam(row)}`;
   }
 
   function detectTeam(text) {
@@ -90,9 +107,7 @@
     return "";
   }
 
-  function detectPeriod(text) {
-    return includesAny(text, RECENT_WORDS) ? "recent" : "season";
-  }
+  function detectPeriod(text) { return includesAny(text, RECENT_WORDS) ? "recent" : "season"; }
 
   function detectExplicitType(text) {
     const batter = includesAny(text, ["打者", "野手", "バッター"]);
@@ -116,15 +131,7 @@
     const matched = METRICS.find((metric) => includesAny(text, metric.aliases));
     if (matched) return matched;
     if (period === "recent" && text.includes(normalizeText("好調")) && ["batter", "pitcher"].includes(explicitType)) {
-      return {
-        id: "form",
-        label: "直近評価",
-        type: explicitType,
-        season: false,
-        recent: true,
-        key: "直近スコア",
-        direction: "desc",
-      };
+      return { id: "form", label: "直近評価", type: explicitType, season: false, recent: true, key: "直近スコア", direction: "desc" };
     }
     return null;
   }
@@ -141,61 +148,64 @@
         <h3>この質問には現在対応していません</h3>
         ${detail ? `<p>${D.escapeHtml(detail)}</p>` : ""}
         <p>球団名、選手名、打率、OPS、本塁打、盗塁、防御率、奪三振などを含めて質問してください。</p>
-      </section>
-    `;
+      </section>`;
   }
 
   function resolvePlayerMatches(text) {
-    const detectedTeam = detectTeam(text);
-    const exactAll = state.players.filter((entry) => text.includes(normalizeText(entry.row["選手名"])));
-    const exact = detectedTeam && exactAll.some((entry) => entry.row["チーム"] === detectedTeam)
-      ? exactAll.filter((entry) => entry.row["チーム"] === detectedTeam)
-      : exactAll;
+    const team = detectTeam(text);
+    let exact = state.players.filter((entry) => text.includes(normalizeText(entry.row["選手名"])));
+    if (team && exact.some((entry) => entry.row["チーム"] === team)) exact = exact.filter((entry) => entry.row["チーム"] === team);
     if (exact.length) {
       const longest = Math.max(...exact.map((entry) => normalizeText(entry.row["選手名"]).length));
       return exact.filter((entry) => normalizeText(entry.row["選手名"]).length === longest);
     }
-
-    const surnameMatches = state.players.filter((entry) => {
-      const name = String(entry.row["選手名"] || "").normalize("NFKC").trim();
-      const parts = name.split(/\s+/).filter(Boolean);
-      if (parts.length < 2) return false;
-      const surname = normalizeText(parts[0]);
-      return surname.length >= 2 && text.includes(surname);
+    return state.players.filter((entry) => {
+      const parts = String(entry.row["選手名"] || "").normalize("NFKC").trim().split(/\s+/).filter(Boolean);
+      const surname = normalizeText(parts[0] || "");
+      return parts.length >= 2 && surname.length >= 2 && text.includes(surname);
     });
-    return surnameMatches;
   }
 
   function candidateHtml(matches) {
     const unique = Array.from(new Map(matches.map((entry) => [`${entry.type}|${playerMapKey(entry.row)}`, entry])).values());
-    return `
-      <section class="question-result">
-        <h3>該当する選手が複数います</h3>
-        <p>選手を選ぶか、フルネームと球団名を含めて質問してください。</p>
-        <ul class="question-candidate-list">
-          ${unique.slice(0, 12).map((entry) => `
-            <li>
-              <a href="${D.escapeHtml(D.playerUrl(entry.row, entry.type))}">${D.escapeHtml(entry.row["選手名"])}</a>
-              <span>${D.escapeHtml(fullTeamName(entry.row["チーム"]))}・${entry.type === "pitcher" ? "投手" : "打者"}</span>
-            </li>
-          `).join("")}
-        </ul>
-      </section>
-    `;
+    return `<section class="question-result"><h3>該当する選手が複数います</h3><p>選手を選ぶか、フルネームと球団名を含めて質問してください。</p><ul class="question-candidate-list">${unique.slice(0, 12).map((entry) => `<li><a href="${D.escapeHtml(D.playerUrl(entry.row, entry.type))}">${D.escapeHtml(entry.row["選手名"])}</a><span>${D.escapeHtml(fullTeamName(entry.row["チーム"]))}・${entry.type === "pitcher" ? "投手" : "打者"}</span></li>`).join("")}</ul></section>`;
   }
 
-  function recentRowFor(entry) {
-    return state.recentMaps[entry.type].get(playerMapKey(entry.row));
+  function rowMatchesRole(row, role) {
+    if (role === "starter") return D.toInt(row["先発"]) > 0;
+    if (role === "reliever") return D.toInt(row["救援"]) > 0;
+    return true;
   }
 
-  function rowHasRecentActivity(row, type) {
+  function rowHasActivity(row, type, period) {
     if (!row) return false;
-    return type === "pitcher" ? D.toInt(row["投球アウト数"]) > 0 : D.toInt(row["打席"]) > 0;
+    if (type === "pitcher") return period === "recent" ? D.toInt(row["投球アウト数"]) > 0 : D.toInt(row["登板"]) > 0;
+    return D.toInt(row["打席"]) > 0;
   }
 
-  function periodLabel(row) {
-    const period = String(row?.["期間"] || "");
-    return period ? period.replace("_", " 〜 ") : "";
+  function meetsMinimum(row, type, period, role = "", metric = null) {
+    const minimums = D.DATA_QUESTION_MINIMUMS;
+    if (period === "recent" && type === "batter") {
+      if (metric?.recentMinKey) return D.toNumber(row[metric.recentMinKey]) >= metric.recentMinValue;
+      return D.toInt(row["打席"]) >= minimums.recentBatterPa;
+    }
+    if (period === "recent" && type === "pitcher") {
+      return rowMatchesRole(row, role) && D.toInt(row["登板"]) >= minimums.recentPitcherGames && D.toInt(row["投球アウト数"]) >= minimums.recentPitcherOuts;
+    }
+    if (type === "batter") return D.toInt(row["打席"]) >= minimums.seasonBatterPa;
+    if (role === "starter") return D.isSeasonStarterEligible(row);
+    if (role === "reliever") return D.isSeasonRelieverEligible(row);
+    return D.isSeasonStarterEligible(row) || D.isSeasonRelieverEligible(row);
+  }
+
+  function metricHasValue(row, metric) {
+    const value = metric.id === "innings" ? (row["投球回"] ?? row["投球アウト数"]) : row[metric.key];
+    return value !== undefined && value !== null && value !== "" && value !== "-" && value !== "－";
+  }
+
+  function metricNumber(row, metric, period) {
+    if (metric.id === "innings") return period === "recent" ? D.toInt(row["投球アウト数"]) / 3 : D.toNumber(row["投球回_計算用"] || row["投球回"]);
+    return D.toNumber(row[metric.key]);
   }
 
   function formatMetricValue(value, metric) {
@@ -207,151 +217,17 @@
     return String(value);
   }
 
-  function profileMetricItems(row, type, period) {
-    if (period === "recent" && type === "batter") {
-      return [
-        ...["打率", "OPS", "本塁打", "打点", "安打", "打席"].map((key) => [key, D.formatValue(row[key], key) || "-"]),
-        ["盗塁成功", row["盗塁成功"] || "0"],
-        ["盗塁死", row["盗塁死"] || "0"],
-        ["盗塁企図", row["盗塁企図"] || "0"],
-        ["盗塁成功率", row["盗塁成功率"] === "" ? "-" : D.formatValue(row["盗塁成功率"], "盗塁成功率")],
-      ];
-    }
-    if (period === "recent" && type === "pitcher") {
-      return [
-        ["登板", row["登板"] || "0"],
-        ["先発 / 救援", `${row["先発"] || 0} / ${row["救援"] || 0}`],
-        ["投球回", row["投球回"] || D.inningsFromOuts(row["投球アウト数"])],
-        ["防御率", D.formatValue(row["防御率"], "防御率") || "-"],
-        ["WHIP", row["WHIP"] === "" ? "-" : formatMetricValue(row["WHIP"], { id: "whip" })],
-        ["奪三振", row["奪三振"] || "0"],
-        ["K%", D.formatValue(row["K%"], "K%") || "-"],
-        ["K-BB%", D.formatValue(row["K-BB%"], "K-BB%") || "-"],
-        ["K/9", row["K/9"] || "-"],
-        ["BB/9", row["BB/9"] || "-"],
-      ];
-    }
-    if (type === "batter") {
-      return [...["打率", "OPS", "本塁打", "打点", "安打", "打席"].map((key) => [key, D.formatValue(row[key], key) || "-"]), ["盗塁", row["盗塁"] || "0"]];
-    }
-    return [
-      ["登板", row["登板"] || "0"],
-      ["先発 / 救援", `${row["先発"] || 0} / ${row["救援"] || 0}`],
-      ["投球回", row["投球回"] || "0"],
-      ["防御率", D.formatValue(row["防御率"], "防御率") || "-"],
-      ["WHIP", row["WHIP"] === "" ? "-" : formatMetricValue(row["WHIP"], { id: "whip" })],
-      ["勝敗", `${row["勝利"] || 0}勝${row["敗戦"] || 0}敗`],
-      ["奪三振", row["奪三振"] || "0"],
-      ["セーブ / ホールド", `${row["セーブ"] || 0} / ${row["ホールド"] || 0}`],
-      ["K%", D.formatValue(row["K%"], "K%") || "-"],
-      ["K-BB%", D.formatValue(row["K-BB%"], "K-BB%") || "-"],
-      ["K/9", row["K/9"] || "-"],
-      ["BB/9", row["BB/9"] || "-"],
-      ["HR/9", row["HR/9"] || "-"],
-    ];
-  }
-
-  function playerProfileHtml(entry, period, metric) {
-    if (metric && metric.type !== entry.type) {
-      return unsupportedHtml(`${entry.row["選手名"]}は${entry.type === "pitcher" ? "投手" : "打者"}データに登録されているため、${metric.label}では検索できません。`);
-    }
-    if (metric && !metric[period]) {
-      return unsupportedHtml(`${metric.label}は${period === "recent" ? "直近6試合" : "シーズン"}データでは確認できません。`);
-    }
-
-    const row = period === "recent" ? recentRowFor(entry) : entry.row;
-    if (period === "recent" && !rowHasRecentActivity(row, entry.type)) {
-      return `
-        <section class="question-result is-unavailable">
-          <h3>直近6試合の出場データはありません</h3>
-          <p>${D.escapeHtml(entry.row["選手名"])}のシーズン成績は選手ページで確認できます。</p>
-          <a class="question-related-link" href="${D.escapeHtml(D.playerUrl(entry.row, entry.type))}">選手ページを見る</a>
-        </section>
-      `;
-    }
-    if (period === "season" && entry.type === "pitcher" && D.toInt(row["登板"]) === 0) {
-      return `
-        <section class="question-result is-unavailable">
-          <h3>今季一軍登板はありません</h3>
-          <p>${D.escapeHtml(entry.row["選手名"])}は投手データに登録されていますが、今季の一軍登板成績はありません。</p>
-          <a class="question-related-link" href="${D.escapeHtml(D.playerUrl(entry.row, entry.type))}">選手ページを見る</a>
-        </section>
-      `;
-    }
-
-    const typeLabel = entry.type === "pitcher" ? "投手" : "打者";
-    const heading = `${period === "recent" ? "直近6試合" : "シーズン"}・${fullTeamName(entry.row["チーム"])}・${entry.row["選手名"]}・${typeLabel}`;
-    const metrics = profileMetricItems(row, entry.type, period);
-    const minimumReached = meetsMinimum(row, entry.type, period, metric?.roles?.[0] || "", metric);
-    const updateDate = row["更新日"] ? `データ更新日：${row["更新日"]}` : "";
-    return `
-      <section class="question-result">
-        <p class="eyebrow">Player Result</p>
-        <h3>${D.escapeHtml(heading)}</h3>
-        ${period === "recent" ? '<p class="question-result-period">集計対象：選手が出場した直近6試合</p>' : ""}
-        ${updateDate ? `<p class="question-result-period">${D.escapeHtml(updateDate)}</p>` : ""}
-        ${entry.row["移籍選手"] === "TRUE" ? '<p class="notice">移籍した選手の成績はシーズン通算です。現在の所属球団で確認してください。</p>' : ""}
-        ${!minimumReached ? '<p class="notice">この選手は成績を表示していますが、ランキング掲載条件には到達していません。</p>' : ""}
-        <dl class="question-player-metrics">
-          ${metrics.map(([label, value]) => `<div><dt>${D.escapeHtml(label)}</dt><dd>${D.escapeHtml(value)}</dd></div>`).join("")}
-        </dl>
-        <div class="question-related-links">
-          <a href="${D.escapeHtml(D.playerUrl(entry.row, entry.type))}">選手個人ページ</a>
-          <a href="${D.escapeHtml(D.teamUrl(entry.row["チーム"]))}">${D.escapeHtml(fullTeamName(entry.row["チーム"]))}のページ</a>
-        </div>
-      </section>
-    `;
-  }
-
-  function rankingRows(type, period) {
-    if (period === "recent") return state.insight[type === "pitcher" ? "recentPitchers" : "recentBatters"];
-    return type === "pitcher" ? state.season.pitchers : state.seasonBatters;
-  }
-
-  function rowMatchesRole(row, role) {
-    if (role === "starter") return D.toInt(row["先発"]) > 0;
-    if (role === "reliever") return D.toInt(row["救援"]) > 0;
-    return true;
-  }
-
-  function meetsMinimum(row, type, period, role = "", metric = null) {
-    const minimums = D.DATA_QUESTION_MINIMUMS;
-    if (period === "recent" && type === "batter") {
-      if (metric?.recentMinKey) return D.toNumber(row[metric.recentMinKey]) >= metric.recentMinValue;
-      return D.toInt(row["打席"]) >= minimums.recentBatterPa;
-    }
-    if (period === "recent" && type === "pitcher") {
-      return rowMatchesRole(row, role)
-        && D.toInt(row["登板"]) >= minimums.recentPitcherGames
-        && D.toInt(row["投球アウト数"]) >= minimums.recentPitcherOuts;
-    }
-    if (type === "batter") return D.toInt(row["打席"]) >= minimums.seasonBatterPa;
-    if (role === "starter") return D.isSeasonStarterEligible(row);
-    if (role === "reliever") return D.isSeasonRelieverEligible(row);
-    return D.isSeasonStarterEligible(row) || D.isSeasonRelieverEligible(row);
-  }
-
-  function metricNumber(row, metric, period) {
-    if (metric.id === "innings") {
-      return period === "recent" ? D.toInt(row["投球アウト数"]) / 3 : D.toNumber(row["投球回_計算用"]);
-    }
-    return D.toNumber(row[metric.key]);
-  }
-
   function metricDisplay(row, metric, period) {
-    if (metric.id === "innings") {
-      return period === "recent" ? (row["投球回"] || D.inningsFromOuts(row["投球アウト数"])) : row["投球回"];
-    }
+    if (metric.id === "innings") return period === "recent" ? (row["投球回"] || D.inningsFromOuts(row["投球アウト数"])) : (row["投球回"] || "-");
     return formatMetricValue(row[metric.key], metric);
   }
 
-  function metricHasValue(row, metric) {
-    const value = row[metric.key];
-    return value !== undefined && value !== null && value !== "" && value !== "-" && value !== "－";
-  }
-
-  function seasonRowFor(row, type) {
-    return state.seasonMaps[type].get(playerMapKey(row));
+  function minimumText(type, period, role, metric) {
+    if (period === "recent") return metric.recentMinimumLabel || (type === "pitcher" ? "12アウト以上かつ3登板以上" : "18打席以上");
+    if (type === "batter") return "150打席以上";
+    if (role === "starter") return "5先発以上かつ30投球回以上";
+    if (role === "reliever") return "20救援以上かつ15投球回以上";
+    return "先発：5先発以上かつ30投球回以上／救援：20救援以上かつ15投球回以上";
   }
 
   function scopeLabel(team, league) {
@@ -360,84 +236,92 @@
     return "12球団";
   }
 
+  function rankingRows(type, period) {
+    if (period === "recent") return state.insight[type === "pitcher" ? "recentPitchers" : "recentBatters"];
+    return type === "pitcher" ? state.season.pitchers : state.seasonBatters;
+  }
+
+  function seasonRowFor(row, type) { return state.seasonMaps[type].get(playerMapKey(row)); }
+
   function rankingHtml({ team, league, type, period, metric, direction, role = "" }) {
     const source = rankingRows(type, period);
-    const rows = source
+    const scoped = source
       .filter((row) => !team || row["チーム"] === team)
       .filter((row) => !league || row["リーグ"] === league)
-      .filter((row) => meetsMinimum(row, type, period, role, metric))
-      .filter((row) => metricHasValue(row, metric))
+      .filter((row) => rowMatchesRole(row, role))
+      .filter((row) => rowHasActivity(row, type, period))
+      .filter((row) => metricHasValue(row, metric));
+
+    const strict = scoped.filter((row) => meetsMinimum(row, type, period, role, metric));
+    const fallbackUsed = strict.length === 0 && scoped.length > 0;
+    const rows = [...(strict.length ? strict : scoped)]
       .sort((a, b) => {
-        const difference = metricNumber(a, metric, period) - metricNumber(b, metric, period);
-        if (difference !== 0) return direction === "asc" ? difference : -difference;
+        const diff = metricNumber(a, metric, period) - metricNumber(b, metric, period);
+        if (diff !== 0) return direction === "asc" ? diff : -diff;
         return String(a["選手名"]).localeCompare(String(b["選手名"]), "ja");
       })
       .slice(0, 5);
 
     if (!rows.length) {
-      return `
-        <section class="question-result is-unavailable">
-          <h3>条件に合うデータが見つかりませんでした</h3>
-          <p>対象や指標を変えて質問してください。最低条件を満たす選手だけを表示しています。</p>
-        </section>
-      `;
+      return `<section class="question-result is-unavailable"><h3>この条件では記録済みデータがありません</h3><p>${D.escapeHtml(scopeLabel(team, league))}の${metric.label}に該当する記録が現在のデータにありません。</p></section>`;
     }
 
-    const typeLabel = type === "pitcher"
-      ? (role === "starter" ? "先発投手" : role === "reliever" ? "救援投手" : "投手")
-      : "打者";
+    const typeLabel = type === "pitcher" ? (role === "starter" ? "先発投手" : role === "reliever" ? "救援投手" : "投手") : "打者";
     const directionLabel = direction === "asc" ? "低い順" : "高い順";
     const heading = `${period === "recent" ? "直近6試合" : "シーズン"}・${scopeLabel(team, league)}・${typeLabel}・${metric.label}${directionLabel}`;
-    const minimumText = period === "recent"
-      ? (metric.recentMinimumLabel || (type === "pitcher" ? "12アウト以上かつ3登板以上" : "18打席以上"))
-      : (type === "pitcher"
-        ? (role === "starter"
-          ? "5先発以上かつ30投球回以上"
-          : role === "reliever"
-            ? "20救援以上かつ15投球回以上"
-            : "先発：5先発以上かつ30投球回以上／救援：20救援以上かつ15投球回以上")
-        : "150打席以上");
     const updateDate = rows.find((row) => row["更新日"])?.["更新日"] || "";
 
-    return `
-      <section class="question-result">
-        <p class="eyebrow">Ranking Result</p>
-        <h3>${D.escapeHtml(heading)}</h3>
-        <p class="question-result-period">${period === "recent" ? "集計対象：選手ごとの直近6試合 ／ " : ""}最低条件：${D.escapeHtml(minimumText)}${updateDate ? ` ／ データ更新日：${D.escapeHtml(updateDate)}` : ""}</p>
-        ${rows.some((row) => row["移籍選手"] === "TRUE") ? '<p class="notice">移籍した選手の成績はシーズン通算です。現在の所属球団で確認してください。</p>' : ""}
-        <ol class="question-ranking-list">
-          ${rows.map((row, index) => {
-            const seasonRow = period === "season" ? row : seasonRowFor(row, type);
-            const playerLink = seasonRow ? D.playerUrl(seasonRow, type) : "";
-            return `
-              <li class="question-ranking-card">
-                <span class="question-rank-number">${index + 1}</span>
-                <div class="question-rank-player">
-                  ${playerLink
-                    ? `<a href="${D.escapeHtml(playerLink)}">${D.escapeHtml(row["選手名"])}</a>`
-                    : `<strong>${D.escapeHtml(row["選手名"])}</strong>`}
-                  <span>${D.escapeHtml(fullTeamName(row["チーム"]))}</span>
-                </div>
-                <div class="question-rank-value"><span>${D.escapeHtml(metric.label)}</span><strong>${D.escapeHtml(metricDisplay(row, metric, period))}</strong></div>
-              </li>
-            `;
-          }).join("")}
-        </ol>
-        <div class="question-related-links">
-          ${team ? `<a href="${D.escapeHtml(D.teamUrl(team))}">${D.escapeHtml(fullTeamName(team))}のページ</a>` : ""}
-          <a href="${period === "recent" ? "./recent-form" : "./"}">${period === "recent" ? "直近6試合一覧" : "ランキング一覧"}</a>
-        </div>
-      </section>
-    `;
+    return `<section class="question-result">
+      <p class="eyebrow">Ranking Result</p>
+      <h3>${D.escapeHtml(heading)}</h3>
+      <p class="question-result-period">${period === "recent" ? "集計対象：選手ごとの直近6試合 ／ " : ""}通常条件：${D.escapeHtml(minimumText(type, period, role, metric))}${updateDate ? ` ／ データ更新日：${D.escapeHtml(updateDate)}` : ""}</p>
+      ${fallbackUsed ? '<p class="notice">通常のランキング掲載条件を満たす選手がいないため、この条件内で成績が記録されている選手を参考表示しています。</p>' : ""}
+      <ol class="question-ranking-list">${rows.map((row, index) => {
+        const seasonRow = period === "season" ? row : seasonRowFor(row, type);
+        const playerLink = seasonRow ? D.playerUrl(seasonRow, type) : "";
+        return `<li class="question-ranking-card"><span class="question-rank-number">${index + 1}</span><div class="question-rank-player">${playerLink ? `<a href="${D.escapeHtml(playerLink)}">${D.escapeHtml(row["選手名"])}</a>` : `<strong>${D.escapeHtml(row["選手名"])}</strong>`}<span>${D.escapeHtml(fullTeamName(row["チーム"]))}</span></div><div class="question-rank-value"><span>${D.escapeHtml(metric.label)}</span><strong>${D.escapeHtml(metricDisplay(row, metric, period))}</strong></div></li>`;
+      }).join("")}</ol>
+      <div class="question-related-links">${team ? `<a href="${D.escapeHtml(D.teamUrl(team))}">${D.escapeHtml(fullTeamName(team))}のページ</a>` : ""}<a href="${period === "recent" ? "./recent-form" : "./"}">${period === "recent" ? "直近6試合一覧" : "ランキング一覧"}</a></div>
+    </section>`;
+  }
+
+  function recentRowFor(entry) { return state.recentMaps[entry.type].get(playerMapKey(entry.row)); }
+
+  function profileMetricItems(row, type, period) {
+    if (period === "recent" && type === "batter") {
+      return [
+        ...["打率", "OPS", "本塁打", "打点", "安打", "打席"].map((key) => [key, D.formatValue(row[key], key) || "-"]),
+        ["盗塁成功", row["盗塁成功"] || "0"], ["盗塁死", row["盗塁死"] || "0"], ["盗塁企図", row["盗塁企図"] || "0"],
+        ["盗塁成功率", row["盗塁成功率"] === "" ? "-" : D.formatValue(row["盗塁成功率"], "盗塁成功率")],
+      ];
+    }
+    if (period === "recent" && type === "pitcher") {
+      return [["登板", row["登板"] || "0"], ["先発 / 救援", `${row["先発"] || 0} / ${row["救援"] || 0}`], ["投球回", row["投球回"] || D.inningsFromOuts(row["投球アウト数"])], ["防御率", D.formatValue(row["防御率"], "防御率") || "-"], ["WHIP", row["WHIP"] || "-"], ["奪三振", row["奪三振"] || "0"], ["K%", D.formatValue(row["K%"], "K%") || "-"], ["K-BB%", D.formatValue(row["K-BB%"], "K-BB%") || "-"], ["K/9", row["K/9"] || "-"], ["BB/9", row["BB/9"] || "-"]];
+    }
+    if (type === "batter") return [...["打率", "OPS", "本塁打", "打点", "安打", "打席"].map((key) => [key, D.formatValue(row[key], key) || "-"]), ["盗塁", row["盗塁"] || "0"]];
+    return [["登板", row["登板"] || "0"], ["先発 / 救援", `${row["先発"] || 0} / ${row["救援"] || 0}`], ["投球回", row["投球回"] || "0"], ["防御率", D.formatValue(row["防御率"], "防御率") || "-"], ["WHIP", row["WHIP"] || "-"], ["勝敗", `${row["勝利"] || 0}勝${row["敗戦"] || 0}敗`], ["奪三振", row["奪三振"] || "0"], ["セーブ / ホールド", `${row["セーブ"] || 0} / ${row["ホールド"] || 0}`], ["K%", D.formatValue(row["K%"], "K%") || "-"], ["K-BB%", D.formatValue(row["K-BB%"], "K-BB%") || "-"], ["K/9", row["K/9"] || "-"], ["BB/9", row["BB/9"] || "-"], ["HR/9", row["HR/9"] || "-"]];
+  }
+
+  function playerProfileHtml(entry, period, metric) {
+    if (metric && metric.type !== entry.type) return unsupportedHtml(`${entry.row["選手名"]}は${entry.type === "pitcher" ? "投手" : "打者"}データとして扱っています。`);
+    if (metric && !metric[period]) return unsupportedHtml(`${metric.label}は${period === "recent" ? "直近6試合" : "シーズン"}データでは確認できません。`);
+    const row = period === "recent" ? recentRowFor(entry) : entry.row;
+    if (period === "recent" && !rowHasActivity(row, entry.type, period)) {
+      return `<section class="question-result"><h3>直近6試合の出場記録はありません</h3><p>${D.escapeHtml(entry.row["選手名"])}のシーズン成績は確認できます。</p><a class="question-related-link" href="${D.escapeHtml(D.playerUrl(entry.row, entry.type))}">選手ページを見る</a></section>`;
+    }
+    if (!rowHasActivity(row, entry.type, period)) {
+      return `<section class="question-result"><h3>今季一軍の記録はありません</h3><p>${D.escapeHtml(entry.row["選手名"])}は選手データに登録されています。</p><a class="question-related-link" href="${D.escapeHtml(D.playerUrl(entry.row, entry.type))}">選手ページを見る</a></section>`;
+    }
+    const typeLabel = entry.type === "pitcher" ? "投手" : "打者";
+    const heading = `${period === "recent" ? "直近6試合" : "シーズン"}・${fullTeamName(entry.row["チーム"])}・${entry.row["選手名"]}・${typeLabel}`;
+    const metrics = profileMetricItems(row, entry.type, period);
+    return `<section class="question-result"><p class="eyebrow">Player Result</p><h3>${D.escapeHtml(heading)}</h3>${row["更新日"] ? `<p class="question-result-period">データ更新日：${D.escapeHtml(row["更新日"])}</p>` : ""}<dl class="question-player-metrics">${metrics.map(([label, value]) => `<div><dt>${D.escapeHtml(label)}</dt><dd>${D.escapeHtml(value)}</dd></div>`).join("")}</dl><div class="question-related-links"><a href="${D.escapeHtml(D.playerUrl(entry.row, entry.type))}">選手個人ページ</a><a href="${D.escapeHtml(D.teamUrl(entry.row["チーム"]))}">${D.escapeHtml(fullTeamName(entry.row["チーム"]))}のページ</a></div></section>`;
   }
 
   function handleQuestion(question) {
     const text = normalizeText(question);
     if (!text) return unsupportedHtml("質問を入力してください。");
     if (includesAny(text, UNSUPPORTED_TOPICS)) return unsupportedHtml();
-    if (includesAny(text, ["被安打", "被本塁打", "敗戦"])) {
-      return unsupportedHtml("その指標は初版の検索対象に含まれていません。");
-    }
 
     let period = detectPeriod(text);
     const explicitType = detectExplicitType(text);
@@ -454,21 +338,14 @@
     if (explicitType === "both") return unsupportedHtml("打者か投手のどちらかを指定してください。");
     if (explicitRole === "both") return unsupportedHtml("先発投手か救援投手のどちらかを指定してください。");
     if (!metric) return unsupportedHtml("検索する指標を判定できませんでした。");
-    if (explicitType && metric.type !== explicitType) {
-      return unsupportedHtml(`${metric.label}は${metric.type === "pitcher" ? "投手" : "打者"}の指標です。`);
-    }
+    if (explicitType && metric.type !== explicitType) return unsupportedHtml(`${metric.label}は${metric.type === "pitcher" ? "投手" : "打者"}の指標です。`);
     if (!metric[period]) return unsupportedHtml(`${metric.label}は${period === "recent" ? "直近6試合" : "シーズン"}データでは検索できません。`);
 
     const type = explicitType || metric.type;
     const role = explicitRole || (metric.roles?.length === 1 ? metric.roles[0] : "");
     if (role && type !== "pitcher") return unsupportedHtml("先発・救援の指定は投手の質問で利用できます。");
-    if (explicitRole && metric.roles?.length && !metric.roles.includes(explicitRole)) {
-      return unsupportedHtml(`${metric.label}は${metric.roles[0] === "starter" ? "先発投手" : "救援投手"}の指標です。`);
-    }
-    const recentRows = period === "recent" ? rankingRows(type, period) : [];
-    if (period === "recent" && !recentRows.length) {
-      return unsupportedHtml("直近データを読み込めなかったため、この質問には回答できません。");
-    }
+    if (explicitRole && metric.roles?.length && !metric.roles.includes(explicitRole)) return unsupportedHtml(`${metric.label}は${metric.roles[0] === "starter" ? "先発投手" : "救援投手"}の指標です。`);
+
     return rankingHtml({ team, league, type, period, metric, direction: sortDirection(metric, text), role });
   }
 
@@ -480,8 +357,7 @@
     label.textContent = kind === "user" ? "あなた" : "Player Lens";
     const body = document.createElement("div");
     body.className = "question-message-body";
-    if (kind === "user") body.textContent = content;
-    else body.innerHTML = content;
+    if (kind === "user") body.textContent = content; else body.innerHTML = content;
     article.append(label, body);
     els.log.appendChild(article);
     els.log.scrollTop = els.log.scrollHeight;
@@ -490,75 +366,63 @@
   function ask(question) {
     if (!state.ready) return;
     const value = String(question || "").trim();
-    if (!value) {
-      els.input.focus();
-      return;
-    }
-    if (value.length > 100) {
-      appendMessage("answer", unsupportedHtml("質問は100文字以内で入力してください。"));
-      return;
-    }
+    if (!value) return els.input.focus();
+    if (value.length > 100) return appendMessage("answer", unsupportedHtml("質問は100文字以内で入力してください。"));
     appendMessage("user", value);
     appendMessage("answer", handleQuestion(value));
     els.input.value = "";
     els.input.focus();
   }
 
-  function enableControls() {
-    els.input.disabled = false;
-    els.submit.disabled = false;
-    els.examples.forEach((button) => { button.disabled = false; });
-  }
-
   function buildIndexes() {
+    state.season.pitchers = (state.season.pitchers || []).map(normalizeRow);
+    state.season.batters = (state.season.batters || []).map(normalizeRow);
+    state.insight.recentBatters = (state.insight.recentBatters || []).map(normalizeRow);
+    state.insight.recentPitchers = (state.insight.recentPitchers || []).map(normalizeRow);
+
     const pitcherKeys = new Set(state.season.pitchers.map(playerMapKey));
-    const batters = state.season.batters.filter((row) => row["ポジション"] !== "投手" && !pitcherKeys.has(playerMapKey(row)));
-    const pitchers = state.season.pitchers;
-    state.seasonBatters = batters;
-    state.players = [
-      ...batters.map((row) => ({ row, type: "batter" })),
-      ...pitchers.map((row) => ({ row, type: "pitcher" })),
-    ];
-    batters.forEach((row) => state.seasonMaps.batter.set(playerMapKey(row), row));
-    pitchers.forEach((row) => state.seasonMaps.pitcher.set(playerMapKey(row), row));
+    state.seasonBatters = state.season.batters.filter((row) => row["ポジション"] !== "投手" && !pitcherKeys.has(playerMapKey(row)));
+    state.players = [...state.seasonBatters.map((row) => ({ row, type: "batter" })), ...state.season.pitchers.map((row) => ({ row, type: "pitcher" }))];
+
+    state.seasonBatters.forEach((row) => state.seasonMaps.batter.set(playerMapKey(row), row));
+    state.season.pitchers.forEach((row) => state.seasonMaps.pitcher.set(playerMapKey(row), row));
     state.insight.recentBatters.forEach((row) => state.recentMaps.batter.set(playerMapKey(row), row));
     state.insight.recentPitchers.forEach((row) => state.recentMaps.pitcher.set(playerMapKey(row), row));
   }
 
-  els.form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    ask(els.input.value);
-  });
-  els.examples.forEach((button) => {
-    button.addEventListener("click", () => ask(button.dataset.questionExample));
-  });
+  function enableControls() {
+    els.input.disabled = false;
+    els.submit.disabled = false;
+    let enabledExamples = 0;
+    els.examples.forEach((button) => {
+      const answer = handleQuestion(button.dataset.questionExample || "");
+      const usable = answer && !answer.includes('class="question-result is-unavailable"');
+      button.disabled = !usable;
+      button.hidden = !usable;
+      if (usable) enabledExamples += 1;
+    });
+    return enabledExamples;
+  }
 
+  els.form?.addEventListener("submit", (event) => { event.preventDefault(); ask(els.input.value); });
+  els.examples.forEach((button) => button.addEventListener("click", () => ask(button.dataset.questionExample)));
   window.PlayerLensQuestion = { ask: handleQuestion };
 
   try {
-    if (!D) throw new Error("共通データ処理を読み込めませんでした");
     const [season, insight] = await Promise.all([D.loadData(), D.loadInsightData()]);
     state.season = season;
     state.insight = insight;
     buildIndexes();
     state.ready = true;
-    enableControls();
-
-    const recentReady = insight.recentBatters.length > 0 && insight.recentPitchers.length > 0;
-    els.status.textContent = recentReady ? "データ読込完了" : "一部データ確認必要";
-    els.status.classList.add(recentReady ? "is-ready" : "is-error");
-    if (!recentReady) {
-      appendMessage("answer", unsupportedHtml("直近データの一部を読み込めませんでした。シーズン成績の検索は利用できます。"));
-    }
+    const enabledExamples = enableControls();
+    const recentReady = state.insight.recentBatters.length > 0 && state.insight.recentPitchers.length > 0;
+    els.status.textContent = recentReady ? `データ読込完了・質問例${enabledExamples}件確認済み` : "シーズンデータ読込完了";
+    els.status.classList.add("is-ready");
   } catch (error) {
+    console.error("Data question load failed:", error);
     state.ready = false;
     els.status.textContent = "データ読込失敗";
     els.status.classList.add("is-error");
-    appendMessage("answer", `
-      <section class="question-result is-unavailable">
-        <h3>データを読み込めませんでした</h3>
-        <p>時間をおいてページを再読み込みしてください。</p>
-      </section>
-    `);
+    appendMessage("answer", `<section class="question-result is-unavailable"><h3>データを読み込めませんでした</h3><p>時間をおいてページを再読み込みしてください。</p></section>`);
   }
 })();
