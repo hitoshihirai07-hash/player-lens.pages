@@ -34,13 +34,21 @@
     return row["ポジション"] === "投手" ? "pitcher" : "batter";
   }
 
+  function matchKey(row) {
+    const name = String(row["選手名"] || "")
+      .normalize("NFKC")
+      .replace(/[\s\u3000]/g, "");
+    const team = D.shortTeam(row["チーム"] || row["球団"] || row["球団名"] || "");
+    return `${name}|${team}`;
+  }
+
   function seasonRow(row, type = rowType(row)) {
-    const key = D.playerKey(row);
+    const key = matchKey(row);
     return type === "pitcher" ? pitcherMap.get(key) : batterMap.get(key);
   }
 
   function recentRow(row, type = rowType(row)) {
-    const key = D.playerKey(row);
+    const key = matchKey(row);
     return type === "pitcher" ? recentPitcherMap.get(key) : recentBatterMap.get(key);
   }
 
@@ -74,10 +82,11 @@
     `;
   }
 
-  function rankedRookies(type) {
+  function rankedRookies(type, league = state.league, limit = 5) {
     return insight.rookies
       .filter((row) => rowType(row) === type)
-      .filter(scoped)
+      .filter((row) => league === "all" || row["リーグ"] === league)
+      .filter((row) => state.team === "all" || row["チーム"] === state.team)
       .map((row) => {
         const season = seasonRow(row, type);
         const recent = recentRow(row, type);
@@ -85,28 +94,94 @@
       })
       .filter((item) => item.season)
       .sort((a, b) => D.toNumber(b.season[scoreKey(type)]) - D.toNumber(a.season[scoreKey(type)]))
-      .slice(0, 10);
+      .slice(0, limit);
+  }
+
+  function rookiePitcherRole(season) {
+    const starts = D.toInt(season["先発"]);
+    const games = D.toInt(season["登板"]);
+    if (starts >= Math.max(3, Math.ceil(games * 0.5))) return "先発";
+    if (D.toInt(season["セーブ"]) > 0) return "救援";
+    if (D.toInt(season["ＨＰ"]) > 0 || D.toInt(season["ホールド"]) > 0) return "救援";
+    return starts > 0 ? "先発・救援" : "救援";
+  }
+
+  function recentLabel(recent) {
+    if (!recent) return "-";
+    const score = D.toNumber(recent["直近スコア"]);
+    if (score >= 250) return "好調";
+    if (score >= 150) return "上向き";
+    return D.formatValue(score, "スコア");
+  }
+
+  function rookieBatterBlock(title, league) {
+    const rows = rankedRookies("batter", league).map(({ row, season, recent }, index) => `
+      <tr>
+        <td class="rank">${index + 1}</td>
+        <td>${playerCell(row, "batter", season)}</td>
+        <td>${teamCell(row)}</td>
+        <td>${D.escapeHtml(season["打席"] || "0")}</td>
+        <td>${D.formatValue(season["打率"], "打率") || "-"}</td>
+        <td>${D.formatValue(season["OPS"], "OPS") || "-"}</td>
+        <td>${D.escapeHtml(season["本塁打"] || "0")}</td>
+        <td>${D.escapeHtml(season["打点"] || "0")}</td>
+        <td>${D.escapeHtml(season["盗塁"] || "0")}</td>
+        <td>${D.escapeHtml(recentLabel(recent))}</td>
+      </tr>
+    `);
+    return `
+      <section class="mini-ranking">
+        <h3>${D.escapeHtml(title)} 野手</h3>
+        ${table(["順位", "選手", "球団", "打席", "打率", "OPS", "本塁打", "打点", "盗塁", "直近"], rows)}
+      </section>
+    `;
+  }
+
+  function rookiePitcherBlock(title, league) {
+    const rows = rankedRookies("pitcher", league).map(({ row, season, recent }, index) => `
+      <tr>
+        <td class="rank">${index + 1}</td>
+        <td>${playerCell(row, "pitcher", season)}</td>
+        <td>${teamCell(row)}</td>
+        <td>${D.escapeHtml(rookiePitcherRole(season))}</td>
+        <td>${D.escapeHtml(season["登板"] || "0")}</td>
+        <td>${D.escapeHtml(season["勝利"] ?? season["勝"] ?? "0")}</td>
+        <td>${D.escapeHtml(season["投球回"] || "0")}</td>
+        <td>${D.formatValue(season["防御率"], "防御率") || "-"}</td>
+        <td>${D.escapeHtml(season["奪三振"] || "0")}</td>
+        <td>${D.escapeHtml(recentLabel(recent))}</td>
+      </tr>
+    `);
+    return `
+      <section class="mini-ranking">
+        <h3>${D.escapeHtml(title)} 投手</h3>
+        ${table(["順位", "選手", "球団", "役割", "登板", "勝利", "投球回", "防御率", "奪三振", "直近"], rows)}
+      </section>
+    `;
   }
 
   function renderRookieRankings() {
-    function block(title, type) {
-      const rows = rankedRookies(type).map(({ row, season, recent }, index) => `
-        <tr>
-          <td class="rank">${index + 1}</td>
-          <td>${playerCell(row, type, season)}</td>
-          <td>${teamCell(row)}</td>
-          <td class="score">${D.formatValue(season[scoreKey(type)], "スコア")}</td>
-          <td>${recent ? D.formatValue(recent["直近スコア"], "スコア") : "-"}</td>
-        </tr>
-      `);
-      return `
-        <section class="mini-ranking">
-          <h3>${D.escapeHtml(title)}</h3>
-          ${table(["順位", "選手", "球団", "今季評価", "直近評価"], rows)}
-        </section>
-      `;
+    if (state.team !== "all") {
+      const league = D.leagueOfTeam(state.team);
+      els.rookieRankings.innerHTML =
+        rookieBatterBlock(state.team, league) +
+        rookiePitcherBlock(state.team, league);
+      return;
     }
-    els.rookieRankings.innerHTML = block("候補打者", "batter") + block("候補投手", "pitcher");
+
+    if (state.league === "セ" || state.league === "パ") {
+      const label = state.league === "セ" ? "セ・リーグ" : "パ・リーグ";
+      els.rookieRankings.innerHTML =
+        rookieBatterBlock(label, state.league) +
+        rookiePitcherBlock(label, state.league);
+      return;
+    }
+
+    els.rookieRankings.innerHTML =
+      rookieBatterBlock("セ・リーグ", "セ") +
+      rookiePitcherBlock("セ・リーグ", "セ") +
+      rookieBatterBlock("パ・リーグ", "パ") +
+      rookiePitcherBlock("パ・リーグ", "パ");
   }
 
   function renderRecentRankings() {
@@ -306,10 +381,10 @@
   try {
     data = await D.loadData();
     insight = await D.loadInsightData();
-    batterMap = new Map(data.batters.map((row) => [D.playerKey(row), row]));
-    pitcherMap = new Map(data.pitchers.map((row) => [D.playerKey(row), row]));
-    recentBatterMap = new Map(insight.recentBatters.map((row) => [D.playerKey(row), row]));
-    recentPitcherMap = new Map(insight.recentPitchers.map((row) => [D.playerKey(row), row]));
+    batterMap = new Map(data.batters.map((row) => [matchKey(row), row]));
+    pitcherMap = new Map(data.pitchers.map((row) => [matchKey(row), row]));
+    recentBatterMap = new Map(insight.recentBatters.map((row) => [matchKey(row), row]));
+    recentPitcherMap = new Map(insight.recentPitchers.map((row) => [matchKey(row), row]));
 
     els.league.addEventListener("change", () => {
       state.league = els.league.value;
