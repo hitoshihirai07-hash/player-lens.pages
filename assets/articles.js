@@ -85,67 +85,196 @@
     return `<article class="content-card"><h2>${D.escapeHtml(title)}</h2>${body}</article>`;
   }
 
-  function renderRookie() {
-    const rookieBatters = insight.rookies
-      .filter((row) => rowType(row) === "batter")
-      .map((row) => ({ row, season: seasonRow(row, "batter"), recent: recentRow(row, "batter") }))
-      .filter((item) => item.season)
-      .sort((a, b) => D.toNumber(b.season["打者総合スコア"]) - D.toNumber(a.season["打者総合スコア"]));
-    const rookiePitchers = insight.rookies
-      .filter((row) => rowType(row) === "pitcher")
-      .map((row) => ({ row, season: seasonRow(row, "pitcher"), recent: recentRow(row, "pitcher") }))
-      .filter((item) => item.season)
-      .sort((a, b) => D.toNumber(b.season["投手総合スコア"]) - D.toNumber(a.season["投手総合スコア"]));
-    const topBatter = rookieBatters[0];
-    const topPitcher = rookiePitchers[0];
+  const rookieState = { league: "セ" };
 
-    summary([
-      ["候補野手", rookieBatters.length],
-      ["候補投手", rookiePitchers.length],
-      ["野手1位", topBatter ? topBatter.row["選手名"] : "-"],
-      ["投手1位", topPitcher ? topPitcher.row["選手名"] : "-"],
-    ]);
+  function rookieItems(type, league = rookieState.league) {
+    const score = type === "pitcher" ? "投手総合スコア" : "打者総合スコア";
+    return insight.rookies
+      .filter((row) => row["リーグ"] === league && rowType(row) === type)
+      .map((row) => ({ row, season: seasonRow(row, type), recent: recentRow(row, type) }))
+      .filter((item) => item.season)
+      .sort((a, b) => D.toNumber(b.season[score]) - D.toNumber(a.season[score]));
+  }
 
-    const batterRows = rookieBatters.slice(0, 15).map(({ row, season, recent }, index) => `
+  function latestRookieUpdate() {
+    const values = [
+      ...data.pitchers.map((row) => row["更新日"]),
+      ...insight.recentBatters.map((row) => row["更新日"] || row["盗塁データ更新日"]),
+      ...insight.recentPitchers.map((row) => row["更新日"]),
+    ].filter(Boolean);
+    if (!values.length) return "";
+    return values.sort((a, b) => String(b).replace(/\D/g, "").localeCompare(String(a).replace(/\D/g, "")))[0];
+  }
+
+  function rookiePitcherRole(season) {
+    const starts = D.toInt(season["先発"]);
+    const relief = D.toInt(season["救援"]);
+    if (starts > 0 && relief > 0) return starts >= relief ? "先発中心" : "救援中心";
+    if (starts > 0) return "先発";
+    if (relief > 0) return "救援";
+    return "-";
+  }
+
+  function rookieFormValue(recent) {
+    if (!recent) return "-";
+    return D.formatValue(recent["直近スコア"], "スコア");
+  }
+
+  function rookieTopName(type, league) {
+    const item = rookieItems(type, league)[0];
+    return item ? item.row["選手名"] : "-";
+  }
+
+  function rookieBatterTable(items, limit = 5) {
+    const rows = items.slice(0, limit).map(({ row, season, recent }, index) => `
       <tr>
         <td class="rank">${index + 1}</td>
         <td>${playerLink(row, "batter", season)}</td>
         <td>${teamLink(row)}</td>
-        <td>${D.escapeHtml(row["ポジション"])}</td>
+        <td>${D.escapeHtml(season["打席"] || "0")}</td>
+        <td>${D.formatValue(season["打率"], "打率") || "-"}</td>
+        <td>${D.formatValue(season["OPS"], "OPS") || "-"}</td>
+        <td>${D.escapeHtml(season["本塁打"] || "0")}</td>
+        <td>${D.escapeHtml(season["打点"] || "0")}</td>
+        <td>${D.escapeHtml(season["盗塁"] || "0")}</td>
         <td class="score">${D.formatValue(season["打者総合スコア"], "スコア")}</td>
-        <td>${recent ? D.formatValue(recent["直近スコア"], "スコア") : "-"}</td>
-        <td>${D.escapeHtml(season["打席"] || "-")}</td>
+        <td>${rookieFormValue(recent)}</td>
       </tr>
     `);
-    const pitcherRows = rookiePitchers.slice(0, 15).map(({ row, season, recent }, index) => `
+    return table(["順位", "選手", "球団", "打席", "打率", "OPS", "本塁打", "打点", "盗塁", "Player Lens評価", "直近6試合"], rows);
+  }
+
+  function rookiePitcherTable(items, limit = 5) {
+    const rows = items.slice(0, limit).map(({ row, season, recent }, index) => `
       <tr>
         <td class="rank">${index + 1}</td>
         <td>${playerLink(row, "pitcher", season)}</td>
         <td>${teamLink(row)}</td>
-        <td>${D.escapeHtml(row["ポジション"])}</td>
+        <td>${D.escapeHtml(rookiePitcherRole(season))}</td>
+        <td>${D.escapeHtml(season["登板"] || "0")}</td>
+        <td>${D.escapeHtml(season["勝利"] || "0")}</td>
+        <td>${D.escapeHtml(season["投球回"] || "0")}</td>
+        <td>${D.formatValue(season["防御率"], "防御率") || "-"}</td>
+        <td>${D.escapeHtml(season["奪三振"] || "0")}</td>
+        <td>${D.escapeHtml(season["セーブ"] || "0")} / ${D.escapeHtml(season["ホールド"] || season["ＨＰ"] || "0")}</td>
         <td class="score">${D.formatValue(season["投手総合スコア"], "スコア")}</td>
-        <td>${recent ? D.formatValue(recent["直近スコア"], "スコア") : "-"}</td>
-        <td>${D.escapeHtml(season["投球回"] || "-")}</td>
+        <td>${rookieFormValue(recent)}</td>
       </tr>
     `);
-    const listRows = insight.rookies.map((row) => `
-      <tr>
-        <td>${teamLink(row)}</td>
-        <td>${playerLink(row, rowType(row))}</td>
-        <td>${D.escapeHtml(row["ポジション"])}</td>
-      </tr>
-    `);
+    return table(["順位", "選手", "球団", "役割", "登板", "勝利", "投球回", "防御率", "奪三振", "S / H", "Player Lens評価", "直近6試合"], rows);
+  }
 
-    const lead = topBatter && topPitcher
-      ? `<p>${D.escapeHtml(topBatter.row["選手名"])}、${D.escapeHtml(topPitcher.row["選手名"])}など、候補者の中でも今季評価が高い選手を上位に表示しています。</p>`
-      : "<p>候補者の今季評価を野手・投手に分けて表示しています。</p>";
+  function rookieRecentPanel(items, type) {
+    const scoreKey = type === "pitcher" ? "投手総合スコア" : "打者総合スコア";
+    const recentItems = items
+      .filter((item) => item.recent)
+      .sort((a, b) => D.toNumber(b.recent["直近スコア"]) - D.toNumber(a.recent["直近スコア"]))
+      .slice(0, 3);
+    if (!recentItems.length) return '<p class="empty-state">直近データなし</p>';
+    return `<ol class="rookie-form-list">${recentItems.map(({ row, season, recent }) => `
+      <li>
+        <span>${playerLink(row, type, season)} <small>${teamLink(row)}</small></span>
+        <strong>${D.formatValue(recent["直近スコア"], "スコア")}</strong>
+        <small>今季評価 ${D.formatValue(season[scoreKey], "スコア")}</small>
+      </li>
+    `).join("")}</ol>`;
+  }
+
+  function rookieOtherCandidates(league, topBatters, topPitchers) {
+    const topKeys = new Set([
+      ...topBatters.slice(0, 5).map((item) => D.playerKey(item.row)),
+      ...topPitchers.slice(0, 5).map((item) => D.playerKey(item.row)),
+    ]);
+    const rows = insight.rookies
+      .filter((row) => row["リーグ"] === league && !topKeys.has(D.playerKey(row)))
+      .sort((a, b) => a["チーム"].localeCompare(b["チーム"], "ja") || a["選手名"].localeCompare(b["選手名"], "ja"))
+      .map((row) => `
+        <tr>
+          <td>${teamLink(row)}</td>
+          <td>${playerLink(row, rowType(row))}</td>
+          <td>${rowType(row) === "pitcher" ? "投手" : "野手"}</td>
+          <td>${D.escapeHtml(row["ポジション"])}</td>
+        </tr>
+      `);
+    return `
+      <details class="rookie-candidate-details">
+        <summary>その他の新人王候補をすべて見る（${rows.length}人）</summary>
+        ${table(["球団", "選手", "区分", "登録"], rows, "その他の候補はいません")}
+      </details>
+    `;
+  }
+
+  function renderRookieLeague() {
+    const league = rookieState.league;
+    const leagueLabel = league === "セ" ? "セ・リーグ" : "パ・リーグ";
+    const batters = rookieItems("batter", league);
+    const pitchers = rookieItems("pitcher", league);
+    const update = latestRookieUpdate();
 
     mainEl.innerHTML = [
-      card("この記事の見どころ", `${lead}<p>新人王候補は出場機会の差が大きいため、今季評価と直近評価を並べて見ると、すでに成績を残している選手と最近上がってきた選手を分けて確認できます。</p>`),
-      card("候補野手ランキング", table(["順位", "選手", "球団", "登録", "今季評価", "直近評価", "打席"], batterRows)),
-      card("候補投手ランキング", table(["順位", "選手", "球団", "登録", "今季評価", "直近評価", "投球回"], pitcherRows)),
-      card("候補者一覧", table(["球団", "選手", "ポジション"], listRows)),
+      `<section class="content-card rookie-control-card">
+        <div>
+          <p class="eyebrow">League Select</p>
+          <h2>${leagueLabel} 新人王候補</h2>
+          ${update ? `<p class="rookie-update">データ更新：${D.escapeHtml(update)}</p>` : ""}
+        </div>
+        <div class="rookie-league-tabs" role="group" aria-label="リーグ切り替え">
+          <button type="button" data-rookie-league="セ" aria-pressed="${league === "セ"}">セ・リーグ</button>
+          <button type="button" data-rookie-league="パ" aria-pressed="${league === "パ"}">パ・リーグ</button>
+        </div>
+      </section>`,
+      `<section class="content-card rookie-ranking-card">
+        <h2>${leagueLabel} 野手ランキング</h2>
+        <p class="small-note">今季成績を中心に、Player Lens独自評価の上位5人を表示します。</p>
+        ${rookieBatterTable(batters)}
+      </section>`,
+      `<section class="content-card rookie-ranking-card">
+        <h2>${leagueLabel} 投手ランキング</h2>
+        <p class="small-note">先発・救援を同じ新人王候補として扱い、今季成績を並べて比較します。</p>
+        ${rookiePitcherTable(pitchers)}
+      </section>`,
+      `<section class="content-card rookie-form-card">
+        <h2>直近6試合で好調な新人</h2>
+        <p class="small-note">野手と投手は評価式が異なるため、それぞれの中で直近評価の高い3人を表示します。</p>
+        <div class="rookie-form-grid">
+          <div><h3>野手</h3>${rookieRecentPanel(batters, "batter")}</div>
+          <div><h3>投手</h3>${rookieRecentPanel(pitchers, "pitcher")}</div>
+        </div>
+      </section>`,
+      `<section class="content-card">
+        <h2>その他の新人王候補</h2>
+        <p class="small-note">上位5人以外の候補は折りたたんでいます。必要なときだけ一覧を開けます。</p>
+        ${rookieOtherCandidates(league, batters, pitchers)}
+      </section>`,
+      `<section class="content-card rookie-guide-card">
+        <h2>新人王候補ランキングの見方</h2>
+        <ul class="plain-list">
+          <li>新人王は各リーグ1名で、野手・投手別の表彰ではありません。</li>
+          <li>このページでは比較しやすいように野手と投手を分けています。</li>
+          <li>順位は公式投票の予想ではなく、Player Lensの今季成績をもとにした独自評価です。</li>
+          <li>「直近6試合」は各選手が出場した直近の試合データから状態を確認するための補助指標です。</li>
+        </ul>
+      </section>`,
     ].join("");
+
+    mainEl.querySelectorAll("[data-rookie-league]").forEach((button) => {
+      button.addEventListener("click", () => {
+        rookieState.league = button.dataset.rookieLeague;
+        renderRookieLeague();
+      });
+    });
+    D.enhanceCompactTables(mainEl);
+  }
+
+  function renderRookie() {
+    summary([
+      ["セ・野手1位", rookieTopName("batter", "セ")],
+      ["セ・投手1位", rookieTopName("pitcher", "セ")],
+      ["パ・野手1位", rookieTopName("batter", "パ")],
+      ["パ・投手1位", rookieTopName("pitcher", "パ")],
+    ]);
+    summaryEl.classList.add("rookie-summary-grid");
+    renderRookieLeague();
   }
 
   const recentFilter = { league: "all", team: "all" };

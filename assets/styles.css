@@ -3594,3 +3594,160 @@ tbody tr.is-selected {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Rookie Watch */
+.rookie-summary-grid .summary-card {
+  min-height: 92px;
+  border-top: 3px solid var(--accent);
+}
+
+.rookie-summary-grid .summary-card strong {
+  font-size: clamp(18px, 2.2vw, 24px);
+  line-height: 1.25;
+}
+
+.rookie-control-card {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.rookie-control-card h2,
+.rookie-form-card h2,
+.rookie-guide-card h2 {
+  margin-bottom: 0;
+}
+
+.rookie-update {
+  margin-top: 5px !important;
+  color: var(--muted) !important;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rookie-league-tabs {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.rookie-league-tabs button {
+  min-height: 42px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 8px 16px;
+  background: #fff;
+  color: var(--ink);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.rookie-league-tabs button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+
+.rookie-ranking-card,
+.rookie-form-card {
+  grid-column: 1 / -1;
+}
+
+.rookie-ranking-card,
+.rookie-form-card,
+.rookie-guide-card {
+  min-width: 0;
+}
+
+.rookie-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.rookie-form-grid > div {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.rookie-form-grid h3 {
+  margin: 0 0 10px;
+  color: #253244;
+  font-size: 16px;
+}
+
+.rookie-form-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 22px;
+}
+
+.rookie-form-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 10px;
+  color: var(--ink);
+}
+
+.rookie-form-list li > small:last-child {
+  grid-column: 1 / -1;
+  color: var(--muted);
+}
+
+.rookie-form-list small {
+  font-size: 11px;
+}
+
+.rookie-candidate-details {
+  margin-top: 14px;
+}
+
+.rookie-candidate-details summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: #fff;
+  color: var(--accent-dark);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.rookie-candidate-details[open] summary {
+  margin-bottom: 12px;
+}
+
+@media (max-width: 720px) {
+  .rookie-control-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rookie-league-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rookie-league-tabs button {
+    width: 100%;
+  }
+
+  .rookie-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rookie-summary-grid .summary-card {
+    min-height: 82px;
+  }
+}
