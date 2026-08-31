@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="2026年プロ野球12球団の野手・投手の月別成績と、Player Lens独自スコアによる月間ランキングを確認できます。">
+  <title>2026年プロ野球 月別成績・月間ランキング | Player Lens</title>
+  <link rel="canonical" href="https://player-lens-pages.pages.dev/monthly-stats">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="2026年プロ野球 月別成績・月間ランキング | Player Lens">
+  <meta property="og:description" content="月を選び、野手・投手の月別成績とPlayer Lens独自スコアによる月間ランキングを確認できます。">
+  <meta property="og:url" content="https://player-lens-pages.pages.dev/monthly-stats">
+  <meta property="og:image" content="https://player-lens-pages.pages.dev/assets/player-lens-ogp.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="2026年プロ野球 月別成績・月間ランキング | Player Lens">
+  <meta name="twitter:description" content="月を選び、野手・投手の月別成績とPlayer Lens独自スコアによる月間ランキングを確認できます。">
+  <meta name="twitter:image" content="https://player-lens-pages.pages.dev/assets/player-lens-ogp.png">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7687416670736373" crossorigin="anonymous"></script>
+  <link rel="icon" href="./assets/player-lens-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/styles.css?v=20260810-batter-streaks">
+  <link rel="stylesheet" href="./assets/monthly-stats.css?v=20260831-2">
+</head>
+<body>
+  <header class="page-header">
+    <a class="brand-mini" href="./"><img src="./assets/player-lens-icon.svg" alt="">Player Lens</a>
+    <h1>2026年プロ野球 月別成績・月間ランキング</h1>
+    <p>月を選んで、12球団の野手・投手がその月にどれくらい成績を残したかを確認できます。順位はPlayer Lensの年間ランキングと同じ独自計算方法で算出します。</p>
+  </header>
+
+  <nav class="site-nav" aria-label="サイト内メニュー">
+    <a href="./">ランキング</a>
+    <a href="./teams">チーム別</a>
+    <a href="./roster">登録状況</a>
+    <a href="./insights">注目データ</a>
+    <a href="./defense">守備</a>
+    <a href="./starter-battery">先発バッテリー</a>
+    <a href="./batter-streaks">野手試合状況</a>
+    <a href="./pitcher-usage">投手登板状況</a>
+    <a href="./monthly-stats" aria-current="page">月別成績</a>
+    <a href="./opponent-watch">対球団別</a>
+    <a href="./data-question">データに質問</a>
+    <a href="./articles">読み物</a>
+    <a href="./guide">見方</a>
+    <a href="./updates">更新履歴</a>
+    <a href="./resources">楽しみ方</a>
+    <a href="./about">このサイトについて</a>
+  </nav>
+
+  <main class="shell monthly-page-shell">
+    <section class="content-card monthly-page-intro">
+      <div>
+        <p class="eyebrow">Monthly Stats</p>
+        <h2>シーズン成績と直近成績の間を「月」で見る</h2>
+        <p>月ごとの打率・OPS・本塁打や、防御率・投球回・奪三振などを集計し、その月だけのPlayer Lens Scoreで順位を付けます。</p>
+        <p class="small-note">ランキング掲載条件は年間の「打者総合」「投手総合」と同じで、野手20打席以上・投手5投球回以上です。</p>
+      </div>
+      <div class="status is-ready" id="monthlyStatus">データ読込中</div>
+    </section>
+
+    <section class="summary-grid" id="monthlySummary" aria-label="月別成績の概要">
+      <article class="summary-card"><span>データ</span><strong>読込中</strong></article>
+    </section>
+
+    <section class="content-card monthly-filter-card" aria-label="月別成績の表示と絞り込み">
+      <div class="section-heading usage-filter-heading">
+        <div><p class="eyebrow">View &amp; Filter</p><h2>月・野手投手・球団を切り替える</h2></div>
+        <button class="secondary-button" id="monthlyReset" type="button">絞り込みをリセット</button>
+      </div>
+
+      <div class="rank-switch monthly-page-tabs" id="monthlyTypeTabs" role="tablist" aria-label="野手・投手切替">
+        <button type="button" data-type="batter" aria-pressed="true">野手</button>
+        <button type="button" data-type="pitcher" aria-pressed="false">投手</button>
+      </div>
+
+      <div class="monthly-month-tabs" id="monthlyMonthTabs" role="tablist" aria-label="月を選択"></div>
+
+      <div class="starter-filters usage-filters">
+        <label><span>リーグ</span><select id="monthlyLeague"><option value="all">全リーグ</option><option value="セ">セ・リーグ</option><option value="パ">パ・リーグ</option></select></label>
+        <label><span>球団</span><select id="monthlyTeam"><option value="all">全12球団</option></select></label>
+        <label class="starter-search-filter"><span>選手名</span><input id="monthlySearch" type="search" autocomplete="off" placeholder="例：坂本 勇人"></label>
+      </div>
+    </section>
+
+    <section class="content-card" id="monthlyRankingCard">
+      <div class="section-heading usage-result-heading">
+        <div><p class="eyebrow">Monthly Ranking</p><h2 id="monthlyResultTitle">月間ランキング</h2></div>
+        <p class="table-meta" id="monthlyResultCount">読込中</p>
+      </div>
+      <div class="compact-table-wrap usage-table-wrap">
+        <table class="compact-table usage-data-table monthly-ranking-table">
+          <thead id="monthlyTableHead"></thead>
+          <tbody id="monthlyTableBody"><tr><td>データ読込中</td></tr></tbody>
+        </table>
+      </div>
+      <p class="small-note monthly-ranking-note">順位は選択中の月・リーグ・球団の範囲でPlayer Lens Score順に表示します。選手名検索は順位を変えず、該当選手だけを表示します。</p>
+    </section>
+
+    <section class="content-card soft-callout">
+      <h2>月間ランキングについて</h2>
+      <p>年間ランキング用に使っているPlayer Lensの計算式を、選択した月の成績だけに適用しています。月別専用の別スコアではないため、年間ランキングと同じ考え方で比較できます。</p>
+      <p>選手名を押すと個人ページへ移動し、その選手だけの月別成績を確認できます。</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <a href="https://pro-baseball-watch-guide.com/" target="_blank" rel="noopener">プロ野球観戦メモ</a>
+    <a href="./">ランキング</a>
+    <a href="./batter-streaks">野手試合状況</a>
+    <a href="./pitcher-usage">投手登板状況</a>
+    <a href="./updates">更新履歴</a>
+    <a href="./privacy">プライバシーポリシー</a>
+    <a href="./disclaimer">免責事項</a>
+    <a href="./contact">お問い合わせ</a>
+  </footer>
+
+  <script src="./assets/site-data.js?v=20260810-batter-streaks"></script>
+  <script src="./assets/monthly-data.js?v=20260831-2"></script>
+  <script src="./assets/monthly-page.js?v=20260831-2"></script>
+</body>
+</html>

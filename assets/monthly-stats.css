@@ -6,8 +6,8 @@
   align-items: end;
 }
 
-.monthly-heading .small-note {
-  margin: 0;
+.monthly-player-note {
+  margin: 6px 0 0;
 }
 
 .monthly-month-tabs {
@@ -61,56 +61,45 @@
   margin: 0;
 }
 
-.monthly-rule {
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
-  text-align: right;
-}
-
 .monthly-metrics {
   margin-top: 0;
 }
 
-.monthly-ranks {
+.monthly-page-shell {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 10px;
+  gap: 16px;
 }
 
-.monthly-ranks > div {
+.monthly-page-intro {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
-  align-items: baseline;
-  padding: 9px 11px;
-  border: 1px solid #acd7d0;
-  border-radius: 8px;
-  background: var(--accent-soft);
+  gap: 18px;
+  align-items: start;
 }
 
-.monthly-ranks span {
-  color: var(--accent-dark);
-  font-size: 12px;
-  font-weight: 700;
+.monthly-page-intro p:last-child {
+  margin-bottom: 0;
 }
 
-.monthly-ranks strong {
-  font-size: 18px;
-}
-
-.monthly-ranking-wrap {
+.monthly-page-tabs {
   margin-top: 0;
 }
 
-.monthly-ranking-table {
-  min-width: 620px;
+.monthly-page-tabs button.is-active {
+  background: var(--accent);
+  color: #fff;
 }
 
-.monthly-ranking-table tr.is-current-player td {
-  background: var(--gold-soft);
-  font-weight: 700;
+.monthly-filter-card .monthly-month-tabs {
+  margin: 0 0 16px;
+}
+
+.monthly-filter-card .usage-filter-heading {
+  margin-bottom: 12px;
+}
+
+.monthly-ranking-table {
+  min-width: 920px;
 }
 
 .monthly-ranking-table td.score {
@@ -118,22 +107,15 @@
   font-weight: 800;
 }
 
-.monthly-player-empty {
-  margin: 8px 0 0;
+.monthly-ranking-note {
+  margin: 10px 0 0;
 }
 
 @media (max-width: 720px) {
   .monthly-heading,
-  .monthly-subheading {
+  .monthly-subheading,
+  .monthly-page-intro {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .monthly-rule {
-    text-align: left;
-  }
-
-  .monthly-ranks {
-    grid-template-columns: 1fr;
   }
 }
