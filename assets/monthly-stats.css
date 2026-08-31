@@ -1,0 +1,139 @@
+.monthly-player-section {
+  overflow: hidden;
+}
+
+.monthly-heading {
+  align-items: end;
+}
+
+.monthly-heading .small-note {
+  margin: 0;
+}
+
+.monthly-month-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 2px 0 6px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.monthly-month-tab {
+  flex: 0 0 auto;
+  min-width: 64px;
+  padding: 8px 13px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--paper);
+  color: #344256;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.monthly-month-tab:hover,
+.monthly-month-tab:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent-dark);
+}
+
+.monthly-month-tab.is-active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.monthly-block {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.monthly-subheading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.monthly-subheading h3 {
+  margin: 0;
+}
+
+.monthly-rule {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.monthly-metrics {
+  margin-top: 0;
+}
+
+.monthly-ranks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.monthly-ranks > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+  padding: 9px 11px;
+  border: 1px solid #acd7d0;
+  border-radius: 8px;
+  background: var(--accent-soft);
+}
+
+.monthly-ranks span {
+  color: var(--accent-dark);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.monthly-ranks strong {
+  font-size: 18px;
+}
+
+.monthly-ranking-wrap {
+  margin-top: 0;
+}
+
+.monthly-ranking-table {
+  min-width: 620px;
+}
+
+.monthly-ranking-table tr.is-current-player td {
+  background: var(--gold-soft);
+  font-weight: 700;
+}
+
+.monthly-ranking-table td.score {
+  color: var(--accent-dark);
+  font-weight: 800;
+}
+
+.monthly-player-empty {
+  margin: 8px 0 0;
+}
+
+@media (max-width: 720px) {
+  .monthly-heading,
+  .monthly-subheading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .monthly-rule {
+    text-align: left;
+  }
+
+  .monthly-ranks {
+    grid-template-columns: 1fr;
+  }
+}
