@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="予告先発と2026年の個人成績・直近6試合成績を見ながら、自分だけの1～9番と守備位置を組み、スタメン画像として保存できます。">
+  <title>今日のスタメンを考える | Player Lens</title>
+  <link rel="canonical" href="https://pro-baseball-watch-guide.com/player-lens/starting-lineup">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="今日のスタメンを考える | Player Lens">
+  <meta property="og:description" content="予告先発と個人成績・直近6試合成績を見ながら、自分だけのスタメンを組み、画像として保存できます。">
+  <meta property="og:url" content="https://pro-baseball-watch-guide.com/player-lens/starting-lineup">
+  <meta property="og:image" content="https://pro-baseball-watch-guide.com/player-lens/assets/player-lens-ogp.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="./assets/player-lens-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/styles.css?v=20260902-starting-lineup">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"今日のスタメンを考える","url":"https://pro-baseball-watch-guide.com/player-lens/starting-lineup","description":"予告先発と個人成績・直近6試合成績を見ながらスタメンを作成し、画像として保存できるPlayer Lensのツールです。","applicationCategory":"SportsApplication","operatingSystem":"Web browser","isPartOf":{"@type":"WebSite","name":"Player Lens","url":"https://pro-baseball-watch-guide.com/player-lens/"}}</script>
+</head>
+<body>
+  <header class="page-header">
+    <a class="brand-mini" href="./"><img src="./assets/player-lens-icon.svg" alt="">Player Lens</a>
+    <h1>今日のスタメンを考える</h1>
+    <p>予告先発と選手の今季成績・出場した直近6試合を見ながら、自分ならどう組むか考えられます。</p>
+  </header>
+
+  <nav class="site-nav" aria-label="サイト内メニュー">
+    <a href="./">ランキング</a>
+    <a href="./teams">球団別</a>
+    <a href="./standings">順位・残り試合</a>
+    <a href="./roster">登録状況</a>
+    <a href="./starting-lineup" aria-current="page">スタメン作成</a>
+    <a href="./insights">注目データ</a>
+    <a href="./defense">守備</a>
+    <a href="./starter-battery">先発バッテリー</a>
+    <a href="./recent-form">直近6試合</a>
+    <a href="./pitcher-usage">投手登板状況</a>
+    <a href="./data-question">データに質問</a>
+    <a href="./updates">更新履歴</a>
+  </nav>
+
+  <main class="shell lineup-tool-shell">
+    <section class="intro-band lineup-intro">
+      <div>
+        <h2>データを見ながら、自分で打線を組む</h2>
+        <p>相手投手との直接対戦成績は使用せず、今季の個人成績と最近の状態を判断材料として表示します。完成したスタメンは正方形のPNG画像で保存できます。</p>
+      </div>
+      <span class="lineup-data-status" id="lineupDataStatus" role="status">データ読込中</span>
+    </section>
+
+    <section class="content-card lineup-game-controls" aria-labelledby="lineup-game-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">Game Select</p><h2 id="lineup-game-title">試合を選ぶ</h2></div>
+      </div>
+      <div class="starter-filters lineup-game-filters">
+        <label><span>試合日</span><select id="lineupDate" aria-label="試合日"></select></label>
+        <label><span>自チーム</span><select id="lineupTeam" aria-label="自チーム"></select></label>
+        <label><span>対戦相手</span><input id="lineupOpponent" type="text" readonly aria-label="対戦相手"></label>
+        <fieldset class="lineup-dh-fieldset">
+          <legend>DH</legend>
+          <div class="lineup-segmented" id="lineupDhButtons">
+            <button type="button" data-dh="false" aria-pressed="true">使用しない</button>
+            <button type="button" data-dh="true" aria-pressed="false">使用する</button>
+          </div>
+        </fieldset>
+      </div>
+      <p class="small-note" id="lineupDhNote">DHは試合に合わせて切り替えてください。</p>
+    </section>
+
+    <section class="lineup-matchup" aria-live="polite">
+      <div class="lineup-matchup-team">
+        <span>自チーム予告先発</span>
+        <strong id="lineupOwnPitcher">－</strong>
+      </div>
+      <div class="lineup-matchup-center">
+        <strong id="lineupMatchupTeams">－ vs －</strong>
+        <span id="lineupVenue">－</span>
+      </div>
+      <div class="lineup-matchup-team is-opponent">
+        <span>相手予告先発</span>
+        <strong id="lineupOpponentPitcher">－</strong>
+      </div>
+    </section>
+
+    <div class="lineup-workspace">
+      <section class="content-card lineup-builder-card" aria-labelledby="lineup-builder-title">
+        <div class="section-heading lineup-builder-heading">
+          <div><p class="eyebrow">My Lineup</p><h2 id="lineup-builder-title">1～9番を決める</h2></div>
+          <button class="secondary-button" id="lineupReset" type="button">リセット</button>
+        </div>
+        <div class="lineup-list" id="lineupList"></div>
+        <div class="lineup-starter-slot" id="lineupStarterSlot" hidden>
+          <span>先発投手</span>
+          <strong id="lineupDhPitcher">－</strong>
+          <small>DH使用時は打順外の投手枠です</small>
+        </div>
+        <p class="lineup-validation" id="lineupValidation" role="status"></p>
+        <div class="lineup-export-actions">
+          <button class="lineup-save-button" id="lineupSaveImage" type="button">スタメン画像を保存</button>
+          <p class="small-note">9人と重複のない守備位置を設定すると保存できます。</p>
+        </div>
+      </section>
+
+      <section class="content-card lineup-candidates-card" aria-labelledby="lineup-candidates-title">
+        <div class="section-heading">
+          <div><p class="eyebrow">Player Data</p><h2 id="lineup-candidates-title">選手を選ぶ</h2></div>
+          <span class="table-meta" id="lineupCandidateCount"></span>
+        </div>
+        <div class="lineup-candidate-filters">
+          <label><span>表示</span><select id="lineupScope"><option value="active">一軍登録中</option><option value="all">球団の全選手</option></select></label>
+          <label><span>並び順</span><select id="lineupSort"><option value="recent">直近6試合の打率</option><option value="season">今季打率</option><option value="ops">今季OPS</option><option value="name">選手名</option></select></label>
+          <label class="lineup-search"><span>選手名</span><input id="lineupSearch" type="search" autocomplete="off" placeholder="選手名で絞り込み"></label>
+        </div>
+        <p class="small-note">「次の空き枠へ」で打順に追加できます。打順内の選手欄から直接選ぶこともできます。</p>
+        <div class="lineup-candidate-list" id="lineupCandidateList"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <a href="https://pro-baseball-watch-guide.com/" target="_blank" rel="noopener">プロ野球観戦メモ</a>
+    <a href="./">ランキング</a>
+    <a href="./recent-form">直近6試合</a>
+    <a href="./roster">登録状況</a>
+    <a href="./updates">更新履歴</a>
+    <a href="./privacy">プライバシーポリシー</a>
+    <a href="./disclaimer">免責事項</a>
+  </footer>
+  <script src="./assets/site-data.js?v=20260902-starting-lineup"></script>
+  <script src="./assets/starting-lineup.js?v=20260902-starting-lineup" defer></script>
+</body>
+</html>

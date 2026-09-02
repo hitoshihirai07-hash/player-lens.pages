@@ -1189,6 +1189,16 @@
       }
     }
 
+    if (nav && !Array.from(nav.querySelectorAll("a")).some((link) => /\/starting-lineup(?:$|[?#])/.test(link.href))) {
+      const rosterLink = Array.from(nav.querySelectorAll("a")).find((link) => /\/roster(?:$|[?#])/.test(link.href));
+      if (rosterLink) {
+        const link = document.createElement("a");
+        link.href = dataPath("./starting-lineup");
+        link.textContent = "スタメン作成";
+        rosterLink.insertAdjacentElement("afterend", link);
+      }
+    }
+
     const team = String(document.body?.dataset?.team || "").trim();
     const quickLinks = document.querySelector(".team-overview .resource-grid.compact-links");
     if (team && quickLinks && !quickLinks.querySelector('[data-standings-link]')) {
