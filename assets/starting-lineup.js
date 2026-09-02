@@ -278,9 +278,12 @@
     if (row) row.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
-  function playerOptions(current) {
+  function playerOptions(current, position) {
     var chosen = new Set(selectedNames().filter(function (name) { return name !== current; }));
-    var players = teamPlayers().sort(function (a, b) {
+    var pitcherSlot = position === "投";
+    var players = teamPlayers().filter(function (player) {
+      return pitcherSlot ? player["ポジション"] === "投手" : player["ポジション"] !== "投手";
+    }).sort(function (a, b) {
       return Number(isActive(b)) - Number(isActive(a)) || a["選手名"].localeCompare(b["選手名"], "ja");
     });
     return "<option value=\"\">選手を選択</option>" + players.map(function (player) {
@@ -343,7 +346,7 @@
       return "<article class=\"lineup-row" + errorClass + "\" data-lineup-index=\"" + index + "\">" +
         "<div class=\"lineup-order\"><strong>" + (index + 1) + "</strong><span>番</span></div>" +
         "<label class=\"lineup-player-select\"><span>選手</span><select data-lineup-player=\"" + index + "\">" +
-        playerOptions(slot.player) + "</select></label>" +
+        playerOptions(slot.player, slot.position) + "</select></label>" +
         "<label class=\"lineup-position-select\"><span>守備</span><select data-lineup-position=\"" + index + "\">" +
         positionOptions(slot.position) + "</select></label>" +
         "<div class=\"lineup-row-metrics\">" + slotMetrics(slot.player) + "</div></article>";
@@ -360,6 +363,13 @@
       select.addEventListener("change", function () {
         var index = Number(select.dataset.lineupPosition);
         state.lineup[index].position = select.value;
+        var selectedPlayer = teamPlayers().find(function (player) {
+          return player["選手名"] === state.lineup[index].player;
+        });
+        if (selectedPlayer) {
+          var pitcherSelected = selectedPlayer["ポジション"] === "投手";
+          if ((select.value === "投") !== pitcherSelected) state.lineup[index].player = "";
+        }
         renderAll();
       });
     });
@@ -677,9 +687,21 @@
       }).filter(function (row) {
         return row.team && row.opponent && row.date;
       });
-      state.season = seasonData.batters;
-      state.recent = insightData.recentBatters;
-      state.starterPositions = insightData.starterPositions;
+      state.season = seasonData.batters.map(function (row) {
+        return Object.assign({}, row, {
+          "チーム": D.shortTeam(row["チーム"] || row["球団"] || row["球団名"])
+        });
+      });
+      state.recent = insightData.recentBatters.map(function (row) {
+        return Object.assign({}, row, {
+          "チーム": D.shortTeam(row["チーム"] || row["球団"] || row["球団名"])
+        });
+      });
+      state.starterPositions = insightData.starterPositions.map(function (row) {
+        return Object.assign({}, row, {
+          "チーム": D.shortTeam(row["チーム"] || row["球団"] || row["球団名"])
+        });
+      });
       registrationRows.forEach(function (row) {
         var team = D.shortTeam(row["球団名"]);
         var name = normalizeName(row["選手名"] || row["投手"]);
