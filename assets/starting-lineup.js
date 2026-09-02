@@ -623,8 +623,8 @@
     ctx.fillText("Player Lens", 48, 1154);
     ctx.textAlign = "right";
     ctx.fillStyle = "#657385";
-    ctx.font = "600 16px \"Yu Gothic\", \"Meiryo\", sans-serif";
-    ctx.fillText("※相手投手との直接対戦成績は使用していません", 1152, 1154);
+    ctx.font = "600 15px \"Yu Gothic\", \"Meiryo\", sans-serif";
+    ctx.fillText("https://pro-baseball-watch-guide.com/player-lens/starting-lineup", 1152, 1154);
 
     var link = document.createElement("a");
     link.download = "スタメン_" + game.team + "_" + game.date.replace(/-/g, "") + ".png";
