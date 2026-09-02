@@ -47,6 +47,8 @@
     preview: [],
     season: [],
     recent: [],
+    seasonPitchers: [],
+    recentPitchers: [],
     starterPositions: [],
     activeKeys: new Set(),
     date: "",
@@ -200,9 +202,38 @@
     return String(Math.trunc(Number(value)));
   }
 
+  function decimal(value, digits) {
+    if (value === "" || value == null || !Number.isFinite(Number(value))) return "---";
+    return Number(value).toFixed(digits);
+  }
+
+  function pitcherSummary(label, row) {
+    if (!row) return label + "　成績データなし";
+    var wins = row["勝利"] !== undefined ? row["勝利"] : row["勝"];
+    var losses = row["敗戦"] !== undefined ? row["敗戦"] : row["敗"];
+    var innings = String(row["投球回"] || "－").trim();
+    return label + "　防御率 " + decimal(row["防御率"], 2) + " / " +
+      integer(wins) + "勝" + integer(losses) + "敗 / " + innings + "回";
+  }
+
   function recentFor(player) {
     if (!player) return null;
     return recentMap().get(playerKey(player["選手名"], player["チーム"])) || null;
+  }
+
+  function pitcherFor(rows, name, team) {
+    var key = playerKey(name, team);
+    return rows.find(function (row) {
+      return playerKey(row["選手名"], row["チーム"]) === key;
+    }) || null;
+  }
+
+  function predictedPitcherStats() {
+    var name = predictedPitcher();
+    return {
+      season: pitcherFor(state.seasonPitchers, name, state.team),
+      recent: pitcherFor(state.recentPitchers, name, state.team)
+    };
   }
 
   function selectedNames() {
@@ -550,6 +581,7 @@
     var game = currentGame();
     var other = opponentGame();
     var players = teamPlayers();
+    var pitcherStats = predictedPitcherStats();
     var canvas = document.createElement("canvas");
     canvas.width = 1200;
     canvas.height = 1200;
@@ -609,13 +641,15 @@
     ctx.textAlign = "left";
     ctx.fillStyle = "#0b5f59";
     ctx.font = "800 19px \"Yu Gothic\", \"Meiryo\", sans-serif";
-    ctx.fillText(state.dh ? "DH使用・先発投手" : "予告先発", 642, 950);
+    ctx.fillText(state.dh ? "DH使用・先発投手" : "予告先発", 642, 946);
     ctx.fillStyle = "#16202e";
-    ctx.font = "800 31px \"Yu Gothic\", \"Meiryo\", sans-serif";
-    ctx.fillText(predictedPitcher() || "未定", 642, 996);
+    ctx.font = "800 29px \"Yu Gothic\", \"Meiryo\", sans-serif";
+    ctx.fillText(predictedPitcher() || "未定", 642, 986);
     ctx.fillStyle = "#657385";
-    ctx.font = "600 17px \"Yu Gothic\", \"Meiryo\", sans-serif";
-    ctx.fillText("今季成績・出場した直近6試合を表示", 642, 1028);
+    ctx.font = "600 16px \"Yu Gothic\", \"Meiryo\", sans-serif";
+    ctx.fillText(pitcherSummary("今季", pitcherStats.season), 642, 1018);
+    ctx.fillStyle = "#0b5f59";
+    ctx.fillText(pitcherSummary("直近6登板", pitcherStats.recent), 642, 1042);
 
     ctx.textAlign = "left";
     ctx.fillStyle = "#344256";
@@ -693,6 +727,16 @@
         });
       });
       state.recent = insightData.recentBatters.map(function (row) {
+        return Object.assign({}, row, {
+          "チーム": D.shortTeam(row["チーム"] || row["球団"] || row["球団名"])
+        });
+      });
+      state.seasonPitchers = seasonData.pitchers.map(function (row) {
+        return Object.assign({}, row, {
+          "チーム": D.shortTeam(row["チーム"] || row["球団"] || row["球団名"])
+        });
+      });
+      state.recentPitchers = insightData.recentPitchers.map(function (row) {
         return Object.assign({}, row, {
           "チーム": D.shortTeam(row["チーム"] || row["球団"] || row["球団名"])
         });
