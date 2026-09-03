@@ -229,7 +229,6 @@
         投球回: inningsFromOuts(item.outs),
         投球回_計算用: round3(ip),
         防御率: round3(era),
-        WHIP: "",
         被安打: Math.trunc(item.被安打),
         与四球: Math.trunc(item.与四球),
         与死球: Math.trunc(item.与死球),
