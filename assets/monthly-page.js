@@ -122,7 +122,7 @@
       head.innerHTML = "<tr><th>順位</th><th>投手</th><th>球団</th><th>Score</th><th>登板</th><th>先発</th><th>投球回</th><th>防御率</th><th>WHIP</th><th>勝敗</th><th>奪三振</th><th>セーブ / HP</th></tr>";
       body.innerHTML = visible.length ? visible.map((row) => {
         const rank = ranked.indexOf(row) + 1;
-        return `<tr><td>${rank}</td><td><a href="${esc(playerUrl(row))}">${esc(row.選手名)}</a></td><td>${esc(row.チーム)}</td><td class="score">${esc(row[rule.scoreKey].toFixed(1))}</td><td>${esc(row.登板)}</td><td>${esc(row.先発)}</td><td>${esc(row.投球回)}</td><td>${esc(dec2(row.防御率))}</td><td>${esc(Number(row.WHIP).toFixed(3))}</td><td>${esc(`${row.勝利}勝${row.敗戦}敗`)}</td><td>${esc(row.奪三振)}</td><td>${esc(`${row.セーブ} / ${row.ＨＰ}`)}</td></tr>`;
+        return `<tr><td>${rank}</td><td><a href="${esc(playerUrl(row))}">${esc(row.選手名)}</a></td><td>${esc(row.チーム)}</td><td class="score">${esc(row[rule.scoreKey].toFixed(1))}</td><td>${esc(row.登板)}</td><td>${esc(row.先発)}</td><td>${esc(row.投球回)}</td><td>${esc(dec2(row.防御率))}</td><td></td><td>${esc(`${row.勝利}勝${row.敗戦}敗`)}</td><td>${esc(row.奪三振)}</td><td>${esc(`${row.セーブ} / ${row.ＨＰ}`)}</td></tr>`;
       }).join("") : '<tr><td colspan="12" class="empty-state">条件に合う投手はいません。</td></tr>';
     } else {
       head.innerHTML = "<tr><th>順位</th><th>選手</th><th>球団</th><th>Score</th><th>試合</th><th>打席</th><th>打率</th><th>OPS</th><th>安打</th><th>本塁打</th><th>打点</th><th>盗塁</th></tr>";

@@ -216,7 +216,6 @@
     return [...map.values()].map((item) => {
       const ip = item.outs / 3;
       const era = item.outs > 0 ? item.自責点 * 27 / item.outs : 9.99;
-      const whip = item.outs > 0 && ip > 0 ? (item.被安打 + item.与四球) / ip : 0;
       const winPct = item.勝利 + item.敗戦 > 0 ? item.勝利 / (item.勝利 + item.敗戦) : 0;
       const normalized = {
         month: item.month,
@@ -230,7 +229,7 @@
         投球回: inningsFromOuts(item.outs),
         投球回_計算用: round3(ip),
         防御率: round3(era),
-        WHIP: round3(whip),
+        WHIP: "",
         被安打: Math.trunc(item.被安打),
         与四球: Math.trunc(item.与四球),
         与死球: Math.trunc(item.与死球),
