@@ -20,6 +20,7 @@
     { label: "対球団別野手成績", path: "./data/team_stats_batter.csv" },
     { label: "対球団別投手成績", path: "./data/team_stats_pitcher.csv" },
     { label: "順位・残り試合", path: "./data/npb_standings.csv" },
+    { label: "ペナントレース", path: "./data/pennant_race_status.csv", dateField: "更新基準日" },
   ];
   const SITE_CHECK_PAGES = [
     ["トップ", "./index.html", "https://player-lens-pages.pages.dev/"],
@@ -30,6 +31,7 @@
     ["交流戦", "./interleague.html", "https://player-lens-pages.pages.dev/interleague"],
     ["対球団別相性", "./opponent-watch.html", "https://player-lens-pages.pages.dev/opponent-watch"],
     ["順位・残り試合", "./standings.html", "https://player-lens-pages.pages.dev/standings"],
+    ["ペナントレース", "./pennant-race.html", "https://player-lens-pages.pages.dev/pennant-race"],
     ["読み物", "./articles.html", "https://player-lens-pages.pages.dev/articles"],
     ["見方", "./guide.html", "https://player-lens-pages.pages.dev/guide"],
     ["基礎知識", "./stats-basics.html", "https://player-lens-pages.pages.dev/stats-basics"],

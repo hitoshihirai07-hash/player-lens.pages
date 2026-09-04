@@ -1,6 +1,7 @@
 (async function () {
   const files = [
     { label: "順位・残り試合", path: "./data/npb_standings.csv" },
+    { label: "ペナントレース", path: "./data/pennant_race_status.csv", dateField: "更新基準日" },
     { label: "打者成績", path: "./data/2026stats_batter.csv" },
     { label: "投手成績", path: "./data/2026stats_pitcher.csv" },
     { label: "選手マスター", path: "./data/current_player_master.csv" },

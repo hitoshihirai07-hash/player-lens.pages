@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="2026年プロ野球のセ・パ両リーグの優勝マジック、マジック対象球団、最短優勝日、CS進出までの状況を一覧で確認できます。残り試合と振替日未発表にも対応します。">
+  <title>プロ野球 優勝マジック・CS進出状況・最短優勝日【2026】 | Player Lens</title>
+  <link rel="canonical" href="https://pro-baseball-watch-guide.com/player-lens/pennant-race">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="プロ野球 優勝マジック・CS進出状況・最短優勝日【2026】 | Player Lens">
+  <meta property="og:description" content="2026年プロ野球の優勝マジック、最短優勝日、CS進出の自力確定までの状況をセ・パ別に確認できます。">
+  <meta property="og:url" content="https://pro-baseball-watch-guide.com/player-lens/pennant-race">
+  <meta property="og:image" content="https://pro-baseball-watch-guide.com/player-lens/assets/player-lens-ogp.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="プロ野球 優勝マジック・CS進出状況・最短優勝日【2026】 | Player Lens">
+  <meta name="twitter:description" content="優勝マジック、最短優勝日、CS進出状況をセ・パ別に毎日確認できます。">
+  <meta name="twitter:image" content="https://pro-baseball-watch-guide.com/player-lens/assets/player-lens-ogp.png">
+  <link rel="icon" href="./assets/player-lens-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/styles.css?v=20260904-pennant-race">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"2026年プロ野球 ペナントレース状況","url":"https://pro-baseball-watch-guide.com/player-lens/pennant-race","description":"2026年プロ野球の優勝マジック、最短優勝日、CS進出状況を整理したデータページです。","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"Player Lens","url":"https://pro-baseball-watch-guide.com/player-lens/"}}</script>
+</head>
+<body>
+  <header class="page-header">
+    <a class="brand-mini" href="./"><img src="./assets/player-lens-icon.svg" alt="">Player Lens</a>
+    <h1>2026年 プロ野球 ペナントレース状況</h1>
+    <p>優勝マジック、最短優勝日、CS進出の自力確定までを、セ・パ両リーグでまとめて確認できます。</p>
+  </header>
+
+  <nav class="site-nav" aria-label="サイト内メニュー">
+    <a href="./">ランキング</a>
+    <a href="./teams">球団別</a>
+    <a href="./standings">順位・残り試合</a>
+    <a href="./pennant-race" aria-current="page">ペナントレース</a>
+    <a href="./roster">登録状況</a>
+    <a href="./starting-lineup">スタメン作成</a>
+    <a href="./insights">注目データ</a>
+    <a href="./monthly-stats">月別成績</a>
+    <a href="./opponent-watch">対球団別</a>
+    <a href="./data-question">データに質問</a>
+    <a href="./updates">更新履歴</a>
+  </nav>
+
+  <main class="shell pennant-shell">
+    <section class="intro-band pennant-intro">
+      <div>
+        <h2>終盤戦の「あとどれくらい」を一画面で</h2>
+        <p>首位の優勝マジックと最短優勝日に加え、各球団が他球団の結果に頼らずCS進出を確定できる最短の勝利数を表示します。</p>
+      </div>
+      <div class="pennant-updated" id="pennantUpdated" role="status">データ確認中</div>
+    </section>
+
+    <div class="pennant-league-tabs" role="tablist" aria-label="リーグを選択">
+      <button type="button" role="tab" id="pennantTabCentral" data-league="セリーグ" aria-selected="true" aria-controls="pennantLeaguePanel">セ・リーグ</button>
+      <button type="button" role="tab" id="pennantTabPacific" data-league="パリーグ" aria-selected="false" aria-controls="pennantLeaguePanel">パ・リーグ</button>
+    </div>
+
+    <section id="pennantLeaguePanel" class="pennant-league-panel" role="tabpanel" aria-live="polite">
+      <article class="pennant-magic-card" id="pennantMagicCard">
+        <p class="pennant-loading">ペナントレースデータを読み込んでいます。</p>
+      </article>
+
+      <article class="content-card pennant-cs-card" aria-labelledby="pennantCsTitle">
+        <div class="section-heading pennant-section-heading">
+          <div><h2 id="pennantCsTitle">CS進出争い</h2><p id="pennantCsLead">自力確定までの最短状況</p></div>
+        </div>
+        <div class="pennant-cs-list" id="pennantCsList"></div>
+      </article>
+
+      <aside class="pennant-warning" id="pennantScheduleWarning" hidden></aside>
+    </section>
+
+    <details class="content-card pennant-method">
+      <summary>このページの数字について</summary>
+      <div class="pennant-method-body">
+        <p>優勝マジックとCS進出状況は、現在の勝敗、残り試合、残り直接対決をもとに計算しています。</p>
+        <p>「CS進出 自力確定まで最短あと○勝」は、その球団がここから連勝した場合に、他球団の結果に頼らず3位以内を確定できる最短の勝利数です。</p>
+        <p>勝率が同率になる場合は順位決定条件によるため、安全側で未確定として扱います。振替日が未発表の試合がある球団は、最短確定日を日程発表まで保留します。</p>
+      </div>
+    </details>
+
+    <section class="content-card soft-callout">
+      <div class="section-heading"><div><h2>順位と残りカードも確認する</h2></div></div>
+      <p>ゲーム差や対球団別の残り試合、今季対戦成績まで確認したい場合は順位・残り試合ページから見られます。</p>
+      <div class="resource-grid compact-links">
+        <a href="./standings">順位・残り試合を見る</a>
+        <a href="./monthly-stats">月別成績を見る</a>
+        <a href="./starting-lineup">スタメンを考える</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <a href="https://pro-baseball-watch-guide.com/" target="_blank" rel="noopener">プロ野球観戦メモ</a>
+    <a href="./">ランキング</a>
+    <a href="./teams">球団別</a>
+    <a href="./standings">順位・残り試合</a>
+    <a href="./pennant-race">ペナントレース</a>
+    <a href="./updates">更新履歴</a>
+    <a href="./privacy">プライバシーポリシー</a>
+    <a href="./disclaimer">免責事項</a>
+    <a href="./contact">お問い合わせ</a>
+  </footer>
+
+  <script src="./assets/site-data.js?v=20260904-pennant-race"></script>
+  <script src="./assets/pennant-race.js?v=20260904-1"></script>
+</body>
+</html>

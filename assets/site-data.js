@@ -22,6 +22,7 @@
     pitcherDaily: "./data/pitcher_daily_results.csv",
     batterGames: "./data/batter_game_result.csv",
     standings: "./data/npb_standings.csv",
+    pennantRace: "./data/pennant_race_status.csv",
   };
 
   const TEAM_TO_FULL = {
@@ -906,6 +907,13 @@
       .filter((row) => row["球団"] && row["リーグ"]);
   }
 
+  async function loadPennantRaceData() {
+    const rows = await loadCsv(dataPath(DATA_FILES.pennantRace));
+    return rows
+      .map((row) => ({ ...row, 球団: shortTeam(row["球団"] || "") }))
+      .filter((row) => row["球団"] && row["リーグ"]);
+  }
+
   async function loadData() {
     const [battersRaw, pitchersRaw, masterRaw, batterSplitsRaw, pitcherSplitsRaw] = await Promise.all([
       loadCsv(dataPath(DATA_FILES.batters)),
@@ -1189,6 +1197,16 @@
       }
     }
 
+    if (nav && !Array.from(nav.querySelectorAll("a")).some((link) => /\/pennant-race(?:$|[?#])/.test(link.href))) {
+      const standingsLink = Array.from(nav.querySelectorAll("a")).find((link) => /\/standings(?:$|[?#])/.test(link.href));
+      if (standingsLink) {
+        const link = document.createElement("a");
+        link.href = dataPath("./pennant-race");
+        link.textContent = "ペナントレース";
+        standingsLink.insertAdjacentElement("afterend", link);
+      }
+    }
+
     if (nav && !Array.from(nav.querySelectorAll("a")).some((link) => /\/starting-lineup(?:$|[?#])/.test(link.href))) {
       const rosterLink = Array.from(nav.querySelectorAll("a")).find((link) => /\/roster(?:$|[?#])/.test(link.href));
       if (rosterLink) {
@@ -1244,6 +1262,7 @@
     loadRosterData,
     loadStarterBatteryData,
     loadStandingsData,
+    loadPennantRaceData,
     playerKey,
     playerUrl,
     rankRows,
