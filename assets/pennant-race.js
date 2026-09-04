@@ -147,7 +147,7 @@
     warning.hidden = false;
     warning.innerHTML = `
       <strong>⚠ 振替日未発表の試合があります</strong>
-      <p>${esc(detail)}。該当球団のCS自力最短確定日は、日程発表後に自動で再計算します。</p>`;
+      <p>${esc(detail)}。該当球団のCS自力最短確定日は、振替日程がデータに反映された後に再計算されます。</p>`;
   }
 
   function render(league) {
@@ -183,7 +183,7 @@
     if (!rows.length) throw new Error("ペナントレースデータが空です");
 
     const latest = rows.map((row) => String(row["更新基準日"] || "")).filter(Boolean).sort().at(-1) || "";
-    updated.innerHTML = `<strong>${esc(formatBasisDate(latest))}</strong><span>毎日深夜更新</span>`;
+    updated.innerHTML = `<strong>${esc(formatBasisDate(latest))}</strong>`;
 
     bindTabs();
     render(selectedLeague);
