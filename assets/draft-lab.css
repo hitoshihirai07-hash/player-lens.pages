@@ -220,3 +220,46 @@
   .fit-table-scroll { max-height: 48vh; }
   .draft-disclaimer { font-size: 11px; }
 }
+
+
+/* Stage 5: Draft LIVE */
+.live-panel { display: grid; gap: 14px; min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); box-shadow: var(--shadow); }
+.live-heading { display: flex; justify-content: space-between; gap: 24px; align-items: end; }
+.live-heading p { max-width: 860px; margin: 7px 0 0; color: #344256; font-size: 13px; }
+.live-team-select { display: grid; gap: 5px; min-width: 190px; color: var(--muted); font-size: 12px; font-weight: 700; }
+.live-team-select select { width: 100%; }
+.live-summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
+.live-summary-grid article { display: grid; gap: 2px; padding: 11px 13px; border: 1px solid var(--line); border-radius: 8px; background: #f8fafc; }
+.live-summary-grid span, .live-summary-grid small { color: var(--muted); font-size: 11px; font-weight: 700; }
+.live-summary-grid strong { font-size: 22px; line-height: 1.25; }
+.live-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(360px, .72fr); gap: 12px; min-height: 500px; }
+.live-remaining-panel, .live-picks-panel { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.live-table-scroll, .live-picks-scroll { max-height: 56vh; overflow: auto; }
+.live-table, .live-picks-table { width: 100%; border-collapse: collapse; }
+.live-table { min-width: 760px; }
+.live-picks-table { min-width: 470px; }
+.live-table th, .live-table td, .live-picks-table th, .live-picks-table td { padding: 9px 9px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; white-space: nowrap; font-size: 12px; }
+.live-table th, .live-picks-table th { position: sticky; top: 0; z-index: 2; background: #f7f9fb; color: #445166; font-size: 11px; }
+.live-table tbody tr:hover, .live-picks-table tbody tr:hover { background: var(--draft-soft); }
+.live-note { margin: 0; }
+
+@media (max-width: 960px) {
+  .live-grid { grid-template-columns: 1fr; min-height: 0; }
+  .live-picks-scroll { max-height: 36vh; }
+}
+
+@media (max-width: 820px) {
+  .live-heading { display: grid; align-items: start; }
+  .live-team-select { min-width: 0; width: min(100%, 320px); }
+  .live-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 560px) {
+  .live-panel { padding: 11px; }
+  .live-summary-grid { gap: 7px; }
+  .live-summary-grid article { padding: 9px; }
+  .live-summary-grid strong { font-size: 19px; }
+  .live-summary-grid small { display: none; }
+  .live-table-scroll { max-height: 58vh; }
+  .live-picks-scroll { max-height: 40vh; }
+}

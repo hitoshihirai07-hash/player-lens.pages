@@ -3,6 +3,7 @@
 
   const CANDIDATE_DATA_URL = './data/draft_candidates_2026.csv';
   const ROSTER_DATA_URL = './data/current_player_master.csv';
+  const RESULTS_DATA_URL = './data/draft_results_2026.csv';
   const DRAFT_YEAR = 2026;
   const DRAFT_MONTH = 10;
   const DRAFT_DAY = 22;
@@ -34,12 +35,15 @@
     players: [],
     roster: [],
     teamAnalyses: [],
+    results: [],
     mode: 'board',
     selectedId: null,
     selectedTeam: '読売ジャイアンツ',
     selectedFitTeam: '読売ジャイアンツ',
     selectedFitId: null,
+    selectedLiveTeam: '読売ジャイアンツ',
     rosterReady: false,
+    resultsReady: false,
   };
 
   const els = {
@@ -80,6 +84,16 @@
     fitTeamRankingBody: document.getElementById('fitTeamRankingBody'),
     fitCandidateRankingBody: document.getElementById('fitCandidateRankingBody'),
     fitTeamCandidateTitle: document.getElementById('fitTeamCandidateTitle'),
+    livePanel: document.getElementById('livePanel'),
+    liveTeamSelect: document.getElementById('liveTeamSelect'),
+    livePickedCount: document.getElementById('livePickedCount'),
+    liveRemainingCount: document.getElementById('liveRemainingCount'),
+    liveTopRemainingCount: document.getElementById('liveTopRemainingCount'),
+    liveFitCount: document.getElementById('liveFitCount'),
+    liveRemainingTitle: document.getElementById('liveRemainingTitle'),
+    liveRemainingLabel: document.getElementById('liveRemainingLabel'),
+    liveRemainingBody: document.getElementById('liveRemainingBody'),
+    livePicksBody: document.getElementById('livePicksBody'),
   };
 
   function parseCsv(text) {
@@ -949,6 +963,118 @@
     renderTeamCandidateRanking(team);
   }
 
+
+  function initLiveTeamSelector() {
+    if (!els.liveTeamSelect) return;
+    els.liveTeamSelect.replaceChildren();
+    teamOrder.forEach((team) => {
+      const option = document.createElement('option');
+      option.value = team;
+      option.textContent = teamDisplayName(team);
+      els.liveTeamSelect.append(option);
+    });
+    if (!teamOrder.includes(state.selectedLiveTeam)) state.selectedLiveTeam = teamOrder[0];
+    els.liveTeamSelect.value = state.selectedLiveTeam;
+  }
+
+  function pickedPlayerSets() {
+    const ids = new Set();
+    const names = new Set();
+    state.results.forEach((result) => {
+      if (result.player_id) ids.add(result.player_id);
+      if (result.name) names.add(normalize(result.name));
+    });
+    return { ids, names };
+  }
+
+  function remainingPlayers() {
+    const picked = pickedPlayerSets();
+    return state.players.filter((player) => !picked.ids.has(player.player_id) && !picked.names.has(normalize(player.name)));
+  }
+
+  function sortLivePlayers(players) {
+    return [...players].sort((a, b) => {
+      const ratingDiff = (ratingOrder.get(a.rating) ?? 99) - (ratingOrder.get(b.rating) ?? 99);
+      if (ratingDiff !== 0) return ratingDiff;
+      const roundDiff = expectedRoundScore(b.expected_round) - expectedRoundScore(a.expected_round);
+      if (roundDiff !== 0) return roundDiff;
+      const categoryDiff = (categoryOrder.get(a.category) ?? 99) - (categoryOrder.get(b.category) ?? 99);
+      if (categoryDiff !== 0) return categoryDiff;
+      return a.name.localeCompare(b.name, 'ja');
+    });
+  }
+
+  function renderLive() {
+    if (!els.livePanel || !state.players.length) return;
+    const remaining = sortLivePlayers(remainingPlayers());
+    const pickedCount = state.results.length;
+    const topRemaining = remaining.filter((player) => player.rating === 'S' || player.rating === 'A').length;
+    const team = state.teamAnalyses.find((item) => item.team === state.selectedLiveTeam) || null;
+    const fitRows = team ? remaining.map((player) => ({ player, result: calculateFit(player, team) })) : [];
+    const highFit = fitRows.filter((item) => item.result.calculable && item.result.score >= 68).length;
+
+    setText(els.livePickedCount, pickedCount);
+    setText(els.liveRemainingCount, remaining.length);
+    setText(els.liveTopRemainingCount, topRemaining);
+    setText(els.liveFitCount, team ? highFit : '—');
+    setText(els.liveRemainingLabel, `${remaining.length}人`);
+    els.liveRemainingTitle.textContent = `${teamDisplayName(state.selectedLiveTeam)}で見る残り候補`;
+
+    els.liveRemainingBody.replaceChildren();
+    const fitMap = new Map(fitRows.map((item) => [item.player.player_id, item.result]));
+    remaining.slice(0, 40).forEach((player, index) => {
+      const tr = document.createElement('tr');
+      const rank = makeCell(index + 1);
+      const nameTd = document.createElement('td');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'draft-player-button';
+      button.textContent = player.name;
+      button.addEventListener('click', () => openDialog(player));
+      nameTd.append(button);
+      const affiliation = makeCell(player.affiliation || '—');
+      const position = makeCell(player.position || '—');
+      const ratingTd = document.createElement('td');
+      const rating = document.createElement('span');
+      rating.className = 'draft-rating';
+      rating.dataset.rating = player.rating || '未評価';
+      rating.textContent = player.rating || '未評価';
+      ratingTd.append(rating);
+      const round = makeCell(player.expected_round || '—');
+      const fitTd = document.createElement('td');
+      const fit = fitMap.get(player.player_id);
+      if (fit?.calculable) fitTd.append(makeFitScoreChip(fit));
+      else fitTd.textContent = '—';
+      tr.append(rank, nameTd, affiliation, position, ratingTd, round, fitTd);
+      els.liveRemainingBody.append(tr);
+    });
+    if (!remaining.length) {
+      els.liveRemainingBody.innerHTML = '<tr><td colspan="7" class="draft-empty">残り候補はありません。</td></tr>';
+    }
+
+    els.livePicksBody.replaceChildren();
+    const recent = [...state.results].sort((a, b) => {
+      const aPick = Number(a.overall_pick);
+      const bPick = Number(b.overall_pick);
+      if (Number.isFinite(aPick) && Number.isFinite(bPick) && aPick !== bPick) return bPick - aPick;
+      return (b._index ?? 0) - (a._index ?? 0);
+    }).slice(0, 24);
+    recent.forEach((result) => {
+      const tr = document.createElement('tr');
+      tr.append(
+        makeCell(result.overall_pick || '—'),
+        makeCell(teamDisplayName(result.team) || result.team || '—'),
+        makeCell(result.round || '—'),
+        makeCell(result.name || '—'),
+        makeCell(result.pick_type || '—'),
+      );
+      els.livePicksBody.append(tr);
+    });
+    if (!recent.length) {
+      els.livePicksBody.innerHTML = '<tr><td colspan="5" class="draft-empty">まだ指名結果は登録されていません。ドラフト前は全候補を残り候補として表示します。</td></tr>';
+    }
+  }
+
   function setMode(mode) {
     state.mode = mode;
     els.tabs.forEach((button) => {
@@ -963,11 +1089,13 @@
 
     const isTeamLens = mode === 'team-lens';
     const isFit = mode === 'fit';
-    const isSpecial = isTeamLens || isFit;
+    const isLive = mode === 'live';
+    const isSpecial = isTeamLens || isFit || isLive;
     els.filters.hidden = isSpecial;
     els.workspace.hidden = isSpecial;
     els.teamLensPanel.hidden = !isTeamLens;
     els.fitPanel.hidden = !isFit;
+    els.livePanel.hidden = !isLive;
     els.disclaimer.hidden = isSpecial;
 
     if (isTeamLens) {
@@ -976,6 +1104,10 @@
     }
     if (isFit) {
       renderFit();
+      return;
+    }
+    if (isLive) {
+      renderLive();
       return;
     }
 
@@ -1017,6 +1149,10 @@
       state.selectedFitTeam = els.fitTeamSelect.value;
       renderFit();
     });
+    els.liveTeamSelect.addEventListener('change', () => {
+      state.selectedLiveTeam = els.liveTeamSelect.value;
+      renderLive();
+    });
   }
 
   async function loadCandidates() {
@@ -1025,6 +1161,23 @@
     const text = await response.text();
     state.players = parseCsv(text.replace(/^\uFEFF/, '')).filter((player) => player.player_id);
     if (!state.players.length) throw new Error('候補データが空です');
+  }
+
+
+  async function loadResults() {
+    try {
+      const response = await fetch(RESULTS_DATA_URL, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`指名結果 HTTP ${response.status}`);
+      const text = await response.text();
+      state.results = parseCsv(text.replace(/^\uFEFF/, ''))
+        .filter((result) => result.player_id || result.name)
+        .map((result, index) => ({ ...result, _index: index }));
+      state.resultsReady = true;
+    } catch (error) {
+      console.warn(error);
+      state.results = [];
+      state.resultsReady = false;
+    }
   }
 
   async function loadRoster() {
@@ -1045,6 +1198,8 @@
       await loadCandidates();
       initFilters();
       initFitCandidateSelector();
+      initLiveTeamSelector();
+      await loadResults();
       renderSummary();
       setMode('board');
     } catch (error) {
@@ -1062,6 +1217,7 @@
       els.status.classList.add('is-ready');
       if (state.mode === 'team-lens') renderTeamLens();
       if (state.mode === 'fit') renderFit();
+      if (state.mode === 'live') renderLive();
     } catch (error) {
       console.error(error);
       els.status.textContent = `${state.players.length}人公開中`;
@@ -1069,6 +1225,7 @@
       document.getElementById('teamLensTab').title = '球団データを読み込めないため現在利用できません';
       document.getElementById('fitTab').disabled = true;
       document.getElementById('fitTab').title = '球団データを読み込めないため現在利用できません';
+      if (state.mode === 'live') renderLive();
     }
   }
 

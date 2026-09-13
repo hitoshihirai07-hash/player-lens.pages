@@ -14,7 +14,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="./assets/player-lens-icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./assets/styles.css?v=20260719-home-renewal">
-  <link rel="stylesheet" href="./assets/draft-lab.css?v=20260913-stage4">
+  <link rel="stylesheet" href="./assets/draft-lab.css?v=20260913-stage5">
 </head>
 <body>
   <header class="page-header draft-page-header">
@@ -56,6 +56,7 @@
         <button class="draft-tab" id="submittedTab" type="button" role="tab" aria-selected="false" data-mode="submitted">志望届</button>
         <button class="draft-tab" id="teamLensTab" type="button" role="tab" aria-selected="false" data-mode="team-lens">12球団補強Lens</button>
         <button class="draft-tab" id="fitTab" type="button" role="tab" aria-selected="false" data-mode="fit">候補×球団Fit</button>
+        <button class="draft-tab" id="liveTab" type="button" role="tab" aria-selected="false" data-mode="live">ドラフトLIVE</button>
       </div>
       <div class="draft-filters" id="draftFilters">
         <label class="draft-search"><span>選手・所属検索</span><input id="draftSearch" type="search" autocomplete="off" placeholder="例：織田翔希、横浜"></label>
@@ -167,6 +168,53 @@
       <p class="draft-disclaimer fit-note">Fit指数は「球団が指名する確率」ではありません。構成適合度55%、候補評価20%、想定指名ゾーン10%、左右バランス10%、複数ポジション5%で算出します。メインポジション未確認の候補は推測せず算出保留とします。</p>
     </section>
 
+
+    <section class="live-panel" id="livePanel" hidden aria-labelledby="liveTitle">
+      <div class="live-heading">
+        <div>
+          <h2 id="liveTitle">ドラフトLIVE・残り候補</h2>
+          <p>指名済みの選手を除外しながら、残っている上位候補と選択球団に合う候補を追います。ドラフト前は全候補を残り候補として表示します。</p>
+        </div>
+        <label class="live-team-select"><span>注目球団</span><select id="liveTeamSelect"></select></label>
+      </div>
+
+      <div class="live-summary-grid" aria-label="ドラフトLIVE概要">
+        <article><span>指名済み</span><strong id="livePickedCount">0</strong><small>登録済みの指名結果</small></article>
+        <article><span>残り候補</span><strong id="liveRemainingCount">--</strong><small>指名済みを除外</small></article>
+        <article><span>残りS・A</span><strong id="liveTopRemainingCount">--</strong><small>上位評価の残数</small></article>
+        <article><span>Fit高以上</span><strong id="liveFitCount">--</strong><small>選択球団との構成適合度</small></article>
+      </div>
+
+      <div class="live-grid">
+        <section class="live-remaining-panel">
+          <div class="draft-panel-heading">
+            <div><h2 id="liveRemainingTitle">残り候補ランキング</h2><p>評価と想定指名ゾーンを軸に、指名されていない候補を表示します。</p></div>
+            <strong id="liveRemainingLabel">--人</strong>
+          </div>
+          <div class="live-table-scroll" tabindex="0" aria-label="ドラフト残り候補">
+            <table class="live-table">
+              <thead><tr><th>順位</th><th>候補</th><th>所属</th><th>位置</th><th>評価</th><th>想定</th><th>Fit</th></tr></thead>
+              <tbody id="liveRemainingBody"><tr><td colspan="7" class="draft-empty">候補データを読み込んでいます。</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="live-picks-panel">
+          <div class="draft-panel-heading">
+            <div><h2>直近の指名</h2><p>登録された指名結果を新しい順に表示します。</p></div>
+          </div>
+          <div class="live-picks-scroll" tabindex="0" aria-label="直近の指名結果">
+            <table class="live-picks-table">
+              <thead><tr><th>全体</th><th>球団</th><th>巡目</th><th>選手</th><th>区分</th></tr></thead>
+              <tbody id="livePicksBody"><tr><td colspan="5" class="draft-empty">まだ指名結果は登録されていません。</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <p class="draft-disclaimer live-note">指名結果は更新データをもとに反映します。残り候補順位とFitはPlayer Lens独自の整理で、実際の指名順や球団の指名意向を示すものではありません。</p>
+    </section>
+
     <p class="draft-disclaimer" id="draftDisclaimer">評価・想定指名ゾーンはPlayer Lensで整理している暫定情報です。志望届、公示日、所属などの事実情報とは分けて扱っています。未評価の選手も2026年ドラフト対象候補として一覧から除外しません。</p>
   </main>
 
@@ -179,6 +227,6 @@
     <a href="./">Player Lens</a><a href="./about">このサイトについて</a><a href="./guide">使い方</a><a href="./privacy">プライバシー</a><a href="./disclaimer">免責事項</a><a href="./contact">お問い合わせ</a>
   </footer>
 
-  <script src="./assets/draft-lab.js?v=20260913-stage4" defer></script>
+  <script src="./assets/draft-lab.js?v=20260913-stage5" defer></script>
 </body>
 </html>
