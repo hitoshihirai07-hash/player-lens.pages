@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Player Lens Draft Lab 2026。2026年プロ野球ドラフト候補を、評価・区分・ポジション・志望届状況から検索し、選手情報やスカウト情報を確認できます。">
+  <title>Draft Lab 2026 | Player Lens</title>
+  <link rel="canonical" href="https://player-lens-pages.pages.dev/draft-lab">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Draft Lab 2026 | Player Lens">
+  <meta property="og:description" content="2026年プロ野球ドラフト候補を、評価・区分・ポジション・志望届状況から検索。候補情報を一つの画面で確認できます。">
+  <meta property="og:url" content="https://player-lens-pages.pages.dev/draft-lab">
+  <meta property="og:image" content="https://player-lens-pages.pages.dev/assets/player-lens-ogp.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="./assets/player-lens-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/styles.css?v=20260719-home-renewal">
+  <link rel="stylesheet" href="./assets/draft-lab.css?v=20260913-stage2">
+</head>
+<body>
+  <header class="page-header draft-page-header">
+    <a class="brand-mini" href="./"><img src="./assets/player-lens-icon.svg" alt=""><span>Player Lens</span></a>
+    <div class="draft-header-row">
+      <div>
+        <h1>Draft Lab 2026</h1>
+        <p>2026年ドラフト候補を、評価・所属・ポジション・志望届状況から探せる候補ボードです。評価はPlayer Lensで管理している暫定評価で、志望届などの事実情報とは分けて表示します。</p>
+      </div>
+      <div class="status is-ready" id="draftStatus">データ読込中</div>
+    </div>
+  </header>
+
+  <nav class="site-nav" aria-label="サイト内メニュー">
+    <a href="./">ランキング</a>
+    <a href="./teams">球団別</a>
+    <a href="./standings">順位・残り試合</a>
+    <a href="./pennant-race">ペナントレース</a>
+    <a href="./insights">注目データ</a>
+    <a href="./roster">登録状況</a>
+    <a href="./starting-lineup">スタメン作成</a>
+    <a href="./draft-lab" aria-current="page">Draft Lab 2026</a>
+    <a href="./articles">読み物</a>
+    <a href="./updates">更新履歴</a>
+    <a href="./about">このサイトについて</a>
+  </nav>
+
+  <main class="shell draft-shell">
+    <section class="draft-summary-grid" aria-label="ドラフト候補データ概要">
+      <article class="draft-summary-card"><span>2026対象候補</span><strong id="summaryAll">--</strong><small>候補マスターから公開対象のみ</small></article>
+      <article class="draft-summary-card"><span>志望届提出</span><strong id="summarySubmitted">--</strong><small>高校・大学の公式公示を反映</small></article>
+      <article class="draft-summary-card"><span>S・A評価</span><strong id="summaryTop">--</strong><small>現時点の上位評価</small></article>
+      <article class="draft-summary-card"><span>情報補完中</span><strong id="summaryUnrated">--</strong><small>未評価として候補からは除外しません</small></article>
+    </section>
+
+    <section class="draft-toolbar" aria-label="ドラフト候補の表示切替と絞り込み">
+      <div class="draft-tabs" role="tablist" aria-label="表示モード">
+        <button class="draft-tab is-active" id="boardTab" type="button" role="tab" aria-selected="true" data-mode="board">ドラフトボード</button>
+        <button class="draft-tab" id="submittedTab" type="button" role="tab" aria-selected="false" data-mode="submitted">志望届</button>
+      </div>
+      <div class="draft-filters">
+        <label class="draft-search"><span>選手・所属検索</span><input id="draftSearch" type="search" autocomplete="off" placeholder="例：織田翔希、横浜"></label>
+        <label><span>区分</span><select id="categoryFilter"><option value="all">すべて</option></select></label>
+        <label><span>ポジション</span><select id="positionFilter"><option value="all">すべて</option></select></label>
+        <label><span>評価</span><select id="ratingFilter"><option value="all">すべて</option><option value="S">S</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="未評価">未評価</option></select></label>
+        <label id="declarationFilterWrap"><span>志望届</span><select id="declarationFilter"><option value="all">すべて</option><option value="提出">提出</option><option value="未公示">未公示</option><option value="提出予定・公示未確認">提出予定</option></select></label>
+        <button class="draft-reset" id="resetFilters" type="button">絞り込み解除</button>
+      </div>
+    </section>
+
+    <section class="draft-workspace">
+      <div class="draft-list-panel">
+        <div class="draft-panel-heading">
+          <div><h2 id="draftListTitle">ドラフトボード</h2><p id="draftListNote">評価順に候補を表示します。</p></div>
+          <strong id="draftResultCount">--人</strong>
+        </div>
+        <div class="draft-table-scroll" tabindex="0" aria-label="ドラフト候補一覧">
+          <table class="draft-table">
+            <thead>
+              <tr><th>評価</th><th>選手</th><th>所属</th><th>区分</th><th>位置</th><th>投打</th><th>想定</th><th>志望届</th></tr>
+            </thead>
+            <tbody id="draftTableBody"><tr><td colspan="8" class="draft-empty">候補データを読み込んでいます。</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <aside class="draft-detail-panel" id="draftDetailPanel" aria-live="polite">
+        <div class="draft-detail-empty">
+          <strong>選手を選択</strong>
+          <p>候補一覧から選手名を押すと、評価・特徴・スカウト情報などをここに表示します。</p>
+        </div>
+      </aside>
+    </section>
+
+    <p class="draft-disclaimer">評価・想定指名ゾーンはPlayer Lensで整理している暫定情報です。志望届、公示日、所属などの事実情報とは分けて扱っています。未評価の選手も2026年ドラフト対象候補として一覧から除外しません。</p>
+  </main>
+
+  <dialog class="draft-dialog" id="draftDialog" aria-labelledby="draftDialogTitle">
+    <button class="draft-dialog-close" id="draftDialogClose" type="button" aria-label="選手詳細を閉じる">閉じる</button>
+    <div id="draftDialogContent"></div>
+  </dialog>
+
+  <footer class="site-footer">
+    <a href="./">Player Lens</a><a href="./about">このサイトについて</a><a href="./guide">使い方</a><a href="./privacy">プライバシー</a><a href="./disclaimer">免責事項</a><a href="./contact">お問い合わせ</a>
+  </footer>
+
+  <script src="./assets/draft-lab.js?v=20260913-stage2" defer></script>
+</body>
+</html>
