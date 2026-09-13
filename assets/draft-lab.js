@@ -28,6 +28,7 @@
     '読売ジャイアンツ', '阪神タイガース', '横浜DeNAベイスターズ', '広島東洋カープ', '東京ヤクルトスワローズ', '中日ドラゴンズ',
     '福岡ソフトバンクホークス', '北海道日本ハムファイターズ', '千葉ロッテマリーンズ', '東北楽天ゴールデンイーグルス', 'オリックス・バファローズ', '埼玉西武ライオンズ',
   ];
+  const ratingFitScore = new Map([['S', 100], ['A', 90], ['B', 78], ['C', 64], ['D', 50], ['未評価', 55]]);
 
   const state = {
     players: [],
@@ -36,6 +37,8 @@
     mode: 'board',
     selectedId: null,
     selectedTeam: '読売ジャイアンツ',
+    selectedFitTeam: '読売ジャイアンツ',
+    selectedFitId: null,
     rosterReady: false,
   };
 
@@ -69,6 +72,14 @@
     teamRosterSummary: document.getElementById('teamRosterSummary'),
     teamNeedGrid: document.getElementById('teamNeedGrid'),
     teamCompareBody: document.getElementById('teamCompareBody'),
+    fitPanel: document.getElementById('fitPanel'),
+    fitCandidateSelect: document.getElementById('fitCandidateSelect'),
+    fitTeamSelect: document.getElementById('fitTeamSelect'),
+    fitCandidateSummary: document.getElementById('fitCandidateSummary'),
+    fitFocus: document.getElementById('fitFocus'),
+    fitTeamRankingBody: document.getElementById('fitTeamRankingBody'),
+    fitCandidateRankingBody: document.getElementById('fitCandidateRankingBody'),
+    fitTeamCandidateTitle: document.getElementById('fitTeamCandidateTitle'),
   };
 
   function parseCsv(text) {
@@ -144,6 +155,35 @@
 
   function teamDisplayName(team) {
     return teamAliases[team] || team;
+  }
+
+  function broadPosition(value) {
+    const text = String(value || '');
+    if (!text || text === '不明' || text === '未確認') return null;
+    if (text.includes('投手')) return '投手';
+    if (text.includes('捕手')) return '捕手';
+    if (/一塁|二塁|三塁|遊撃|内野/.test(text)) return '内野手';
+    if (text.includes('外野')) return '外野手';
+    return null;
+  }
+
+  function expectedRoundScore(value) {
+    const text = String(value || '');
+    if (text === '1位') return 100;
+    if (/1.*2|1～2|1〜2/.test(text)) return 92;
+    if (/2.*3|2～3|2〜3/.test(text)) return 84;
+    if (/3.*4|3～4|3〜4/.test(text)) return 75;
+    if (text.includes('下位')) return 58;
+    if (text.includes('ボーダー')) return 45;
+    return 55;
+  }
+
+  function fitLevel(score) {
+    if (!Number.isFinite(score)) return '算出保留';
+    if (score >= 80) return '非常に高い';
+    if (score >= 68) return '高い';
+    if (score >= 55) return '中';
+    return '低め';
   }
 
   function addOptions(select, values) {
@@ -325,6 +365,17 @@
     appendBlock(wrapper, 'スカウト評価概要', player.scout_summary);
     if (player.condition && player.condition !== '未確認') appendBlock(wrapper, 'コンディション', player.condition);
 
+    const fitAction = document.createElement('button');
+    fitAction.type = 'button';
+    fitAction.className = 'draft-fit-action';
+    fitAction.textContent = '12球団Fitを見る';
+    fitAction.addEventListener('click', () => {
+      state.selectedFitId = player.player_id;
+      if (els.dialog.open) els.dialog.close();
+      setMode('fit');
+    });
+    wrapper.append(fitAction);
+
     if (player.source_url) {
       const sourceBlock = document.createElement('section');
       sourceBlock.className = 'draft-detail-block';
@@ -347,6 +398,8 @@
     const player = state.players.find((p) => p.player_id === playerId);
     if (!player) return;
     state.selectedId = playerId;
+    state.selectedFitId = playerId;
+    if (els.fitCandidateSelect) els.fitCandidateSelect.value = playerId;
     renderTable();
     els.detail.replaceChildren(buildDetail(player));
 
@@ -404,6 +457,18 @@
     const activeAges = activeRows.map((player) => player.age).filter(Number.isFinite);
     const weightedDepth = activeRows.length + developmentRows.length * 0.5;
     const weightedYoung = youngRows.reduce((sum, player) => sum + (player.registration === '支配下' ? 1 : 0.5), 0);
+    const handField = position === '投手' ? 'throws' : 'bats';
+    const weightedHands = { 右: 0, 左: 0 };
+    rows.forEach((player) => {
+      const hand = player[handField];
+      if (hand !== '右' && hand !== '左') return;
+      weightedHands[hand] += player.registration === '支配下' ? 1 : 0.5;
+    });
+    const handTotal = weightedHands.右 + weightedHands.左;
+    const handShare = {
+      右: handTotal ? weightedHands.右 / handTotal : 0.5,
+      左: handTotal ? weightedHands.左 / handTotal : 0.5,
+    };
     return {
       position,
       active: activeRows.length,
@@ -412,6 +477,8 @@
       young: youngRows.length,
       weightedYoung,
       avgAge: mean(activeAges),
+      handShare,
+      leagueHandShare: { 右: 0.5, 左: 0.5 },
       score: 50,
       priority: '中',
       reasons: [],
@@ -429,6 +496,8 @@
       const depthValues = metrics.map((item) => item.weightedDepth);
       const youngValues = metrics.map((item) => item.weightedYoung);
       const ageValues = metrics.map((item) => item.avgAge).filter((value) => value > 0);
+      const avgRightShare = mean(metrics.map((item) => item.handShare.右));
+      const avgLeftShare = mean(metrics.map((item) => item.handShare.左));
       const avgDepth = mean(depthValues);
       const avgYoung = mean(youngValues);
       const avgAge = mean(ageValues);
@@ -444,6 +513,7 @@
         item.score = Math.round(clamp(50 + depthZ * 12 + youngZ * 14 + ageZ * 8, 15, 95));
         item.priority = item.score >= 68 ? '高' : item.score >= 50 ? '中' : '低';
         item.leagueAverage = { depth: avgDepth, young: avgYoung, age: avgAge };
+        item.leagueHandShare = { 右: avgRightShare, 左: avgLeftShare };
 
         const reasonParts = [];
         if (item.weightedDepth < avgDepth - 0.35) reasonParts.push(`選手層 ${item.weightedDepth.toFixed(1)}人相当（平均${avgDepth.toFixed(1)}）`);
@@ -613,6 +683,272 @@
     renderTeamComparison();
   }
 
+  function initFitCandidateSelector() {
+    els.fitCandidateSelect.replaceChildren();
+    const sorted = sortPlayers([...state.players]);
+    sorted.forEach((player) => {
+      const option = document.createElement('option');
+      option.value = player.player_id;
+      option.textContent = `[${player.rating || '未評価'}] ${player.name} / ${player.affiliation}`;
+      els.fitCandidateSelect.append(option);
+    });
+    if (!state.selectedFitId || !state.players.some((player) => player.player_id === state.selectedFitId)) {
+      state.selectedFitId = sorted.find((player) => broadPosition(player.position))?.player_id || sorted[0]?.player_id || null;
+    }
+    if (state.selectedFitId) els.fitCandidateSelect.value = state.selectedFitId;
+  }
+
+  function initFitTeamSelector() {
+    els.fitTeamSelect.replaceChildren();
+    state.teamAnalyses.forEach((team) => {
+      const option = document.createElement('option');
+      option.value = team.team;
+      option.textContent = team.displayName;
+      els.fitTeamSelect.append(option);
+    });
+    if (!state.teamAnalyses.some((team) => team.team === state.selectedFitTeam)) state.selectedFitTeam = state.teamAnalyses[0]?.team || '';
+    els.fitTeamSelect.value = state.selectedFitTeam;
+  }
+
+  function candidateHand(player, position) {
+    const value = position === '投手' ? player.throws : player.bats;
+    return value === '右' || value === '左' ? value : null;
+  }
+
+  function calculateFit(player, team) {
+    const primary = broadPosition(player.position);
+    if (!primary || !team?.positions?.[primary]) {
+      return { calculable: false, score: null, level: '算出保留', primary, reason: 'メインポジション未確認のため算出していません。' };
+    }
+    const secondary = broadPosition(player.sub_position);
+    const primaryNeed = team.positions[primary].score;
+    const secondaryNeed = secondary && secondary !== primary && team.positions[secondary] ? team.positions[secondary].score : null;
+    const needScore = secondaryNeed == null ? primaryNeed : primaryNeed * 0.85 + secondaryNeed * 0.15;
+    const ratingScore = ratingFitScore.get(player.rating) ?? 55;
+    const roundScore = expectedRoundScore(player.expected_round);
+    const hand = candidateHand(player, primary);
+    const metric = team.positions[primary];
+    let handScore = 50;
+    if (hand) {
+      const teamShare = metric.handShare?.[hand] ?? 0.5;
+      const leagueShare = metric.leagueHandShare?.[hand] ?? 0.5;
+      handScore = clamp(50 + (leagueShare - teamShare) * 120, 35, 75);
+    }
+    const versatilityScore = secondaryNeed == null ? 50 : 75;
+    const score = Math.round(clamp(
+      needScore * 0.55 + ratingScore * 0.20 + roundScore * 0.10 + handScore * 0.10 + versatilityScore * 0.05,
+      15,
+      98,
+    ));
+    const reasonParts = [`${primary}補強Lens ${Math.round(primaryNeed)}`];
+    if (secondaryNeed != null) reasonParts.push(`${secondary}にも対応`);
+    if (hand && handScore >= 58) reasonParts.push(`${hand}${primary === '投手' ? '投げ' : '打ち'}が現有構成で相対的に少なめ`);
+    if (player.rating === 'S' || player.rating === 'A') reasonParts.push(`${player.rating}評価`);
+    if (player.rating === '未評価') reasonParts.push('候補評価は未補完のため中立値');
+    return {
+      calculable: true,
+      score,
+      level: fitLevel(score),
+      primary,
+      secondary: secondaryNeed == null ? null : secondary,
+      needScore: Math.round(needScore),
+      ratingScore,
+      roundScore,
+      handScore: Math.round(handScore),
+      versatilityScore,
+      hand,
+      reason: reasonParts.slice(0, 3).join(' / '),
+    };
+  }
+
+  function fitBar(label, value, note) {
+    const row = document.createElement('div');
+    row.className = 'fit-factor-row';
+    const head = document.createElement('div');
+    const span = document.createElement('span');
+    span.textContent = label;
+    const strong = document.createElement('strong');
+    strong.textContent = Number.isFinite(value) ? String(Math.round(value)) : '—';
+    head.append(span, strong);
+    const bar = document.createElement('div');
+    bar.className = 'fit-factor-bar';
+    const fill = document.createElement('i');
+    fill.style.width = `${clamp(Number(value) || 0, 0, 100)}%`;
+    bar.append(fill);
+    const small = document.createElement('small');
+    small.textContent = note;
+    row.append(head, bar, small);
+    return row;
+  }
+
+  function renderFitCandidateSummary(player) {
+    els.fitCandidateSummary.replaceChildren();
+    const heading = document.createElement('div');
+    heading.className = 'fit-candidate-head';
+    const titleWrap = document.createElement('div');
+    const h3 = document.createElement('h3');
+    h3.textContent = player.name;
+    const meta = document.createElement('p');
+    meta.textContent = `${player.category}｜${player.affiliation}`;
+    titleWrap.append(h3, meta);
+    const rating = document.createElement('span');
+    rating.className = 'draft-rating';
+    rating.dataset.rating = player.rating || '未評価';
+    rating.textContent = player.rating || '未評価';
+    heading.append(titleWrap, rating);
+
+    const stats = document.createElement('div');
+    stats.className = 'fit-candidate-stats';
+    [
+      ['位置', player.position || '—'],
+      ['投打', formatThrowsBats(player) || '—'],
+      ['想定', player.expected_round || '—'],
+      ['志望届', player.declaration_status || '—'],
+    ].forEach(([label, value]) => {
+      const item = document.createElement('div');
+      const span = document.createElement('span'); span.textContent = label;
+      const strong = document.createElement('strong'); strong.textContent = value;
+      item.append(span, strong); stats.append(item);
+    });
+    const note = document.createElement('p');
+    note.className = 'fit-candidate-note';
+    note.textContent = broadPosition(player.position) ? (player.traits || '特徴情報は継続補完中です。') : 'メインポジション未確認のため、球団Fitは算出保留です。候補から除外はしません。';
+    els.fitCandidateSummary.append(heading, stats, note);
+  }
+
+  function renderFitFocus(player, team) {
+    els.fitFocus.replaceChildren();
+    const result = calculateFit(player, team);
+    const head = document.createElement('div');
+    head.className = 'fit-focus-head';
+    const titleWrap = document.createElement('div');
+    const span = document.createElement('span');
+    span.textContent = team.displayName;
+    const h3 = document.createElement('h3');
+    h3.textContent = `${player.name} × ${team.displayName}`;
+    titleWrap.append(span, h3);
+    const score = document.createElement('strong');
+    score.className = 'fit-focus-score';
+    score.dataset.level = result.calculable ? (result.score >= 80 ? 'very-high' : result.score >= 68 ? 'high' : result.score >= 55 ? 'mid' : 'low') : 'pending';
+    score.textContent = result.calculable ? String(result.score) : '—';
+    head.append(titleWrap, score);
+    const level = document.createElement('p');
+    level.className = 'fit-focus-level';
+    level.textContent = result.calculable ? `構成適合度：${result.level}` : result.reason;
+    els.fitFocus.append(head, level);
+    if (!result.calculable) return;
+    const factors = document.createElement('div');
+    factors.className = 'fit-factor-list';
+    factors.append(
+      fitBar('構成需要', result.needScore, 'ポジション需要・サブポジションを反映'),
+      fitBar('候補評価', result.ratingScore, player.rating === '未評価' ? '未評価は中立値55' : `${player.rating}評価`),
+      fitBar('指名ゾーン', result.roundScore, player.expected_round || '不明'),
+      fitBar('左右バランス', result.handScore, result.hand ? `${result.hand}${result.primary === '投手' ? '投げ' : '打ち'}の構成比` : '投打未確認のため中立値'),
+      fitBar('複数位置', result.versatilityScore, result.secondary ? `${result.secondary}の需要も一部反映` : 'メイン位置のみで算出'),
+    );
+    const reason = document.createElement('p');
+    reason.className = 'fit-focus-reason';
+    reason.textContent = result.reason;
+    els.fitFocus.append(factors, reason);
+  }
+
+  function makeFitScoreChip(result) {
+    const strong = document.createElement('strong');
+    strong.className = 'fit-score-chip';
+    if (!result.calculable) {
+      strong.dataset.level = 'pending';
+      strong.textContent = '—';
+      strong.title = result.reason;
+      return strong;
+    }
+    strong.dataset.level = result.score >= 80 ? 'very-high' : result.score >= 68 ? 'high' : result.score >= 55 ? 'mid' : 'low';
+    strong.textContent = String(result.score);
+    strong.title = `構成適合度 ${result.score}（${result.level}）`;
+    return strong;
+  }
+
+  function renderFitTeamRanking(player) {
+    els.fitTeamRankingBody.replaceChildren();
+    const rows = state.teamAnalyses.map((team) => ({ team, result: calculateFit(player, team) }));
+    rows.sort((a, b) => {
+      if (a.result.calculable !== b.result.calculable) return a.result.calculable ? -1 : 1;
+      return (b.result.score || 0) - (a.result.score || 0);
+    });
+    rows.forEach(({ team, result }, index) => {
+      const tr = document.createElement('tr');
+      if (team.team === state.selectedFitTeam) tr.classList.add('is-selected');
+      const rank = makeCell(result.calculable ? index + 1 : '—');
+      const teamTd = document.createElement('td');
+      const teamButton = document.createElement('button');
+      teamButton.type = 'button';
+      teamButton.className = 'team-name-button';
+      teamButton.textContent = team.displayName;
+      teamButton.addEventListener('click', () => {
+        state.selectedFitTeam = team.team;
+        els.fitTeamSelect.value = team.team;
+        renderFit();
+      });
+      teamTd.append(teamButton);
+      const scoreTd = document.createElement('td'); scoreTd.append(makeFitScoreChip(result));
+      const needTd = makeCell(result.calculable ? result.needScore : '—');
+      const ratingTd = makeCell(player.rating || '未評価');
+      const handTd = makeCell(result.calculable ? (result.hand ? result.handScore : '50') : '—');
+      tr.append(rank, teamTd, scoreTd, needTd, ratingTd, handTd);
+      els.fitTeamRankingBody.append(tr);
+    });
+  }
+
+  function renderTeamCandidateRanking(team) {
+    els.fitCandidateRankingBody.replaceChildren();
+    els.fitTeamCandidateTitle.textContent = `${team.displayName} フィット上位候補`;
+    const ranked = state.players
+      .map((player) => ({ player, result: calculateFit(player, team) }))
+      .filter((item) => item.result.calculable)
+      .sort((a, b) => b.result.score - a.result.score || (ratingOrder.get(a.player.rating) ?? 99) - (ratingOrder.get(b.player.rating) ?? 99))
+      .slice(0, 12);
+    ranked.forEach(({ player, result }, index) => {
+      const tr = document.createElement('tr');
+      if (player.player_id === state.selectedFitId) tr.classList.add('is-selected');
+      const rank = makeCell(index + 1);
+      const playerTd = document.createElement('td');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'draft-player-button';
+      button.textContent = player.name;
+      button.addEventListener('click', () => {
+        state.selectedFitId = player.player_id;
+        els.fitCandidateSelect.value = player.player_id;
+        renderFit();
+      });
+      playerTd.append(button);
+      const position = makeCell(player.position || '—');
+      const rating = makeCell(player.rating || '未評価');
+      const round = makeCell(player.expected_round || '—');
+      const fit = document.createElement('td'); fit.append(makeFitScoreChip(result));
+      tr.append(rank, playerTd, position, rating, round, fit);
+      els.fitCandidateRankingBody.append(tr);
+    });
+  }
+
+  function renderFit() {
+    if (!state.players.length) return;
+    const player = state.players.find((item) => item.player_id === state.selectedFitId) || state.players[0];
+    if (!player) return;
+    state.selectedFitId = player.player_id;
+    els.fitCandidateSelect.value = player.player_id;
+    renderFitCandidateSummary(player);
+    if (!state.rosterReady || !state.teamAnalyses.length) {
+      els.fitFocus.innerHTML = '<p class="draft-empty">球団データを読み込めないためFitを算出できません。</p>';
+      return;
+    }
+    const team = state.teamAnalyses.find((item) => item.team === state.selectedFitTeam) || state.teamAnalyses[0];
+    state.selectedFitTeam = team.team;
+    els.fitTeamSelect.value = team.team;
+    renderFitFocus(player, team);
+    renderFitTeamRanking(player);
+    renderTeamCandidateRanking(team);
+  }
+
   function setMode(mode) {
     state.mode = mode;
     els.tabs.forEach((button) => {
@@ -620,15 +956,26 @@
       button.classList.toggle('is-active', active);
       button.setAttribute('aria-selected', active ? 'true' : 'false');
     });
+    if (window.matchMedia('(max-width: 560px)').matches) {
+      const activeTab = els.tabs.find((button) => button.dataset.mode === mode);
+      activeTab?.parentElement?.scrollTo({ left: Math.max(0, activeTab.offsetLeft - 10), behavior: 'smooth' });
+    }
 
     const isTeamLens = mode === 'team-lens';
-    els.filters.hidden = isTeamLens;
-    els.workspace.hidden = isTeamLens;
+    const isFit = mode === 'fit';
+    const isSpecial = isTeamLens || isFit;
+    els.filters.hidden = isSpecial;
+    els.workspace.hidden = isSpecial;
     els.teamLensPanel.hidden = !isTeamLens;
-    els.disclaimer.hidden = isTeamLens;
+    els.fitPanel.hidden = !isFit;
+    els.disclaimer.hidden = isSpecial;
 
     if (isTeamLens) {
       renderTeamLens();
+      return;
+    }
+    if (isFit) {
+      renderFit();
       return;
     }
 
@@ -662,6 +1009,14 @@
       state.selectedTeam = els.teamLensSelect.value;
       renderTeamLens();
     });
+    els.fitCandidateSelect.addEventListener('change', () => {
+      state.selectedFitId = els.fitCandidateSelect.value;
+      renderFit();
+    });
+    els.fitTeamSelect.addEventListener('change', () => {
+      state.selectedFitTeam = els.fitTeamSelect.value;
+      renderFit();
+    });
   }
 
   async function loadCandidates() {
@@ -680,6 +1035,7 @@
     if (!state.roster.length) throw new Error('球団データが空です');
     calculateTeamAnalyses();
     initTeamSelector();
+    initFitTeamSelector();
     state.rosterReady = true;
   }
 
@@ -688,6 +1044,7 @@
     try {
       await loadCandidates();
       initFilters();
+      initFitCandidateSelector();
       renderSummary();
       setMode('board');
     } catch (error) {
@@ -703,11 +1060,15 @@
       await loadRoster();
       els.status.textContent = `${state.players.length}人・12球団分析`;
       els.status.classList.add('is-ready');
+      if (state.mode === 'team-lens') renderTeamLens();
+      if (state.mode === 'fit') renderFit();
     } catch (error) {
       console.error(error);
       els.status.textContent = `${state.players.length}人公開中`;
       document.getElementById('teamLensTab').disabled = true;
       document.getElementById('teamLensTab').title = '球団データを読み込めないため現在利用できません';
+      document.getElementById('fitTab').disabled = true;
+      document.getElementById('fitTab').title = '球団データを読み込めないため現在利用できません';
     }
   }
 
