@@ -3,7 +3,8 @@
 
   const CANDIDATE_DATA_URL = './data/draft_candidates_2026.csv';
   const ROSTER_DATA_URL = './data/current_player_master.csv';
-  const RESULTS_DATA_URL = './data/draft_results_2026.csv';
+  const DECLARATIONS_DATA_URL = './data/draft_declarations_2026.csv';
+  const WATCH_STORAGE_KEY = 'playerLensDraftWatch2026';
   const DRAFT_YEAR = 2026;
   const DRAFT_MONTH = 10;
   const DRAFT_DAY = 22;
@@ -35,15 +36,21 @@
     players: [],
     roster: [],
     teamAnalyses: [],
-    results: [],
+    declarations: [],
+    watchPicks: [],
     mode: 'board',
     selectedId: null,
     selectedTeam: '読売ジャイアンツ',
     selectedFitTeam: '読売ジャイアンツ',
     selectedFitId: null,
-    selectedLiveTeam: '読売ジャイアンツ',
+    watchMode: 'all',
+    watchTeam: '読売ジャイアンツ',
+    watchPickType: '本指名',
+    watchRound: '1',
+    watchSort: 'rating',
     rosterReady: false,
-    resultsReady: false,
+    declarationsReady: false,
+    storageReady: true,
   };
 
   const els = {
@@ -84,16 +91,42 @@
     fitTeamRankingBody: document.getElementById('fitTeamRankingBody'),
     fitCandidateRankingBody: document.getElementById('fitCandidateRankingBody'),
     fitTeamCandidateTitle: document.getElementById('fitTeamCandidateTitle'),
-    livePanel: document.getElementById('livePanel'),
-    liveTeamSelect: document.getElementById('liveTeamSelect'),
-    livePickedCount: document.getElementById('livePickedCount'),
-    liveRemainingCount: document.getElementById('liveRemainingCount'),
-    liveTopRemainingCount: document.getElementById('liveTopRemainingCount'),
-    liveFitCount: document.getElementById('liveFitCount'),
-    liveRemainingTitle: document.getElementById('liveRemainingTitle'),
-    liveRemainingLabel: document.getElementById('liveRemainingLabel'),
-    liveRemainingBody: document.getElementById('liveRemainingBody'),
-    livePicksBody: document.getElementById('livePicksBody'),
+    declarationPanel: document.getElementById('declarationPanel'),
+    declarationUpdated: document.getElementById('declarationUpdated'),
+    declarationOfficialCount: document.getElementById('declarationOfficialCount'),
+    declarationLikelyCount: document.getElementById('declarationLikelyCount'),
+    declarationUnannouncedCount: document.getElementById('declarationUnannouncedCount'),
+    declarationBody: document.getElementById('declarationBody'),
+    watchPanel: document.getElementById('watchPanel'),
+    watchSaveStatus: document.getElementById('watchSaveStatus'),
+    watchModeButtons: [...document.querySelectorAll('.watch-mode-button')],
+    watchTeamLabel: document.getElementById('watchTeamLabel'),
+    watchTeamSelect: document.getElementById('watchTeamSelect'),
+    watchPickType: document.getElementById('watchPickType'),
+    watchRound: document.getElementById('watchRound'),
+    watchSort: document.getElementById('watchSort'),
+    watchUndo: document.getElementById('watchUndo'),
+    watchReset: document.getElementById('watchReset'),
+    watchAnnouncement: document.getElementById('watchAnnouncement'),
+    watchPickedCount: document.getElementById('watchPickedCount'),
+    watchPickedNote: document.getElementById('watchPickedNote'),
+    watchCandidateSummaryLabel: document.getElementById('watchCandidateSummaryLabel'),
+    watchRemainingCount: document.getElementById('watchRemainingCount'),
+    watchRemainingNote: document.getElementById('watchRemainingNote'),
+    watchTopCount: document.getElementById('watchTopCount'),
+    watchFitCount: document.getElementById('watchFitCount'),
+    watchSearch: document.getElementById('watchSearch'),
+    watchPosition: document.getElementById('watchPosition'),
+    watchRating: document.getElementById('watchRating'),
+    watchCandidateTitle: document.getElementById('watchCandidateTitle'),
+    watchCandidateNote: document.getElementById('watchCandidateNote'),
+    watchCandidateCount: document.getElementById('watchCandidateCount'),
+    watchCandidateBody: document.getElementById('watchCandidateBody'),
+    watchBoardTitle: document.getElementById('watchBoardTitle'),
+    watchBoardNote: document.getElementById('watchBoardNote'),
+    watchAllTeamsBoard: document.getElementById('watchAllTeamsBoard'),
+    watchSingleTeamBoard: document.getElementById('watchSingleTeamBoard'),
+    watchNote: document.getElementById('watchNote'),
   };
 
   function parseCsv(text) {
@@ -964,115 +997,483 @@
   }
 
 
-  function initLiveTeamSelector() {
-    if (!els.liveTeamSelect) return;
-    els.liveTeamSelect.replaceChildren();
+  function declarationForTeam(team) {
+    return state.declarations.find((item) => item.team === team) || { team, status: '未公表' };
+  }
+
+  function declarationsForPlayer(player) {
+    const id = player.player_id;
+    const name = normalize(player.name);
+    return state.declarations.filter((item) => {
+      if (!['公言', '有力報道'].includes(item.status)) return false;
+      if (id && item.player_id && item.player_id === id) return true;
+      return item.name && normalize(item.name) === name;
+    });
+  }
+
+  function renderDeclarations() {
+    const rows = teamOrder.map((team) => declarationForTeam(team));
+    const official = rows.filter((item) => item.status === '公言').length;
+    const likely = rows.filter((item) => item.status === '有力報道').length;
+    const unannounced = rows.filter((item) => !item.status || item.status === '未公表').length;
+    const checked = rows.map((item) => item.last_checked || '').filter(Boolean).sort().at(-1) || '—';
+    setText(els.declarationOfficialCount, official);
+    setText(els.declarationLikelyCount, likely);
+    setText(els.declarationUnannouncedCount, unannounced);
+    els.declarationUpdated.textContent = `最終確認 ${checked}`;
+    els.declarationBody.replaceChildren();
+    rows.forEach((item) => {
+      const tr = document.createElement('tr');
+      const statusTd = document.createElement('td');
+      const status = document.createElement('span');
+      status.className = 'declaration-status';
+      status.dataset.status = item.status || '未公表';
+      status.textContent = item.status || '未公表';
+      statusTd.append(status);
+
+      const playerTd = document.createElement('td');
+      if (item.name) {
+        const player = state.players.find((p) => p.player_id === item.player_id) || state.players.find((p) => normalize(p.name) === normalize(item.name));
+        if (player) {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'draft-player-button';
+          button.textContent = item.name;
+          button.addEventListener('click', () => openDialog(player));
+          playerTd.append(button);
+        } else playerTd.textContent = item.name;
+      } else playerTd.textContent = '—';
+
+      const sourceTd = document.createElement('td');
+      if (item.source_url) {
+        const link = document.createElement('a');
+        link.href = item.source_url;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.className = 'declaration-source';
+        link.textContent = '確認';
+        sourceTd.append(link);
+      } else sourceTd.textContent = '—';
+
+      tr.append(
+        makeCell(teamDisplayName(item.team)),
+        statusTd,
+        playerTd,
+        makeCell(item.affiliation || '—'),
+        makeCell(item.announcement_date || '—'),
+        makeCell(item.speaker || '—'),
+        sourceTd,
+      );
+      els.declarationBody.append(tr);
+    });
+  }
+
+  function initWatchControls() {
+    els.watchTeamSelect.replaceChildren();
     teamOrder.forEach((team) => {
       const option = document.createElement('option');
       option.value = team;
       option.textContent = teamDisplayName(team);
-      els.liveTeamSelect.append(option);
+      els.watchTeamSelect.append(option);
     });
-    if (!teamOrder.includes(state.selectedLiveTeam)) state.selectedLiveTeam = teamOrder[0];
-    els.liveTeamSelect.value = state.selectedLiveTeam;
+    if (!teamOrder.includes(state.watchTeam)) state.watchTeam = teamOrder[0];
+    els.watchTeamSelect.value = state.watchTeam;
+
+    els.watchRound.replaceChildren();
+    for (let round = 1; round <= 10; round += 1) {
+      const option = document.createElement('option');
+      option.value = String(round);
+      option.textContent = state.watchPickType === '育成' ? `育成${round}位` : `${round}位`;
+      els.watchRound.append(option);
+    }
+    if (!els.watchRound.querySelector(`option[value="${state.watchRound}"]`)) state.watchRound = '1';
+    els.watchRound.value = state.watchRound;
+
+    const watchPositions = [...new Set(state.players.map((player) => player.position).filter(Boolean))]
+      .sort((a, b) => positionOrder.indexOf(a) - positionOrder.indexOf(b));
+    els.watchPosition.querySelectorAll('option:not(:first-child)').forEach((node) => node.remove());
+    addOptions(els.watchPosition, watchPositions);
+    els.watchSort.value = state.watchSort;
+    els.watchPickType.value = state.watchPickType;
   }
 
-  function pickedPlayerSets() {
-    const ids = new Set();
-    const names = new Set();
-    state.results.forEach((result) => {
-      if (result.player_id) ids.add(result.player_id);
-      if (result.name) names.add(normalize(result.name));
+  function loadWatchState() {
+    try {
+      const raw = localStorage.getItem(WATCH_STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (Array.isArray(saved.picks)) state.watchPicks = saved.picks.filter((pick) => pick && pick.player_id && pick.team);
+      if (saved.mode === 'all' || saved.mode === 'team') state.watchMode = saved.mode;
+      if (teamOrder.includes(saved.team)) state.watchTeam = saved.team;
+      if (saved.pickType === '本指名' || saved.pickType === '育成') state.watchPickType = saved.pickType;
+      if (/^\d+$/.test(String(saved.round || ''))) state.watchRound = String(saved.round);
+      if (saved.sort === 'rating' || saved.sort === 'fit') state.watchSort = saved.sort;
+    } catch (error) {
+      console.warn('観戦ボードの保存データを読み込めませんでした', error);
+      state.storageReady = false;
+    }
+  }
+
+  function saveWatchState() {
+    try {
+      localStorage.setItem(WATCH_STORAGE_KEY, JSON.stringify({
+        picks: state.watchPicks,
+        mode: state.watchMode,
+        team: state.watchTeam,
+        pickType: state.watchPickType,
+        round: state.watchRound,
+        sort: state.watchSort,
+      }));
+      state.storageReady = true;
+      els.watchSaveStatus.textContent = 'このブラウザに保存済み';
+      els.watchSaveStatus.dataset.state = 'saved';
+    } catch (error) {
+      console.warn('観戦ボードを保存できませんでした', error);
+      state.storageReady = false;
+      els.watchSaveStatus.textContent = '保存できません';
+      els.watchSaveStatus.dataset.state = 'error';
+    }
+  }
+
+  function pickedPlayerIds() {
+    return new Set(state.watchPicks.map((pick) => pick.player_id));
+  }
+
+  function watchAvailablePlayers() {
+    const picked = pickedPlayerIds();
+    return state.players.filter((player) => !picked.has(player.player_id));
+  }
+
+  function watchFilteredPlayers() {
+    const query = normalize(els.watchSearch.value);
+    const base = watchAvailablePlayers().filter((player) => {
+      if (query && ![player.name, player.affiliation, player.league].some((value) => normalize(value).includes(query))) return false;
+      if (els.watchPosition.value !== 'all' && player.position !== els.watchPosition.value) return false;
+      if (els.watchRating.value !== 'all' && player.rating !== els.watchRating.value) return false;
+      return true;
     });
-    return { ids, names };
-  }
-
-  function remainingPlayers() {
-    const picked = pickedPlayerSets();
-    return state.players.filter((player) => !picked.ids.has(player.player_id) && !picked.names.has(normalize(player.name)));
-  }
-
-  function sortLivePlayers(players) {
-    return [...players].sort((a, b) => {
+    const team = state.teamAnalyses.find((item) => item.team === state.watchTeam) || null;
+    return [...base].sort((a, b) => {
+      if (state.watchSort === 'fit' && team) {
+        const fitA = calculateFit(a, team);
+        const fitB = calculateFit(b, team);
+        const scoreA = fitA.calculable ? fitA.score : -1;
+        const scoreB = fitB.calculable ? fitB.score : -1;
+        if (scoreA !== scoreB) return scoreB - scoreA;
+      }
       const ratingDiff = (ratingOrder.get(a.rating) ?? 99) - (ratingOrder.get(b.rating) ?? 99);
       if (ratingDiff !== 0) return ratingDiff;
       const roundDiff = expectedRoundScore(b.expected_round) - expectedRoundScore(a.expected_round);
       if (roundDiff !== 0) return roundDiff;
-      const categoryDiff = (categoryOrder.get(a.category) ?? 99) - (categoryOrder.get(b.category) ?? 99);
-      if (categoryDiff !== 0) return categoryDiff;
       return a.name.localeCompare(b.name, 'ja');
     });
   }
 
-  function renderLive() {
-    if (!els.livePanel || !state.players.length) return;
-    const remaining = sortLivePlayers(remainingPlayers());
-    const pickedCount = state.results.length;
-    const topRemaining = remaining.filter((player) => player.rating === 'S' || player.rating === 'A').length;
-    const team = state.teamAnalyses.find((item) => item.team === state.selectedLiveTeam) || null;
-    const fitRows = team ? remaining.map((player) => ({ player, result: calculateFit(player, team) })) : [];
-    const highFit = fitRows.filter((item) => item.result.calculable && item.result.score >= 68).length;
+  function pickLabel(pick) {
+    return pick.pick_type === '育成' ? `育成${pick.round}位` : `${pick.round}位`;
+  }
 
-    setText(els.livePickedCount, pickedCount);
-    setText(els.liveRemainingCount, remaining.length);
-    setText(els.liveTopRemainingCount, topRemaining);
-    setText(els.liveFitCount, team ? highFit : '—');
-    setText(els.liveRemainingLabel, `${remaining.length}人`);
-    els.liveRemainingTitle.textContent = `${teamDisplayName(state.selectedLiveTeam)}で見る残り候補`;
+  function declarationCompact(team) {
+    const item = declarationForTeam(team);
+    if (item.status === '公言' && item.name) return `1位公言：${item.name}`;
+    if (item.status === '有力報道' && item.name) return `1位有力：${item.name}`;
+    if (item.status === '変更・撤回' && item.name) return `公言変更：${item.name}`;
+    return '1位公言：未公表';
+  }
 
-    els.liveRemainingBody.replaceChildren();
-    const fitMap = new Map(fitRows.map((item) => [item.player.player_id, item.result]));
-    remaining.slice(0, 40).forEach((player, index) => {
+  function renderWatchAnnouncement() {
+    const item = declarationForTeam(state.watchTeam);
+    els.watchAnnouncement.replaceChildren();
+    const label = document.createElement('span');
+    label.className = 'declaration-status';
+    label.dataset.status = item.status || '未公表';
+    label.textContent = item.status || '未公表';
+    const text = document.createElement('strong');
+    text.textContent = item.name
+      ? `${teamDisplayName(state.watchTeam)}：${item.name}${item.affiliation ? `（${item.affiliation}）` : ''}`
+      : `${teamDisplayName(state.watchTeam)}：1位公言なし`;
+    const small = document.createElement('small');
+    small.textContent = item.announcement_date
+      ? `${item.announcement_date}${item.speaker ? `・${item.speaker}` : ''}`
+      : '正式な1位公言を確認した場合にここへ反映します。';
+    els.watchAnnouncement.append(label, text, small);
+  }
+
+  function makePickButton(player) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'watch-pick-button';
+    button.textContent = `${teamDisplayName(state.watchTeam)}が指名`;
+    button.addEventListener('click', () => registerWatchPick(player));
+    return button;
+  }
+
+  function registerWatchPick(player) {
+    const duplicate = state.watchPicks.find((pick) => (
+      pick.team === state.watchTeam &&
+      pick.pick_type === state.watchPickType &&
+      String(pick.round) === String(state.watchRound)
+    ));
+    if (duplicate) {
+      const replace = window.confirm(`${teamDisplayName(state.watchTeam)}の${pickLabel(duplicate)}は「${duplicate.name}」で登録済みです。「${player.name}」に置き換えますか？`);
+      if (!replace) return;
+      state.watchPicks = state.watchPicks.filter((pick) => pick.id !== duplicate.id);
+    }
+    const alreadyPicked = state.watchPicks.find((pick) => pick.player_id === player.player_id);
+    if (alreadyPicked) {
+      window.alert(`${player.name}は${teamDisplayName(alreadyPicked.team)}の${pickLabel(alreadyPicked)}として登録済みです。`);
+      return;
+    }
+    state.watchPicks.push({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      player_id: player.player_id,
+      name: player.name,
+      team: state.watchTeam,
+      round: String(state.watchRound),
+      pick_type: state.watchPickType,
+      created_at: new Date().toISOString(),
+    });
+    saveWatchState();
+    renderWatch();
+  }
+
+  function removeWatchPick(id) {
+    state.watchPicks = state.watchPicks.filter((pick) => pick.id !== id);
+    saveWatchState();
+    renderWatch();
+  }
+
+  function watchPicksForTeam(team) {
+    return state.watchPicks
+      .filter((pick) => pick.team === team)
+      .sort((a, b) => {
+        if (a.pick_type !== b.pick_type) return a.pick_type === '本指名' ? -1 : 1;
+        return Number(a.round) - Number(b.round) || String(a.created_at).localeCompare(String(b.created_at));
+      });
+  }
+
+  function renderWatchCandidateTable(players) {
+    els.watchCandidateBody.replaceChildren();
+    const team = state.teamAnalyses.find((item) => item.team === state.watchTeam) || null;
+    players.slice(0, 80).forEach((player) => {
       const tr = document.createElement('tr');
-      const rank = makeCell(index + 1);
       const nameTd = document.createElement('td');
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'draft-player-button';
-      button.textContent = player.name;
-      button.addEventListener('click', () => openDialog(player));
-      nameTd.append(button);
-      const affiliation = makeCell(player.affiliation || '—');
-      const position = makeCell(player.position || '—');
+      const nameButton = document.createElement('button');
+      nameButton.type = 'button';
+      nameButton.className = 'draft-player-button';
+      nameButton.textContent = player.name;
+      nameButton.addEventListener('click', () => openDialog(player));
+      nameTd.append(nameButton);
+
       const ratingTd = document.createElement('td');
       const rating = document.createElement('span');
       rating.className = 'draft-rating';
       rating.dataset.rating = player.rating || '未評価';
       rating.textContent = player.rating || '未評価';
       ratingTd.append(rating);
-      const round = makeCell(player.expected_round || '—');
+
       const fitTd = document.createElement('td');
-      const fit = fitMap.get(player.player_id);
-      if (fit?.calculable) fitTd.append(makeFitScoreChip(fit));
-      else fitTd.textContent = '—';
-      tr.append(rank, nameTd, affiliation, position, ratingTd, round, fitTd);
-      els.liveRemainingBody.append(tr);
+      if (team) {
+        const fit = calculateFit(player, team);
+        if (fit.calculable) fitTd.append(makeFitScoreChip(fit));
+        else fitTd.textContent = '—';
+      } else fitTd.textContent = '—';
+
+      const declarationTd = document.createElement('td');
+      const declarations = declarationsForPlayer(player);
+      if (declarations.length) {
+        const wrap = document.createElement('div');
+        wrap.className = 'watch-declaration-list';
+        declarations.forEach((item) => {
+          const badge = document.createElement('span');
+          badge.className = 'watch-declaration-badge';
+          badge.dataset.status = item.status;
+          badge.textContent = `${teamDisplayName(item.team)} ${item.status === '公言' ? '1位公言' : '有力'}`;
+          wrap.append(badge);
+        });
+        declarationTd.append(wrap);
+      } else declarationTd.textContent = '—';
+
+      const actionTd = document.createElement('td');
+      actionTd.append(makePickButton(player));
+      tr.append(
+        nameTd,
+        makeCell(player.affiliation || '—'),
+        makeCell(player.position || '—'),
+        ratingTd,
+        makeCell(player.expected_round || '—'),
+        fitTd,
+        declarationTd,
+        actionTd,
+      );
+      els.watchCandidateBody.append(tr);
     });
-    if (!remaining.length) {
-      els.liveRemainingBody.innerHTML = '<tr><td colspan="7" class="draft-empty">残り候補はありません。</td></tr>';
+    if (!players.length) {
+      els.watchCandidateBody.innerHTML = '<tr><td colspan="8" class="draft-empty">条件に合う候補はいません。</td></tr>';
+    }
+  }
+
+  function renderAllTeamsBoard() {
+    els.watchAllTeamsBoard.replaceChildren();
+    teamOrder.forEach((team) => {
+      const card = document.createElement('article');
+      card.className = 'watch-team-card';
+      if (team === state.watchTeam) card.classList.add('is-selected');
+
+      const head = document.createElement('button');
+      head.type = 'button';
+      head.className = 'watch-team-card-head';
+      head.addEventListener('click', () => {
+        state.watchTeam = team;
+        els.watchTeamSelect.value = team;
+        saveWatchState();
+        renderWatch();
+      });
+      const teamName = document.createElement('strong');
+      teamName.textContent = teamDisplayName(team);
+      const declaration = document.createElement('small');
+      declaration.textContent = declarationCompact(team);
+      head.append(teamName, declaration);
+
+      const list = document.createElement('div');
+      list.className = 'watch-team-picks';
+      const picks = watchPicksForTeam(team);
+      if (!picks.length) {
+        const empty = document.createElement('span');
+        empty.className = 'watch-team-empty';
+        empty.textContent = 'まだ登録なし';
+        list.append(empty);
+      } else {
+        picks.forEach((pick) => {
+          const row = document.createElement('div');
+          const text = document.createElement('span');
+          text.textContent = `${pickLabel(pick)}　${pick.name}`;
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.className = 'watch-remove-button';
+          remove.textContent = '取消';
+          remove.addEventListener('click', (event) => {
+            event.stopPropagation();
+            removeWatchPick(pick.id);
+          });
+          row.append(text, remove);
+          list.append(row);
+        });
+      }
+      card.append(head, list);
+      els.watchAllTeamsBoard.append(card);
+    });
+  }
+
+  function renderSingleTeamBoard() {
+    els.watchSingleTeamBoard.replaceChildren();
+    const team = state.watchTeam;
+    const picks = watchPicksForTeam(team);
+
+    const head = document.createElement('div');
+    head.className = 'watch-single-head';
+    const title = document.createElement('div');
+    const h3 = document.createElement('h3');
+    h3.textContent = `${teamDisplayName(team)} 指名記録`;
+    const p = document.createElement('p');
+    p.textContent = declarationCompact(team);
+    title.append(h3, p);
+    const count = document.createElement('strong');
+    count.textContent = `${picks.length}人`;
+    head.append(title, count);
+
+    const list = document.createElement('div');
+    list.className = 'watch-single-list';
+    if (!picks.length) {
+      const empty = document.createElement('p');
+      empty.className = 'watch-team-empty';
+      empty.textContent = 'まだこの球団の指名は登録されていません。';
+      list.append(empty);
+    } else {
+      picks.forEach((pick) => {
+        const player = state.players.find((item) => item.player_id === pick.player_id);
+        const row = document.createElement('div');
+        row.className = 'watch-single-pick';
+        const label = document.createElement('strong');
+        label.textContent = pickLabel(pick);
+        const info = document.createElement('div');
+        const name = document.createElement('span');
+        name.textContent = pick.name;
+        const meta = document.createElement('small');
+        meta.textContent = player ? `${player.affiliation}・${player.position}・${player.rating}評価` : '';
+        info.append(name, meta);
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'watch-remove-button';
+        remove.textContent = '取消';
+        remove.addEventListener('click', () => removeWatchPick(pick.id));
+        row.append(label, info, remove);
+        list.append(row);
+      });
+    }
+    els.watchSingleTeamBoard.append(head, list);
+  }
+
+  function renderWatch() {
+    if (!state.players.length) return;
+    els.watchModeButtons.forEach((button) => {
+      const active = button.dataset.watchMode === state.watchMode;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    els.watchTeamSelect.value = state.watchTeam;
+    els.watchPickType.value = state.watchPickType;
+    els.watchRound.value = state.watchRound;
+    els.watchSort.value = state.watchSort;
+    els.watchTeamLabel.textContent = state.watchMode === 'all' ? '今回の指名球団' : '追いかける球団';
+
+    const available = watchFilteredPlayers();
+    const allAvailable = watchAvailablePlayers();
+    const team = state.teamAnalyses.find((item) => item.team === state.watchTeam) || null;
+    const highFit = team
+      ? allAvailable.filter((player) => {
+          const fit = calculateFit(player, team);
+          return fit.calculable && fit.score >= 68;
+        }).length
+      : null;
+    const top = allAvailable.filter((player) => player.rating === 'S' || player.rating === 'A').length;
+
+    setText(els.watchPickedCount, state.watchMode === 'all' ? state.watchPicks.length : watchPicksForTeam(state.watchTeam).length);
+    setText(els.watchRemainingCount, allAvailable.length);
+    setText(els.watchTopCount, top);
+    setText(els.watchFitCount, highFit == null ? '—' : highFit);
+    els.watchCandidateCount.textContent = `${available.length}人`;
+    els.watchSaveStatus.textContent = state.storageReady ? 'このブラウザに保存' : '保存できません';
+    els.watchSaveStatus.dataset.state = state.storageReady ? 'saved' : 'error';
+
+    if (state.watchMode === 'all') {
+      els.watchPickedNote.textContent = '全12球団の登録数';
+      els.watchCandidateSummaryLabel.textContent = '残り候補';
+      els.watchRemainingNote.textContent = '登録済みを除外';
+      els.watchCandidateTitle.textContent = '残り候補';
+      els.watchCandidateNote.textContent = '12球団の指名を登録すると、指名済み選手が一覧から消えます。';
+      els.watchBoardTitle.textContent = '12球団 指名記録';
+      els.watchBoardNote.textContent = '球団カードを押すと、その球団を次の指名球団に切り替えます。';
+      els.watchAllTeamsBoard.hidden = false;
+      els.watchSingleTeamBoard.hidden = true;
+      els.watchNote.textContent = '12球団モードでは全球団の指名を入力した場合のみ「残り候補」が実際の残り候補と一致します。1位は抽選で交渉権が確定してから登録してください。';
+      renderAllTeamsBoard();
+    } else {
+      els.watchPickedNote.textContent = `${teamDisplayName(state.watchTeam)}の登録数`;
+      els.watchCandidateSummaryLabel.textContent = '候補データ';
+      els.watchRemainingNote.textContent = '登録済み選手を除外';
+      els.watchCandidateTitle.textContent = `${teamDisplayName(state.watchTeam)}から候補を選ぶ`;
+      els.watchCandidateNote.textContent = '他球団の指名を入力しなくても、この球団の指名だけ記録できます。表示候補はリーグ全体の「残り」を保証しません。';
+      els.watchBoardTitle.textContent = `${teamDisplayName(state.watchTeam)}のみ`;
+      els.watchBoardNote.textContent = '好きな球団だけ追いかけるための記録ページです。';
+      els.watchAllTeamsBoard.hidden = true;
+      els.watchSingleTeamBoard.hidden = false;
+      els.watchNote.textContent = '特定球団モードでは他球団の指名入力は不要です。そのため候補一覧には、実際には他球団から指名済みの選手が残る場合があります。';
+      renderSingleTeamBoard();
     }
 
-    els.livePicksBody.replaceChildren();
-    const recent = [...state.results].sort((a, b) => {
-      const aPick = Number(a.overall_pick);
-      const bPick = Number(b.overall_pick);
-      if (Number.isFinite(aPick) && Number.isFinite(bPick) && aPick !== bPick) return bPick - aPick;
-      return (b._index ?? 0) - (a._index ?? 0);
-    }).slice(0, 24);
-    recent.forEach((result) => {
-      const tr = document.createElement('tr');
-      tr.append(
-        makeCell(result.overall_pick || '—'),
-        makeCell(teamDisplayName(result.team) || result.team || '—'),
-        makeCell(result.round || '—'),
-        makeCell(result.name || '—'),
-        makeCell(result.pick_type || '—'),
-      );
-      els.livePicksBody.append(tr);
-    });
-    if (!recent.length) {
-      els.livePicksBody.innerHTML = '<tr><td colspan="5" class="draft-empty">まだ指名結果は登録されていません。ドラフト前は全候補を残り候補として表示します。</td></tr>';
-    }
+    renderWatchAnnouncement();
+    renderWatchCandidateTable(available);
   }
 
   function setMode(mode) {
@@ -1089,27 +1490,21 @@
 
     const isTeamLens = mode === 'team-lens';
     const isFit = mode === 'fit';
-    const isLive = mode === 'live';
-    const isSpecial = isTeamLens || isFit || isLive;
+    const isDeclarations = mode === 'declarations';
+    const isWatch = mode === 'watch';
+    const isSpecial = isTeamLens || isFit || isDeclarations || isWatch;
     els.filters.hidden = isSpecial;
     els.workspace.hidden = isSpecial;
     els.teamLensPanel.hidden = !isTeamLens;
     els.fitPanel.hidden = !isFit;
-    els.livePanel.hidden = !isLive;
+    els.declarationPanel.hidden = !isDeclarations;
+    els.watchPanel.hidden = !isWatch;
     els.disclaimer.hidden = isSpecial;
 
-    if (isTeamLens) {
-      renderTeamLens();
-      return;
-    }
-    if (isFit) {
-      renderFit();
-      return;
-    }
-    if (isLive) {
-      renderLive();
-      return;
-    }
+    if (isTeamLens) { renderTeamLens(); return; }
+    if (isFit) { renderFit(); return; }
+    if (isDeclarations) { renderDeclarations(); return; }
+    if (isWatch) { renderWatch(); return; }
 
     const submitted = mode === 'submitted';
     els.declarationWrap.hidden = submitted;
@@ -1149,9 +1544,48 @@
       state.selectedFitTeam = els.fitTeamSelect.value;
       renderFit();
     });
-    els.liveTeamSelect.addEventListener('change', () => {
-      state.selectedLiveTeam = els.liveTeamSelect.value;
-      renderLive();
+
+    els.watchModeButtons.forEach((button) => button.addEventListener('click', () => {
+      state.watchMode = button.dataset.watchMode;
+      saveWatchState();
+      renderWatch();
+    }));
+    els.watchTeamSelect.addEventListener('change', () => {
+      state.watchTeam = els.watchTeamSelect.value;
+      saveWatchState();
+      renderWatch();
+    });
+    els.watchPickType.addEventListener('change', () => {
+      state.watchPickType = els.watchPickType.value;
+      state.watchRound = '1';
+      initWatchControls();
+      saveWatchState();
+      renderWatch();
+    });
+    els.watchRound.addEventListener('change', () => {
+      state.watchRound = els.watchRound.value;
+      saveWatchState();
+    });
+    els.watchSort.addEventListener('change', () => {
+      state.watchSort = els.watchSort.value;
+      saveWatchState();
+      renderWatch();
+    });
+    [els.watchSearch, els.watchPosition, els.watchRating].forEach((control) => {
+      control.addEventListener(control === els.watchSearch ? 'input' : 'change', renderWatch);
+    });
+    els.watchUndo.addEventListener('click', () => {
+      if (!state.watchPicks.length) return;
+      state.watchPicks.pop();
+      saveWatchState();
+      renderWatch();
+    });
+    els.watchReset.addEventListener('click', () => {
+      if (!state.watchPicks.length) return;
+      if (!window.confirm('このブラウザに保存した2026年ドラフトの指名記録をすべて消去しますか？')) return;
+      state.watchPicks = [];
+      saveWatchState();
+      renderWatch();
     });
   }
 
@@ -1164,21 +1598,20 @@
   }
 
 
-  async function loadResults() {
+  async function loadDeclarations() {
     try {
-      const response = await fetch(RESULTS_DATA_URL, { cache: 'no-store' });
-      if (!response.ok) throw new Error(`指名結果 HTTP ${response.status}`);
+      const response = await fetch(DECLARATIONS_DATA_URL, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`1位公言データ HTTP ${response.status}`);
       const text = await response.text();
-      state.results = parseCsv(text.replace(/^\uFEFF/, ''))
-        .filter((result) => result.player_id || result.name)
-        .map((result, index) => ({ ...result, _index: index }));
-      state.resultsReady = true;
+      state.declarations = parseCsv(text.replace(/^\uFEFF/, '')).filter((item) => item.team);
+      state.declarationsReady = true;
     } catch (error) {
       console.warn(error);
-      state.results = [];
-      state.resultsReady = false;
+      state.declarations = teamOrder.map((team) => ({ team, status: '未公表' }));
+      state.declarationsReady = false;
     }
   }
+
 
   async function loadRoster() {
     const response = await fetch(ROSTER_DATA_URL, { cache: 'no-store' });
@@ -1194,12 +1627,13 @@
 
   async function init() {
     bindEvents();
+    loadWatchState();
     try {
       await loadCandidates();
       initFilters();
       initFitCandidateSelector();
-      initLiveTeamSelector();
-      await loadResults();
+      initWatchControls();
+      await loadDeclarations();
       renderSummary();
       setMode('board');
     } catch (error) {
@@ -1217,7 +1651,7 @@
       els.status.classList.add('is-ready');
       if (state.mode === 'team-lens') renderTeamLens();
       if (state.mode === 'fit') renderFit();
-      if (state.mode === 'live') renderLive();
+      if (state.mode === 'watch') renderWatch();
     } catch (error) {
       console.error(error);
       els.status.textContent = `${state.players.length}人公開中`;
@@ -1225,7 +1659,7 @@
       document.getElementById('teamLensTab').title = '球団データを読み込めないため現在利用できません';
       document.getElementById('fitTab').disabled = true;
       document.getElementById('fitTab').title = '球団データを読み込めないため現在利用できません';
-      if (state.mode === 'live') renderLive();
+      if (state.mode === 'watch') renderWatch();
     }
   }
 

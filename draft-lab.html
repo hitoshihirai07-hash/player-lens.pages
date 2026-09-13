@@ -14,7 +14,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="./assets/player-lens-icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./assets/styles.css?v=20260719-home-renewal">
-  <link rel="stylesheet" href="./assets/draft-lab.css?v=20260913-stage5">
+  <link rel="stylesheet" href="./assets/draft-lab.css?v=20260913-stage5-redo">
 </head>
 <body>
   <header class="page-header draft-page-header">
@@ -56,7 +56,8 @@
         <button class="draft-tab" id="submittedTab" type="button" role="tab" aria-selected="false" data-mode="submitted">志望届</button>
         <button class="draft-tab" id="teamLensTab" type="button" role="tab" aria-selected="false" data-mode="team-lens">12球団補強Lens</button>
         <button class="draft-tab" id="fitTab" type="button" role="tab" aria-selected="false" data-mode="fit">候補×球団Fit</button>
-        <button class="draft-tab" id="liveTab" type="button" role="tab" aria-selected="false" data-mode="live">ドラフトLIVE</button>
+        <button class="draft-tab" id="declarationTab" type="button" role="tab" aria-selected="false" data-mode="declarations">1位公言</button>
+        <button class="draft-tab" id="watchTab" type="button" role="tab" aria-selected="false" data-mode="watch">観戦指名ボード</button>
       </div>
       <div class="draft-filters" id="draftFilters">
         <label class="draft-search"><span>選手・所属検索</span><input id="draftSearch" type="search" autocomplete="off" placeholder="例：織田翔希、横浜"></label>
@@ -168,52 +169,95 @@
       <p class="draft-disclaimer fit-note">Fit指数は「球団が指名する確率」ではありません。構成適合度55%、候補評価20%、想定指名ゾーン10%、左右バランス10%、複数ポジション5%で算出します。メインポジション未確認の候補は推測せず算出保留とします。</p>
     </section>
 
-
-    <section class="live-panel" id="livePanel" hidden aria-labelledby="liveTitle">
-      <div class="live-heading">
+    <section class="declaration-panel" id="declarationPanel" hidden aria-labelledby="declarationTitle">
+      <div class="declaration-heading">
         <div>
-          <h2 id="liveTitle">ドラフトLIVE・残り候補</h2>
-          <p>指名済みの選手を除外しながら、残っている上位候補と選択球団に合う候補を追います。ドラフト前は全候補を残り候補として表示します。</p>
+          <h2 id="declarationTitle">12球団・ドラフト1位公言</h2>
+          <p>球団・監督・GMなどが1位指名を明言した「公言」と、報道上の「有力」を分けて整理します。候補として名前が挙がっただけの情報は公言扱いにしません。</p>
         </div>
-        <label class="live-team-select"><span>注目球団</span><select id="liveTeamSelect"></select></label>
+        <span class="declaration-updated" id="declarationUpdated">最終確認 --</span>
       </div>
 
-      <div class="live-summary-grid" aria-label="ドラフトLIVE概要">
-        <article><span>指名済み</span><strong id="livePickedCount">0</strong><small>登録済みの指名結果</small></article>
-        <article><span>残り候補</span><strong id="liveRemainingCount">--</strong><small>指名済みを除外</small></article>
-        <article><span>残りS・A</span><strong id="liveTopRemainingCount">--</strong><small>上位評価の残数</small></article>
-        <article><span>Fit高以上</span><strong id="liveFitCount">--</strong><small>選択球団との構成適合度</small></article>
+      <div class="declaration-summary-grid" aria-label="1位公言状況">
+        <article><span>公言</span><strong id="declarationOfficialCount">0</strong><small>明言を確認</small></article>
+        <article><span>有力報道</span><strong id="declarationLikelyCount">0</strong><small>公言とは別表示</small></article>
+        <article><span>未公表</span><strong id="declarationUnannouncedCount">12</strong><small>正式な公言なし</small></article>
       </div>
 
-      <div class="live-grid">
-        <section class="live-remaining-panel">
-          <div class="draft-panel-heading">
-            <div><h2 id="liveRemainingTitle">残り候補ランキング</h2><p>評価と想定指名ゾーンを軸に、指名されていない候補を表示します。</p></div>
-            <strong id="liveRemainingLabel">--人</strong>
-          </div>
-          <div class="live-table-scroll" tabindex="0" aria-label="ドラフト残り候補">
-            <table class="live-table">
-              <thead><tr><th>順位</th><th>候補</th><th>所属</th><th>位置</th><th>評価</th><th>想定</th><th>Fit</th></tr></thead>
-              <tbody id="liveRemainingBody"><tr><td colspan="7" class="draft-empty">候補データを読み込んでいます。</td></tr></tbody>
-            </table>
-          </div>
-        </section>
-
-        <section class="live-picks-panel">
-          <div class="draft-panel-heading">
-            <div><h2>直近の指名</h2><p>登録された指名結果を新しい順に表示します。</p></div>
-          </div>
-          <div class="live-picks-scroll" tabindex="0" aria-label="直近の指名結果">
-            <table class="live-picks-table">
-              <thead><tr><th>全体</th><th>球団</th><th>巡目</th><th>選手</th><th>区分</th></tr></thead>
-              <tbody id="livePicksBody"><tr><td colspan="5" class="draft-empty">まだ指名結果は登録されていません。</td></tr></tbody>
-            </table>
-          </div>
-        </section>
+      <div class="declaration-table-scroll" tabindex="0" aria-label="12球団の1位公言一覧">
+        <table class="declaration-table">
+          <thead><tr><th>球団</th><th>状況</th><th>選手</th><th>所属</th><th>公言日</th><th>発言者</th><th>情報源</th></tr></thead>
+          <tbody id="declarationBody"><tr><td colspan="7" class="draft-empty">公言データを読み込んでいます。</td></tr></tbody>
+        </table>
       </div>
 
-      <p class="draft-disclaimer live-note">指名結果は更新データをもとに反映します。残り候補順位とFitはPlayer Lens独自の整理で、実際の指名順や球団の指名意向を示すものではありません。</p>
+      <p class="draft-disclaimer declaration-note">「公言」は球団関係者による1位指名の明言を確認できた場合のみ表示します。「有力報道」は報道上の有力候補であり、球団の確定意思ではありません。ドラフト後は公言と実際の1位指名を答え合わせできるよう記録を残します。</p>
     </section>
+
+    <section class="watch-panel" id="watchPanel" hidden aria-labelledby="watchTitle">
+      <div class="watch-heading">
+        <div>
+          <h2 id="watchTitle">ドラフト観戦・指名ボード</h2>
+          <p>テレビ中継やネット記事を見ながら、発表された指名を自分のペースで登録できます。入力内容はこのブラウザだけに保存され、サイト運営側への送信やページ更新は不要です。</p>
+        </div>
+        <span class="watch-save-status" id="watchSaveStatus">ブラウザ保存</span>
+      </div>
+
+      <div class="watch-mode-switch" role="tablist" aria-label="観戦ボードのモード">
+        <button type="button" class="watch-mode-button is-active" id="watchModeAll" data-watch-mode="all" aria-selected="true">12球団モード</button>
+        <button type="button" class="watch-mode-button" id="watchModeTeam" data-watch-mode="team" aria-selected="false">特定球団モード</button>
+      </div>
+
+      <div class="watch-controls">
+        <label><span id="watchTeamLabel">今回の指名球団</span><select id="watchTeamSelect"></select></label>
+        <label><span>指名区分</span><select id="watchPickType"><option value="本指名">本指名</option><option value="育成">育成</option></select></label>
+        <label><span>巡目</span><select id="watchRound"></select></label>
+        <label><span>候補の並び</span><select id="watchSort"><option value="rating">評価順</option><option value="fit">選択球団Fit順</option></select></label>
+        <button class="watch-action-button" id="watchUndo" type="button">最後の指名を戻す</button>
+        <button class="watch-action-button is-danger" id="watchReset" type="button">記録を全消去</button>
+      </div>
+
+      <div class="watch-announcement" id="watchAnnouncement" aria-live="polite"></div>
+
+      <div class="watch-summary-grid" aria-label="観戦ボード概要">
+        <article><span>登録済み</span><strong id="watchPickedCount">0</strong><small id="watchPickedNote">全12球団の登録数</small></article>
+        <article><span id="watchCandidateSummaryLabel">残り候補</span><strong id="watchRemainingCount">--</strong><small id="watchRemainingNote">登録済みを除外</small></article>
+        <article><span>S・A評価</span><strong id="watchTopCount">--</strong><small>一覧内の上位評価</small></article>
+        <article><span>選択球団Fit高以上</span><strong id="watchFitCount">--</strong><small>球団データ読込時</small></article>
+      </div>
+
+      <div class="watch-filter-row">
+        <label class="watch-search"><span>候補検索</span><input id="watchSearch" type="search" autocomplete="off" placeholder="選手名・所属で検索"></label>
+        <label><span>ポジション</span><select id="watchPosition"><option value="all">すべて</option></select></label>
+        <label><span>評価</span><select id="watchRating"><option value="all">すべて</option><option value="S">S</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></label>
+      </div>
+
+      <div class="watch-layout">
+        <section class="watch-candidates-panel">
+          <div class="draft-panel-heading">
+            <div><h2 id="watchCandidateTitle">残り候補</h2><p id="watchCandidateNote">12球団の指名を登録すると、指名済み選手が一覧から消えます。</p></div>
+            <strong id="watchCandidateCount">--人</strong>
+          </div>
+          <div class="watch-candidate-scroll" tabindex="0" aria-label="観戦用候補一覧">
+            <table class="watch-candidate-table">
+              <thead><tr><th>候補</th><th>所属</th><th>位置</th><th>評価</th><th>想定</th><th>Fit</th><th>公言</th><th></th></tr></thead>
+              <tbody id="watchCandidateBody"><tr><td colspan="8" class="draft-empty">候補データを読み込んでいます。</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="watch-board-panel">
+          <div class="draft-panel-heading">
+            <div><h2 id="watchBoardTitle">12球団 指名記録</h2><p id="watchBoardNote">各球団の登録内容をまとめて確認できます。</p></div>
+          </div>
+          <div id="watchAllTeamsBoard" class="watch-team-grid" aria-label="12球団の指名記録"></div>
+          <div id="watchSingleTeamBoard" class="watch-single-team" hidden></div>
+        </section>
+      </div>
+
+      <p class="draft-disclaimer watch-note" id="watchNote">12球団モードでは全球団の指名を入力した場合のみ「残り候補」が実際の残り候補と一致します。1位は抽選で交渉権が確定してから登録してください。特定球団モードでは他球団の指名入力は不要です。</p>
+    </section>
+
 
     <p class="draft-disclaimer" id="draftDisclaimer">評価・想定指名ゾーンはPlayer Lensで整理している暫定情報です。志望届、公示日、所属などの事実情報とは分けて扱っています。未評価の選手も2026年ドラフト対象候補として一覧から除外しません。</p>
   </main>
@@ -227,6 +271,6 @@
     <a href="./">Player Lens</a><a href="./about">このサイトについて</a><a href="./guide">使い方</a><a href="./privacy">プライバシー</a><a href="./disclaimer">免責事項</a><a href="./contact">お問い合わせ</a>
   </footer>
 
-  <script src="./assets/draft-lab.js?v=20260913-stage5" defer></script>
+  <script src="./assets/draft-lab.js?v=20260913-stage5-redo" defer></script>
 </body>
 </html>
