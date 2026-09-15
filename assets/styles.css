@@ -4338,3 +4338,489 @@ tbody tr.is-selected {
   }
 }
 \n\n/* Pennant race */\n.pennant-shell {\n  display: grid;\n  gap: 16px;\n}\n\n.pennant-intro {\n  margin-bottom: 0;\n}\n\n.pennant-updated {\n  display: grid;\n  gap: 2px;\n  min-width: 180px;\n  padding: 10px 13px;\n  border: 1px solid var(--line);\n  border-radius: 8px;\n  background: #f8fafc;\n  text-align: center;\n}\n\n.pennant-updated strong {\n  color: var(--ink);\n  font-size: 14px;\n}\n\n.pennant-updated span {\n  color: var(--muted);\n  font-size: 11px;\n  font-weight: 700;\n}\n\n.pennant-league-tabs {\n  display: grid;\n  grid-template-columns: repeat(2, minmax(0, 1fr));\n  gap: 8px;\n  max-width: 520px;\n  padding: 5px;\n  border: 1px solid var(--line);\n  border-radius: 10px;\n  background: var(--paper);\n  box-shadow: var(--shadow);\n}\n\n.pennant-league-tabs button {\n  min-height: 44px;\n  border: 0;\n  border-radius: 7px;\n  background: transparent;\n  color: #344256;\n  font-weight: 800;\n  cursor: pointer;\n}\n\n.pennant-league-tabs button[aria-selected="true"] {\n  background: var(--accent-soft);\n  color: var(--accent-dark);\n}\n\n.pennant-league-tabs button:focus-visible {\n  outline: 3px solid rgba(15, 118, 110, 0.24);\n  outline-offset: 2px;\n}\n\n.pennant-league-panel {\n  display: grid;\n  grid-template-columns: minmax(300px, 0.82fr) minmax(0, 1.38fr);\n  gap: 16px;\n  align-items: start;\n}\n\n.pennant-magic-card {\n  position: sticky;\n  top: 12px;\n  display: grid;\n  gap: 14px;\n  min-width: 0;\n  padding: 22px;\n  border: 1px solid #e4c47f;\n  border-top: 4px solid var(--gold);\n  border-radius: 10px;\n  background: linear-gradient(180deg, #fffaf0 0%, #ffffff 72%);\n  box-shadow: var(--shadow);\n}\n\n.pennant-magic-card.is-off {\n  border-color: var(--line);\n  border-top-color: var(--accent);\n  background: var(--paper);\n}\n\n.pennant-magic-card.is-clinched {\n  justify-items: center;\n  text-align: center;\n}\n\n.pennant-magic-topline {\n  display: flex;\n  align-items: center;\n  gap: 9px;\n}\n\n.pennant-magic-topline span {\n  display: inline-grid;\n  place-items: center;\n  min-width: 31px;\n  height: 31px;\n  padding: 0 7px;\n  border-radius: 7px;\n  background: var(--gold-soft);\n  color: #805915;\n  font-size: 12px;\n  font-weight: 900;\n}\n\n.pennant-magic-topline strong {\n  font-size: 21px;\n}\n\n.pennant-magic-label {\n  color: #805915;\n  font-size: 12px;\n  font-weight: 800;\n}\n\n.pennant-magic-value {\n  color: #8c5c12;\n  font-size: clamp(52px, 9vw, 82px);\n  font-weight: 900;\n  line-height: 0.95;\n  letter-spacing: -0.04em;\n}\n\n.pennant-magic-value.is-clinched {\n  font-size: clamp(34px, 5vw, 52px);\n  letter-spacing: 0;\n}\n\n.pennant-champion-mark {\n  font-size: 44px;\n  line-height: 1;\n}\n\n.pennant-magic-note {\n  margin: 0;\n  color: var(--muted);\n}\n\n.pennant-magic-meta {\n  display: grid;\n  grid-template-columns: repeat(2, minmax(0, 1fr));\n  border-top: 1px solid #eadab2;\n  border-bottom: 1px solid #eadab2;\n}\n\n.pennant-magic-meta > div {\n  display: grid;\n  gap: 2px;\n  padding: 12px 8px;\n}\n\n.pennant-magic-meta > div + div {\n  border-left: 1px solid #eadab2;\n}\n\n.pennant-magic-meta span {\n  color: var(--muted);\n  font-size: 11px;\n  font-weight: 700;\n}\n\n.pennant-magic-meta strong {\n  font-size: 20px;\n}\n\n.pennant-today {\n  display: grid;\n  gap: 4px;\n  padding: 12px 13px;\n  border-radius: 8px;\n  background: #f8fafc;\n}\n\n.pennant-today span {\n  color: var(--muted);\n  font-size: 11px;\n  font-weight: 800;\n}\n\n.pennant-today strong {\n  font-size: 14px;\n  line-height: 1.55;\n}\n\n.pennant-cs-card {\n  min-width: 0;\n}\n\n.pennant-section-heading {\n  margin-bottom: 8px;\n}\n\n.pennant-section-heading p {\n  margin: 4px 0 0;\n  color: var(--muted);\n  font-size: 12px;\n}\n\n.pennant-cs-list {\n  display: grid;\n}\n\n.pennant-cs-row {\n  display: grid;\n  grid-template-columns: 42px minmax(150px, 0.8fr) minmax(210px, 1.2fr);\n  gap: 12px;\n  align-items: center;\n  min-height: 72px;\n  padding: 10px 8px;\n  border-bottom: 1px solid var(--line);\n}\n\n.pennant-cs-row:last-child {\n  border-bottom: 0;\n}\n\n.pennant-cs-row.is-cs-zone {\n  background: linear-gradient(90deg, rgba(183, 121, 31, 0.07), transparent 58%);\n}\n\n.pennant-cs-row.is-below-cs-line {\n  position: relative;\n  margin-top: 9px;\n  border-top: 2px solid #c9a65f;\n}\n\n.pennant-cs-row.is-below-cs-line::before {\n  content: "CSライン";\n  position: absolute;\n  top: -10px;\n  right: 8px;\n  padding: 0 5px;\n  background: var(--paper);\n  color: #8c6b2d;\n  font-size: 9px;\n  font-weight: 900;\n}\n\n.pennant-rank {\n  display: grid;\n  place-items: center;\n  width: 32px;\n  height: 32px;\n  border-radius: 8px;\n  background: #eef2f6;\n  color: #536174;\n  font-size: 13px;\n  font-weight: 900;\n}\n\n.pennant-cs-row.is-cs-zone .pennant-rank {\n  background: var(--gold-soft);\n  color: #805915;\n}\n\n.pennant-team {\n  display: grid;\n  gap: 2px;\n}\n\n.pennant-team strong {\n  font-size: 16px;\n}\n\n.pennant-team span {\n  color: var(--muted);\n  font-size: 11px;\n  font-weight: 700;\n}\n\n.pennant-cs-status {\n  display: grid;\n  gap: 2px;\n  justify-items: end;\n  text-align: right;\n}\n\n.pennant-cs-status strong {\n  color: var(--accent-dark);\n  font-size: 14px;\n}\n\n.pennant-cs-status span {\n  color: var(--muted);\n  font-size: 11px;\n  font-weight: 700;\n}\n\n.pennant-cs-status.is-clinched strong {\n  color: #18744c;\n}\n\n.pennant-cs-status.is-warning strong {\n  color: #8a5a13;\n}\n\n.pennant-cs-status.is-muted strong {\n  color: var(--muted);\n}\n\n.pennant-warning {\n  grid-column: 1 / -1;\n  padding: 13px 15px;\n  border: 1px solid #e8cf91;\n  border-radius: 8px;\n  background: #fff9e8;\n  color: #684817;\n}\n\n.pennant-warning strong {\n  font-size: 14px;\n}\n\n.pennant-warning p {\n  margin: 5px 0 0;\n  color: #765a2a;\n  font-size: 12px;\n}\n\n.pennant-method {\n  padding: 0;\n}\n\n.pennant-method summary {\n  padding: 15px 18px;\n  color: var(--accent-dark);\n  font-weight: 800;\n  cursor: pointer;\n}\n\n.pennant-method-body {\n  padding: 0 18px 16px;\n}\n\n.pennant-method-body p {\n  margin: 8px 0 0;\n  color: #445267;\n  font-size: 13px;\n}\n\n.pennant-loading {\n  margin: 0;\n  color: var(--muted);\n}\n\n@media (max-width: 850px) {\n  .pennant-league-panel {\n    grid-template-columns: 1fr;\n  }\n\n  .pennant-magic-card {\n    position: static;\n  }\n}\n\n@media (max-width: 700px) {\n  .pennant-intro {\n    grid-template-columns: 1fr;\n  }\n\n  .pennant-updated {\n    justify-self: start;\n    min-width: 0;\n    text-align: left;\n  }\n\n  .pennant-league-tabs {\n    max-width: none;\n  }\n\n  .pennant-magic-card {\n    padding: 18px;\n  }\n\n  .pennant-magic-value {\n    font-size: 58px;\n  }\n\n  .pennant-cs-row {\n    grid-template-columns: 34px minmax(0, 1fr);\n    gap: 8px 10px;\n    min-height: 76px;\n    padding: 11px 4px;\n  }\n\n  .pennant-rank {\n    width: 30px;\n    height: 30px;\n  }\n\n  .pennant-cs-status {\n    grid-column: 2;\n    justify-items: start;\n    text-align: left;\n  }\n\n  .pennant-cs-row.is-below-cs-line::before {\n    right: 4px;\n  }\n}\n\n@media (max-width: 420px) {\n  .pennant-magic-meta {\n    grid-template-columns: 1fr;\n  }\n\n  .pennant-magic-meta > div + div {\n    border-left: 0;\n    border-top: 1px solid #eadab2;\n  }\n}\n
+/* Award Race */
+.award-page-header {
+  background:
+    radial-gradient(circle at 88% 24%, rgba(183, 121, 31, 0.12), transparent 26%),
+    var(--paper);
+}
+
+.award-header-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: end;
+}
+
+.award-header-row > div:first-child > p:last-child {
+  max-width: 900px;
+  margin: 8px 0 0;
+  color: #445166;
+}
+
+.award-shell {
+  display: grid;
+  gap: 16px;
+}
+
+.award-intro {
+  margin-bottom: 0;
+}
+
+.award-control-panel {
+  position: sticky;
+  top: 0;
+  z-index: 12;
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 8px 24px rgba(20, 33, 48, 0.08);
+  backdrop-filter: blur(8px);
+}
+
+.award-control-row {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.award-control-row > div:first-child {
+  display: grid;
+  gap: 6px;
+}
+
+.award-control-label,
+.award-updated {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.award-segment,
+.award-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.award-segment button,
+.award-tabs button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 8px 13px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: #fff;
+  color: #344256;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.award-segment button[aria-pressed="true"],
+.award-tabs button[aria-selected="true"] {
+  border-color: #d7b56b;
+  background: var(--gold-soft);
+  color: #80510f;
+}
+
+.award-tabs {
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.award-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.award-summary-card {
+  display: grid;
+  gap: 4px;
+  min-height: 96px;
+  padding: 14px;
+  border: 1px solid #ead8ae;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fffdf8, #fff9e9);
+}
+
+.award-summary-card span,
+.award-summary-card small {
+  color: #7b6a48;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.award-summary-card strong {
+  font-size: 19px;
+  line-height: 1.25;
+}
+
+.award-position-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.award-position-card,
+.award-wide-card,
+.award-title-card {
+  min-width: 0;
+}
+
+.award-section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.award-section-heading h2 {
+  font-size: 22px;
+}
+
+.award-leader-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 1px solid #ead8ae;
+  border-radius: 999px;
+  background: #fff9e9;
+  color: #80510f;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.award-candidate-list,
+.award-mvp-list {
+  display: grid;
+  gap: 8px;
+}
+
+.award-candidate,
+.award-mvp-row {
+  display: grid;
+  grid-template-columns: 38px minmax(125px, 0.8fr) minmax(0, 1.5fr);
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfd;
+}
+
+.award-candidate.is-first,
+.award-mvp-row.is-first {
+  border-color: #ddbc73;
+  background: linear-gradient(90deg, #fff9e7, #fffdf7);
+}
+
+.award-candidate.is-second,
+.award-mvp-row.is-second {
+  border-color: #cdd4df;
+}
+
+.award-candidate.is-third,
+.award-mvp-row.is-third {
+  border-color: #d7bea8;
+}
+
+.award-rank-badge {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 50%;
+  background: #eef2f6;
+  color: #526173;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.is-first .award-rank-badge {
+  background: #f6d982;
+  color: #6e4709;
+}
+
+.is-second .award-rank-badge {
+  background: #dfe4eb;
+  color: #4b5565;
+}
+
+.is-third .award-rank-badge {
+  background: #e4c5aa;
+  color: #694326;
+}
+
+.award-candidate-main {
+  min-width: 0;
+}
+
+.award-candidate-name {
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.award-candidate-team {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.award-mini-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.award-mini-stats > div {
+  min-width: 0;
+  padding-left: 8px;
+  border-left: 1px solid var(--line);
+}
+
+.award-mini-stats dt {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.award-mini-stats dd {
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.award-two-column {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.award-rookie-link-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.award-rookie-link-card p {
+  margin: 5px 0 0;
+  color: var(--muted);
+}
+
+.award-title-section {
+  display: grid;
+  gap: 10px;
+}
+
+.award-title-section + .award-title-section {
+  margin-top: 18px;
+}
+
+.award-title-section-heading {
+  padding: 0 2px;
+}
+
+.award-title-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.award-title-card {
+  padding: 14px;
+}
+
+.award-title-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.award-title-heading span {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.award-title-heading small {
+  color: #80510f;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.award-title-list {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.award-title-list li {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 8px 0;
+  border-top: 1px solid #edf0f4;
+}
+
+.award-title-list li:first-child {
+  border-top: 0;
+}
+
+.award-title-rank {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 6px;
+  background: #f2f4f7;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.award-title-list li:first-child .award-title-rank {
+  background: var(--gold-soft);
+  color: #80510f;
+}
+
+.award-title-list li > div {
+  min-width: 0;
+}
+
+.award-title-list strong,
+.award-title-list small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.award-title-list strong {
+  font-size: 13px;
+}
+
+.award-title-list small {
+  margin-top: 1px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.award-title-list b {
+  color: #293548;
+  font-size: 15px;
+}
+
+.award-method-card {
+  display: grid;
+  gap: 12px;
+}
+
+.award-method-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.award-method-grid > div {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.award-method-grid strong {
+  font-size: 14px;
+}
+
+.award-method-grid span {
+  color: #526173;
+  font-size: 12px;
+}
+
+@media (max-width: 980px) {
+  .award-position-grid,
+  .award-two-column {
+    grid-template-columns: 1fr;
+  }
+
+  .award-title-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .award-header-row,
+  .award-control-row,
+  .award-rookie-link-card {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .award-control-panel {
+    position: static;
+  }
+
+  .award-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .award-candidate,
+  .award-mvp-row {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .award-mini-stats {
+    grid-column: 1 / -1;
+  }
+
+  .award-title-grid,
+  .award-method-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .award-summary-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .award-summary-card {
+    min-height: 82px;
+    padding: 11px;
+  }
+
+  .award-summary-card strong {
+    font-size: 16px;
+  }
+
+  .award-mini-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

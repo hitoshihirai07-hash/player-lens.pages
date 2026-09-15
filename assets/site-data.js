@@ -1207,6 +1207,18 @@
       }
     }
 
+    if (nav && !Array.from(nav.querySelectorAll("a")).some((link) => /\/award-race(?:$|[?#])/.test(link.href))) {
+      const pennantLink = Array.from(nav.querySelectorAll("a")).find((link) => /\/pennant-race(?:$|[?#])/.test(link.href));
+      const standingsLink = Array.from(nav.querySelectorAll("a")).find((link) => /\/standings(?:$|[?#])/.test(link.href));
+      const anchor = pennantLink || standingsLink;
+      if (anchor) {
+        const link = document.createElement("a");
+        link.href = dataPath("./award-race");
+        link.textContent = "アワードレース";
+        anchor.insertAdjacentElement("afterend", link);
+      }
+    }
+
     if (nav && !Array.from(nav.querySelectorAll("a")).some((link) => /\/starting-lineup(?:$|[?#])/.test(link.href))) {
       const rosterLink = Array.from(nav.querySelectorAll("a")).find((link) => /\/roster(?:$|[?#])/.test(link.href));
       if (rosterLink) {
