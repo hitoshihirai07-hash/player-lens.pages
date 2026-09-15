@@ -101,6 +101,25 @@
     return base + Math.min(starts, 120) * (type === "pitcher" ? 0.25 : 0.7);
   }
 
+  function bestNinePositionStarts(row, positionKey) {
+    if (positionKey === "outfield") {
+      return D.toInt(row["(左)"]) + D.toInt(row["(中)"]) + D.toInt(row["(右)"]);
+    }
+    return D.toInt(row[positionKey]);
+  }
+
+  function primaryBestNinePositions(row) {
+    const positions = ["(捕)", "(一)", "(二)", "(三)", "(遊)", "outfield", "(指)"];
+    const counts = positions.map((key) => [key, bestNinePositionStarts(row, key)]);
+    const maxStarts = Math.max(0, ...counts.map(([, starts]) => starts));
+    return new Set(counts.filter(([, starts]) => starts > 0 && starts === maxStarts).map(([key]) => key));
+  }
+
+  function bestNineMinimumStarts(team) {
+    const games = teamGames(team);
+    return games > 0 ? Math.ceil(games / 3) : 40;
+  }
+
   function bestNineCandidates(position) {
     if (position.type === "pitcher") {
       return data.pitchers
@@ -115,13 +134,20 @@
       .map((row) => {
         const season = batterMap.get(D.playerKey(row));
         const starts = positionStarts(row, position);
-        return { row, season, type: "batter", starts, awardScore: season ? awardScoreForPosition(season, starts, "batter") : 0 };
+        const positionKey = position.key === "outfield" ? "outfield" : position.key;
+        const primaryPositions = primaryBestNinePositions(row);
+        return {
+          row,
+          season,
+          type: "batter",
+          starts,
+          isPrimaryPosition: primaryPositions.has(positionKey),
+          awardScore: season ? awardScoreForPosition(season, starts, "batter") : 0,
+        };
       })
       .filter((item) => {
-        if (!item.season || item.starts <= 0) return false;
-        const games = teamGames(item.season["チーム"]);
-        const minimum = Math.max(18, Math.floor(games * 0.16));
-        return item.starts >= minimum;
+        if (!item.season || item.starts <= 0 || !item.isPrimaryPosition) return false;
+        return item.starts >= bestNineMinimumStarts(item.season["チーム"]);
       })
       .sort((a, b) => b.awardScore - a.awardScore || b.starts - a.starts);
   }
@@ -189,7 +215,7 @@
       ["表示中", `${leagueLabel()} ベストナイン`, "成績＋守備位置別の起用"],
       ["ポジション", `${positions.length}区分`, state.league === "パ" ? "DHを含む" : "外野手は3枠"],
       ["1位候補", `${leaders.length}人`, "各ポジションの現在1位"],
-      ["基準", "Player Lens評価", "公式投票予想ではありません"],
+      ["選定条件", "主戦ポジション", "最多先発＋チーム試合数の1/3以上"],
     ]);
     contentEl.innerHTML = `<div class="award-position-grid">${blocks.join("")}</div>`;
   }
