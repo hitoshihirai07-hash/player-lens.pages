@@ -4824,3 +4824,64 @@ tbody tr.is-selected {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+/* Award Race -> プロ野球観戦メモ */
+.award-watch-note-guide {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 22px;
+  align-items: center;
+  background:
+    linear-gradient(110deg, rgba(255, 244, 214, 0.84), rgba(255, 255, 255, 0.96) 58%),
+    var(--paper);
+}
+
+.award-watch-note-copy {
+  min-width: 0;
+}
+
+.award-watch-note-copy h2 {
+  margin: 0;
+  font-size: clamp(20px, 2.4vw, 28px);
+}
+
+.award-watch-note-copy p:last-child {
+  margin-top: 7px;
+}
+
+.award-watch-note-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #b7791f;
+  color: #fff;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.award-watch-note-link:hover {
+  background: #9a6517;
+  color: #fff;
+  text-decoration: none;
+}
+
+.award-watch-note-link:focus-visible {
+  outline: 3px solid rgba(183, 121, 31, 0.28);
+  outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+  .award-watch-note-guide {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .award-watch-note-link {
+    width: 100%;
+  }
+}
+
