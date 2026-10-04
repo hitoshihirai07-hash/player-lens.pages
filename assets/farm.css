@@ -1,0 +1,71 @@
+/* All additions are scoped to the farm page; shared styles remain untouched. */
+.farm-shell { display: grid; gap: 16px; }
+.farm-shell > * { min-width: 0; margin-bottom: 0; }
+.farm-controls { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.farm-control-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.farm-year { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.farm-year select { width: 120px; }
+.farm-filters { display: grid; grid-template-columns: 1fr 1.2fr 1.5fr; }
+.farm-filters input, .farm-filters select { width: 100%; }
+.farm-shell button:focus-visible, .farm-shell summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.farm-loading { color: var(--muted); margin: 0; }
+.farm-error { border-color: #efb0ac; color: var(--danger); }
+.farm-ranking { padding: 18px; }
+.farm-ranking .panel-heading { padding: 0 0 10px; }
+.farm-ranking h2 { font-size: 24px; }
+.farm-ranking-table { min-width: 700px; }
+.farm-ranking-table tbody tr:nth-child(4n+1) { background: #f8fafc; }
+.farm-name-button { border: 0; background: transparent; color: var(--accent-dark); font-weight: 700; padding: 4px 0; cursor: pointer; text-align: left; }
+.farm-name-button::after { content: ' ＋'; font-size: 11px; }
+.farm-name-button[aria-expanded="true"]::after { content: ' −'; }
+.farm-score { color: var(--accent-dark); font-weight: 800; }
+.farm-detail-row td { white-space: normal; text-align: left; background: var(--paper); }
+.farm-metrics { margin: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+.farm-metrics div { border: 1px solid var(--line); border-radius: 6px; padding: 8px; background: #f8fafc; }
+.farm-metrics dt { font-size: 11px; color: var(--muted); }
+.farm-metrics dd { margin: 0; font-size: 14px; font-weight: 700; }
+.farm-mobile-cards { display: none; }
+.farm-pagination { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 14px; }
+.farm-pagination button { border: 1px solid var(--line-strong); border-radius: 7px; padding: 7px 14px; background: var(--paper); color: var(--accent-dark); cursor: pointer; }
+.farm-pagination button:disabled { color: var(--muted); opacity: .5; cursor: default; }
+.farm-pagination span { font-size: 13px; }
+.farm-district-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.farm-district-grid .content-card { padding: 14px; min-width: 0; }
+.farm-district-grid h3 { margin-bottom: 10px; }
+.farm-standings { min-width: 0; }
+.farm-standings th, .farm-standings td { padding: 8px 5px; font-size: 12px; }
+.farm-method { padding: 0; }
+.farm-method > summary { padding: 15px 18px; font-weight: 700; color: var(--accent-dark); cursor: pointer; }
+.farm-method-body { padding: 0 18px 18px; }
+.farm-method-body p { font-size: 13px; overflow-wrap: anywhere; }
+.farm-method-body h3 { margin-top: 16px; }
+.farm-method-table { min-width: 0; }
+.farm-method-table th, .farm-method-table td { white-space: normal; text-align: left; }
+@media (max-width: 1150px) {
+  .farm-district-grid { grid-template-columns: 1fr; }
+  .farm-standings th, .farm-standings td { padding: 9px 8px; font-size: 13px; }
+}
+@media (max-width: 760px) {
+  .farm-control-top { flex-wrap: wrap; }
+  .farm-controls .rank-switch { display: grid; width: 100%; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .farm-controls .rank-switch button { padding: 8px 5px; font-size: 13px; }
+  .farm-filters { grid-template-columns: 1fr 1fr; }
+  .farm-filters .search-filter { grid-column: 1 / -1; }
+  .farm-ranking { padding: 14px; }
+  .farm-desktop-table { display: none; }
+  .farm-mobile-cards { display: grid; gap: 10px; }
+  .farm-player-card { padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); }
+  .farm-player-top { display: flex; align-items: start; justify-content: space-between; gap: 8px; }
+  .farm-player-top h3 { font-size: 16px; overflow-wrap: anywhere; }
+  .farm-player-top p { margin: 3px 0 8px; font-size: 11px; color: var(--muted); }
+  .farm-player-score { text-align: right; white-space: nowrap; color: var(--accent-dark); }
+  .farm-player-score span { display: block; font-size: 10px; }
+  .farm-player-score strong { font-size: 22px; }
+  .farm-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .farm-metrics div { padding: 6px; }
+  .farm-player-card summary { margin-top: 9px; color: var(--accent-dark); font-size: 12px; font-weight: 700; cursor: pointer; }
+  .farm-player-card details .farm-metrics { margin-top: 8px; }
+  .farm-standings th, .farm-standings td { padding: 8px 3px; font-size: 11px; }
+  .farm-standings td:nth-child(2) { white-space: normal; overflow-wrap: anywhere; max-width: 70px; }
+  .farm-ranking .panel-heading { align-items: start; }
+}
