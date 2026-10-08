@@ -1277,6 +1277,7 @@
     loadPennantRaceData,
     playerKey,
     playerUrl,
+    parseCsv,
     rankRows,
     leagueOfTeam,
     shortTeam,

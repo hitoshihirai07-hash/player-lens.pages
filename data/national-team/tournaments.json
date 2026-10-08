@@ -1,0 +1,32 @@
+{
+  "rosterFile": "./data/national-team/japan_national_team.csv",
+  "currentPlayerPageSeason": 2026,
+  "seasons": {
+    "2026": {
+      "year": 2026,
+      "master": "./data/national-team/seasons/2026/player_master.csv",
+      "batters": "./data/2026stats_batter.csv",
+      "pitchers": "./data/2026stats_pitcher.csv",
+      "proYearsColumn": "年数(2026年シーズン時点）"
+    }
+  },
+  "tournaments": [
+    {
+      "year": 2026,
+      "tournament": "アジア大会",
+      "name": "ラグザス アジアプロ野球チャンピオンシップ2026",
+      "startDate": "2026-11-12",
+      "endDate": "2026-11-15",
+      "location": "日本・東京都",
+      "venue": "東京ドーム",
+      "description": "日本、オーストラリア、チャイニーズ・タイペイ、韓国が出場。アジアの若手選手が国際経験を積む大会です。",
+      "rosterNote": "2026年10月7日発表の出場予定選手。最終公式ロースターは10月中旬に大会側から発表予定です。",
+      "dataSeason": 2026,
+      "sourceCheckedAt": "2026-10-08",
+      "sources": [
+        { "label": "侍ジャパン公式・大会概要", "url": "https://www.japan-baseball.jp/jp/games/apbc2026/" },
+        { "label": "侍ジャパン公式・出場予定選手発表", "url": "https://www.japan-baseball.jp/jp/news/press/20261007_1.html" }
+      ]
+    }
+  ]
+}

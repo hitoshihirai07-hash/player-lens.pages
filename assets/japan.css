@@ -1,0 +1,53 @@
+.japan-shell { display: block; width: min(1200px, calc(100% - 48px)); margin: 24px auto; padding: 0; }
+.japan-shell .content-card { margin: 0; }
+.japan-events { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.japan-event-card h2 { font-size: 21px; overflow-wrap: anywhere; }
+.japan-event-counts, .japan-labels, .japan-source-links { display: flex; flex-wrap: wrap; gap: 8px; }
+.japan-event-counts span, .japan-position { padding: 4px 9px; border-radius: 6px; background: var(--accent-soft); color: var(--accent-dark); font-size: 12px; font-weight: 700; }
+.japan-section { margin-top: 24px; }
+.japan-section-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.japan-section-heading h2 { margin: 0; font-size: 22px; }
+.japan-overview-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin: 18px 0; }
+.japan-overview-list > div:first-child { grid-column: 1 / -1; }
+.japan-overview-list dt, .japan-profile dt, .japan-metrics dt { color: var(--muted); font-size: 12px; }
+.japan-overview-list dd { margin: 3px 0 0; font-weight: 700; overflow-wrap: anywhere; }
+.japan-source-links { margin-top: 14px; font-size: 13px; }
+.japan-staff-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.japan-staff-card { display: flex; gap: 10px; align-items: center; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+.japan-staff-card h3 { margin: 0; font-size: 16px; }
+.japan-staff-card p { margin: 2px 0 0; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.japan-number { display: grid; place-items: center; flex: 0 0 40px; width: 40px; height: 40px; border-radius: 10px; background: var(--accent-soft); color: var(--accent-dark); font-size: 20px; font-weight: 800; }
+.japan-toolbar { padding: 16px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; margin: 12px 0 18px; }
+.japan-positions { display: flex; flex-wrap: wrap; gap: 7px; }
+.japan-positions button { padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: white; color: var(--ink); cursor: pointer; font-weight: 700; min-height: 42px; }
+.japan-positions button[aria-pressed="true"] { background: var(--accent); color: white; border-color: var(--accent); }
+.japan-search { display: flex; gap: 10px; align-items: center; margin-top: 12px; font-size: 13px; }
+.japan-search input { width: min(320px, 100%); min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: white; }
+.japan-player-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
+.japan-player-card { min-width: 0; padding: 18px; }
+.japan-card-heading { display: flex; align-items: center; gap: 10px; }
+.japan-card-heading > div { min-width: 0; }
+.japan-player-name { margin: 0; font-size: 19px; overflow-wrap: anywhere; }
+.japan-card-heading .japan-team { margin: 3px 0 0; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.japan-labels { margin-top: 12px; }
+.japan-oa { padding: 3px 8px; border: 1px solid #ead298; border-radius: 6px; color: var(--gold); background: var(--gold-soft); font-weight: 700; font-size: 12px; }
+.japan-profile { display: grid; grid-template-columns: 1fr 1fr; margin: 14px 0; gap: 10px; }
+.japan-profile dd { font-size: 17px; font-weight: 700; margin: 2px 0 0; }
+.japan-player-card .japan-season-label { font-size: 12px; color: var(--muted); margin: 12px 0 6px; padding-top: 12px; border-top: 1px solid var(--line); }
+.japan-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.japan-metrics > div { background: #f5f8f9; padding: 8px; border-radius: 6px; }
+.japan-metrics dd { margin: 0; font-weight: 700; font-size: 18px; }
+.japan-stats { margin-top: 12px; }
+.japan-stats summary { cursor: pointer; color: var(--accent-dark); font-size: 13px; padding: 6px 0; min-height: 32px; }
+.japan-stats .japan-metrics { margin-top: 8px; }
+.japan-pagination { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 20px; font-size: 13px; }
+.japan-pagination button, .japan-error button { padding: 10px 14px; min-height: 42px; border: 1px solid var(--line); border-radius: 8px; background: white; cursor: pointer; }
+.japan-pagination button:disabled { opacity: .45; cursor: default; }
+.japan-warning { padding: 12px 16px; background: var(--gold-soft); border-radius: 8px; font-size: 13px; }
+.japan-status { font-size: 13px; color: var(--muted); }
+.japan-back { display: inline-block; margin-bottom: 14px; font-size: 13px; }
+.japan-empty { padding: 24px; text-align: center; background: white; border-radius: 12px; }
+.japan-shell button:focus-visible, .japan-shell summary:focus-visible, .japan-shell a:focus-visible, .japan-shell input:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 1000px) { .japan-player-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .japan-staff-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .japan-shell { width: calc(100% - 24px); margin-top: 14px; } .japan-events, .japan-overview-list { grid-template-columns: 1fr; } .japan-staff-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .japan-positions button { flex: 1 0 auto; padding: 8px 10px; } .japan-search { flex-direction: column; align-items: stretch; gap: 5px; } .japan-search input { width: 100%; } }
+@media (max-width: 540px) { .japan-player-grid { grid-template-columns: 1fr; } .japan-staff-card { padding: 10px; gap: 7px; } .japan-staff-card .japan-number { flex-basis: 30px; width: 30px; height: 34px; font-size: 17px; } .japan-staff-card h3 { font-size: 14px; } .japan-pagination { gap: 8px; font-size: 12px; } .japan-player-card { padding: 16px; } }
