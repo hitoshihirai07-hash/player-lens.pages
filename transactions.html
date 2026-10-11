@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="NPB12球団の入退団・移籍・契約変更を、年度・球団・区分・契約区分・選手名で確認できます。">
+  <title>NPB 入退団・移籍情報 | Player Lens</title>
+  <link rel="canonical" href="https://player-lens-pages.pages.dev/transactions">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="NPB 入退団・移籍情報 | Player Lens">
+  <meta property="og:description" content="NPB12球団の入退団・移籍・契約変更を一覧で確認できます。">
+  <meta property="og:url" content="https://player-lens-pages.pages.dev/transactions">
+  <meta property="og:image" content="https://player-lens-pages.pages.dev/assets/player-lens-ogp.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="./assets/player-lens-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/styles.css?v=20260921-wavebox">
+  <link rel="stylesheet" href="./assets/transactions.css?v=20261011">
+  <script src="./assets/transactions-data.js?v=20261011" defer></script>
+  <script src="./assets/transactions.js?v=20261011" defer></script>
+</head>
+<body>
+  <header class="page-header transactions-header">
+    <a class="brand-mini" href="./"><img src="./assets/player-lens-icon.svg" alt="">Player Lens</a>
+    <h1>NPB 入退団・移籍情報</h1>
+    <p>NPB12球団の入退団・移籍・契約変更をまとめています。戦力外、自由契約、引退、FA、トレード、育成・支配下登録などを確認できます。ドラフト指名選手は対象外です。</p>
+    <p class="transactions-updated" id="transactionsUpdated" aria-live="polite">最終更新：読み込み中</p>
+  </header>
+  <nav class="site-nav" aria-label="サイト内メニュー">
+    <a href="./">ランキング</a>
+    <a href="./japan">日本代表</a>
+    <a href="./farm">ファーム</a>
+    <a href="./teams">球団別</a>
+    <a href="./standings">順位・残り試合</a>
+    <a href="./pennant-race">ペナントレース</a>
+    <a href="./award-race">アワードレース</a>
+    <a href="./insights">注目データ</a>
+    <a href="./transactions" aria-current="page">入退団</a>
+    <a href="./roster">登録状況</a>
+    <a href="./starting-lineup">スタメン作成</a>
+    <a href="./defense">守備</a>
+    <a href="./starter-battery">先発バッテリー</a>
+    <a href="./batter-streaks">野手試合状況</a>
+    <a href="./pitcher-usage">投手登板状況</a>
+    <a href="./monthly-stats">月別成績</a>
+    <a href="./opponent-watch">対球団別</a>
+    <a href="./data-question">データに質問</a>
+    <a href="./draft-lab">Draft Lab 2026</a>
+    <a href="./articles">読み物</a>
+    <a href="./updates">更新履歴</a>
+    <a href="./about">このサイトについて</a>
+  </nav>
+  <main class="shell transactions-shell">
+    <section class="control-band transactions-controls" aria-label="入退団情報の絞り込み">
+      <div class="filters transactions-filters">
+        <label><span>年度</span><select id="transactionsYear" disabled><option>読み込み中</option></select></label>
+        <label><span>球団</span><select id="transactionsTeam" disabled><option value="all">すべて</option></select></label>
+        <label><span>区分</span><select id="transactionsType" disabled><option value="all">すべて</option></select></label>
+        <label><span>契約区分</span><select id="transactionsContract" disabled><option value="all">すべて</option></select></label>
+        <label class="search-filter"><span>選手名検索</span><input id="transactionsSearch" type="search" autocomplete="off" placeholder="例：萩尾 匡也" disabled></label>
+        <button type="button" id="transactionsReset" disabled>絞り込みを解除</button>
+      </div>
+    </section>
+    <p class="transactions-status" id="transactionsStatus" role="status">入退団データを読み込んでいます。</p>
+    <noscript><p class="content-card">入退団情報の表示にはJavaScriptを有効にしてください。</p></noscript>
+    <section class="content-card transactions-error" id="transactionsError" role="alert" hidden>
+      <h2>入退団情報を読み込めませんでした</h2><p id="transactionsErrorText"></p><button type="button" id="transactionsRetry">もう一度読み込む</button>
+    </section>
+    <section class="content-card transactions-results" id="transactionsResults" aria-labelledby="transactionsListTitle" aria-busy="true" hidden>
+      <div class="panel-heading"><div><h2 id="transactionsListTitle">入退団・移籍一覧</h2><span class="transactions-sort">発生日の新しい順</span></div><span class="count" id="transactionsCount" role="status"></span></div>
+      <div class="transactions-table-wrap" id="transactionsTable">
+        <table class="transactions-table" aria-label="NPB入退団・移籍情報">
+          <thead><tr><th scope="col">発生日</th><th scope="col">球団</th><th scope="col">選手名</th><th scope="col">区分</th><th scope="col">契約区分</th><th scope="col">元の移籍元・移籍先</th><th scope="col">内容</th><th scope="col">備考</th></tr></thead>
+          <tbody id="transactionsBody"></tbody>
+        </table>
+      </div>
+      <div class="transactions-cards" id="transactionsCards"></div>
+      <p class="empty-state" id="transactionsEmpty" hidden>条件に一致する情報はありません。</p>
+      <div class="transactions-pagination" id="transactionsPagination" hidden>
+        <button type="button" id="transactionsPrev">前へ</button><span id="transactionsPage" aria-live="polite"></span><button type="button" id="transactionsNext">次へ</button>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <a href="https://pro-baseball-watch-guide.com/" target="_blank" rel="noopener">プロ野球観戦メモ</a>
+    <a href="./monthly-stats">月別成績</a><a href="./updates">更新履歴</a><a href="./insights">注目データ</a><a href="./defense">守備</a><a href="./articles">読み物</a><a href="./privacy">プライバシーポリシー</a><a href="./disclaimer">免責事項</a><a href="./contact">お問い合わせ</a><a href="https://wavebox.me/wave/ehqzbh48r9dg0ivi/" target="_blank" rel="noopener">匿名でひとこと</a>
+  </footer>
+</body>
+</html>

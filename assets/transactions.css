@@ -1,0 +1,62 @@
+/* Scoped additions: shared CSS and existing page behavior are unchanged. */
+.transactions-shell { display: grid; gap: 16px; }
+.transactions-shell > * { min-width: 0; margin-bottom: 0; }
+.transactions-header h1 { font-size: clamp(24px, 3vw, 36px); }
+.transactions-header .transactions-updated { color: var(--muted); font-size: 13px; font-weight: 700; }
+.transactions-controls { display: block; }
+.transactions-filters { display: grid; grid-template-columns: 100px 1fr 1fr 1fr minmax(180px, 1.5fr) auto; gap: 12px; }
+.transactions-filters label { min-width: 0; }
+.transactions-filters input, .transactions-filters select { width: 100%; min-width: 0; }
+.transactions-shell button { min-height: 38px; border: 1px solid var(--line-strong); border-radius: 8px; padding: 7px 12px; background: var(--paper); color: var(--accent-dark); cursor: pointer; }
+.transactions-shell button:disabled { opacity: .5; cursor: default; }
+.transactions-shell :is(button, input, select):focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.transactions-results { padding: 18px; }
+.transactions-results .panel-heading { padding: 0 0 14px; }
+.transactions-results h2 { font-size: 22px; }
+.transactions-sort { font-size: 12px; color: var(--muted); margin-left: 12px; }
+.transactions-table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+.transactions-table th, .transactions-table td { padding: 12px 8px; border-bottom: 1px solid var(--line); font-size: 13px; text-align: left; vertical-align: top; white-space: pre-wrap; overflow-wrap: anywhere; }
+.transactions-table th { background: #edf2f7; color: #344256; font-size: 12px; }
+.transactions-table tbody tr:nth-child(even) { background: #f8fafc; }
+.transactions-table th:nth-child(1) { width: 100px; }
+.transactions-table th:nth-child(2) { width: 104px; }
+.transactions-table th:nth-child(3) { width: 112px; }
+.transactions-table th:nth-child(4) { width: 86px; }
+.transactions-table th:nth-child(5) { width: 76px; }
+.transactions-table th:nth-child(6) { width: 14%; }
+.transactions-table th:nth-child(7) { width: 23%; }
+.transaction-name { font-weight: 700; }
+.transaction-badge { display: inline-block; border: 1px solid #bddbd6; border-radius: 6px; padding: 3px 8px; background: var(--accent-soft); color: var(--accent-dark); font-size: 12px; font-weight: 700; white-space: normal; }
+.transaction-badge.is-release { background: var(--gold-soft); border-color: #ead7a8; color: #785017; }
+.transaction-badge.is-retired { background: #edf2f7; border-color: var(--line); color: #445267; }
+.transactions-cards { display: none; }
+.transactions-pagination { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 16px; font-size: 13px; }
+.transactions-status { margin: 0; color: var(--muted); }
+.transactions-error { border-color: #efb0ac; }
+.transactions-error h2 { font-size: 20px; }
+.transactions-error button { margin-top: 12px; }
+@media (max-width: 1100px) {
+  .transactions-filters { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .transactions-filters .search-filter { grid-column: 1 / 4; }
+}
+@media (max-width: 1100px) {
+  .transactions-filters { grid-template-columns: 1fr 1fr; }
+  .transactions-filters .search-filter { grid-column: 1 / -1; }
+  .transactions-table-wrap { display: none; }
+  .transactions-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .transaction-card { min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); }
+  .transaction-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); }
+  .transaction-top strong { color: var(--accent-dark); }
+  .transaction-card h3 { font-size: 18px; margin: 8px 0; }
+  .transaction-labels { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .transaction-contract { font-size: 12px; color: var(--muted); }
+  .transaction-card p { font-size: 13px; margin: 8px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .transaction-card .transaction-move { font-weight: 700; color: var(--accent-dark); }
+  .transaction-card .transaction-note { padding-top: 8px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+}
+@media (max-width: 600px) {
+  .transactions-cards { grid-template-columns: 1fr; gap: 10px; }
+  .transactions-results { padding: 14px; }
+  .transactions-results .panel-heading { gap: 8px; flex-wrap: wrap; }
+  .transactions-sort { display: block; margin: 2px 0 0; }
+}
