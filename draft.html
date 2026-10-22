@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="プロ野球ドラフトの指名結果を年度・球団・支配下／育成ごとに確認。指名順位、所属、守備位置、投打、備考を一覧で掲載します。">
+  <title>プロ野球ドラフト指名結果 | Player Lens</title>
+  <link rel="canonical" href="https://player-lens-pages.pages.dev/draft">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="プロ野球ドラフト指名結果 | Player Lens">
+  <meta property="og:description" content="NPB12球団のドラフト指名結果を、年度別・球団別に一覧で確認できます。">
+  <meta property="og:url" content="https://player-lens-pages.pages.dev/draft">
+  <meta property="og:image" content="https://player-lens-pages.pages.dev/assets/player-lens-ogp.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="./assets/player-lens-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/styles.css?v=20260921-wavebox">
+  <link rel="stylesheet" href="./assets/draft-results.css?v=20261022">
+  <script src="./assets/draft-results.js?v=20261022" defer></script>
+</head>
+<body class="draft-results-page">
+  <header class="page-header draft-results-header">
+    <a class="brand-mini" href="./"><img src="./assets/player-lens-icon.svg" alt="">Player Lens</a>
+    <p class="draft-overline">NPB DRAFT ARCHIVE</p>
+    <h1>プロ野球ドラフト</h1>
+    <p>12球団の指名結果を、年度・球団・順位から振り返る。</p>
+  </header>
+  <nav class="site-nav" aria-label="サイト内メニュー">
+    <a href="./">ランキング</a>
+    <a href="./japan">日本代表</a>
+    <a href="./farm">ファーム</a>
+    <a href="./teams">球団別</a>
+    <a href="./standings">順位・残り試合</a>
+    <a href="./pennant-race">ペナントレース</a>
+    <a href="./award-race">アワードレース</a>
+    <a href="./insights">注目データ</a>
+    <a href="./transactions">入退団</a>
+    <a href="./roster">登録状況</a>
+    <a href="./starting-lineup">スタメン作成</a>
+    <a href="./defense">守備</a>
+    <a href="./starter-battery">先発バッテリー</a>
+    <a href="./batter-streaks">野手試合状況</a>
+    <a href="./pitcher-usage">投手登板状況</a>
+    <a href="./monthly-stats">月別成績</a>
+    <a href="./opponent-watch">対球団別</a>
+    <a href="./data-question">データに質問</a>
+    <a href="./draft" aria-current="page">ドラフト</a>
+    <a href="./articles">読み物</a>
+    <a href="./updates">更新履歴</a>
+    <a href="./about">このサイトについて</a>
+  </nav>
+  <main class="shell draft-results-shell">
+    <section class="draft-entry-links" aria-label="ドラフトページ内のメニュー">
+      <div class="draft-entry-current"><span class="draft-entry-icon" aria-hidden="true">01</span><div><strong>指名結果</strong><small>年度別の指名選手一覧</small></div><span class="draft-entry-mark">表示中</span></div>
+      <a class="draft-entry-next" href="./draft-lab"><span class="draft-entry-icon" aria-hidden="true">02</span><span><strong>候補・分析</strong><small>2026年の候補情報、球団Fit、指名ボード</small></span><span class="draft-entry-arrow" aria-hidden="true">↗</span></a>
+    </section>
+    <section class="draft-content" aria-labelledby="draft-results-title">
+      <div class="draft-section-head">
+        <div><p class="draft-kicker">DRAFT PICKS</p><h2 id="draft-results-title">ドラフト指名結果</h2><p>指名時の所属・ポジション・投打をまとめています。</p></div>
+        <span class="draft-data-status" id="dataStatus" role="status">CSVを読み込み中</span>
+      </div>
+      <div class="draft-filter-panel">
+        <div class="draft-filter-grid">
+          <label><span>年度</span><select id="draftYear" aria-label="ドラフト年度"><option>読み込み中</option></select></label>
+          <label><span>球団</span><select id="draftTeam"><option value="all">12球団すべて</option></select></label>
+          <label><span>指名区分</span><select id="draftType"><option value="all">支配下・育成すべて</option><option value="支配下">支配下</option><option value="育成">育成</option></select></label>
+          <label><span>守備位置</span><select id="draftPosition"><option value="all">全ポジション</option><option value="投手">投手</option><option value="捕手">捕手</option><option value="内野手">内野手</option><option value="外野手">外野手</option></select></label>
+        </div>
+        <div class="draft-search-row">
+          <label class="draft-search-label"><span>選手名・所属を検索</span><input id="draftSearch" type="search" placeholder="選手名や高校・大学・チーム名を入力" autocomplete="off"></label>
+          <button class="draft-reset" id="draftReset" type="button">条件をクリア</button>
+        </div>
+      </div>
+      <div class="draft-summary" aria-label="選択年度の指名結果概要">
+        <div><span>指名選手</span><strong id="summaryTotal">--</strong><small>人</small></div>
+        <div><span>支配下</span><strong id="summaryRegular">--</strong><small>人</small></div>
+        <div><span>育成</span><strong id="summaryDevelopment">--</strong><small>人</small></div>
+      </div>
+      <div class="draft-list-head">
+        <div><h3 id="draft-list-heading">指名選手一覧</h3><p id="draftCount" aria-live="polite">読み込み中</p></div>
+        <span class="draft-order-hint">球団別・指名順位順</span>
+      </div>
+      <p id="draftMessage" class="draft-message" role="status" hidden></p>
+      <div id="draftTableWrapper" class="draft-table-wrapper" hidden>
+        <table class="draft-results-table">
+          <thead><tr><th scope="col">球団</th><th scope="col">指名</th><th scope="col">選手名</th><th scope="col">守備</th><th scope="col">所属</th><th scope="col">投打</th><th scope="col">備考</th></tr></thead>
+          <tbody id="draftResultsBody"></tbody>
+        </table>
+      </div>
+      <div id="draftMobileCards" class="draft-mobile-cards" hidden></div>
+      <nav class="draft-pagination" id="draftPagination" aria-label="指名結果のページ送り" hidden>
+        <button id="draftPrev" type="button">← 前へ</button><span id="draftPageLabel" aria-live="polite"></span><button id="draftNext" type="button">次へ →</button>
+      </nav>
+      <p class="draft-source-note">※ 指名時点の情報を掲載。備考欄は特記事項がある選手のみ表示します。指名結果はCSVの更新内容を反映します。</p>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <a href="https://pro-baseball-watch-guide.com/" target="_blank" rel="noopener">プロ野球観戦メモ</a>
+    <a href="./draft-lab">2026年ドラフト候補・分析</a>
+    <a href="./updates">更新履歴</a><a href="./about">このサイトについて</a><a href="./privacy">プライバシーポリシー</a><a href="./disclaimer">免責事項</a><a href="./contact">お問い合わせ</a>
+  </footer>
+</body>
+</html>
