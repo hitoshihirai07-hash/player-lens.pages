@@ -3,30 +3,35 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="2026年プロ野球（NPB）セ・パ12球団の順位、勝敗、勝率、ゲーム差、残り試合、対球団別の残り試合数と今季対戦成績を確認できます。">
-  <title>2026年プロ野球 順位・残り試合・対戦成績 | Player Lens</title>
+  <meta name="description" content="2026年プロ野球（NPB）セ・パ12球団の最終順位、勝敗、勝率、ゲーム差、対球団別の最終対戦成績を確認できます。">
+  <title>2026年プロ野球 最終順位・対戦成績 | Player Lens</title>
   <link rel="canonical" href="https://player-lens-pages.pages.dev/standings">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="2026年プロ野球 順位・残り試合・対戦成績 | Player Lens">
-  <meta property="og:description" content="2026年プロ野球12球団の順位と残り試合を、対球団別の残り試合数・今季対戦成績・勝利数シミュレーションと一緒に確認できます。">
+  <meta property="og:title" content="2026年プロ野球 最終順位・対戦成績 | Player Lens">
+  <meta property="og:description" content="2026年プロ野球12球団の最終順位、勝敗・ゲーム差と対球団別の最終対戦成績を確認できます。">
   <meta property="og:url" content="https://player-lens-pages.pages.dev/standings">
   <meta property="og:image" content="https://player-lens-pages.pages.dev/assets/player-lens-ogp.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="2026年プロ野球 順位・残り試合・対戦成績 | Player Lens">
-  <meta name="twitter:description" content="順位表だけでなく、残り直接対決、対戦成績、最終勝利数の目安まで確認できます。">
+  <meta name="twitter:title" content="2026年プロ野球 最終順位・対戦成績 | Player Lens">
+  <meta name="twitter:description" content="2026年の最終順位・対戦成績を、セ・パ12球団の球団別に確認できます。">
   <meta name="twitter:image" content="https://player-lens-pages.pages.dev/assets/player-lens-ogp.png">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7687416670736373" crossorigin="anonymous"></script>
   <link rel="icon" href="./assets/player-lens-icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./assets/styles.css?v=20260904-pennant-race">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"2026年プロ野球 順位・残り試合・対戦成績","url":"https://pro-baseball-watch-guide.com/player-lens/standings","description":"2026年プロ野球12球団の順位、勝敗、残り試合、対球団別の残り試合数と今季対戦成績を整理したデータページです。","inLanguage":"ja","creator":{"@type":"Organization","name":"Player Lens","url":"https://pro-baseball-watch-guide.com/player-lens/"},"isAccessibleForFree":true}</script>
+  <style>
+    /* 全日程終了後は対戦成績表を横幅いっぱいに表示する。 */
+    .standings-shell.is-final .standings-detail-grid { grid-template-columns: minmax(0, 1fr); }
+    .standings-shell [hidden] { display: none !important; }
+  </style>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"2026年プロ野球 最終順位・対戦成績","url":"https://pro-baseball-watch-guide.com/player-lens/standings","description":"2026年プロ野球12球団の最終順位、勝敗、対球団別の最終対戦成績を整理したデータページです。","inLanguage":"ja","creator":{"@type":"Organization","name":"Player Lens","url":"https://pro-baseball-watch-guide.com/player-lens/"},"isAccessibleForFree":true}</script>
 </head>
 <body>
   <header class="page-header">
     <a class="brand-mini" href="./"><img src="./assets/player-lens-icon.svg" alt="">Player Lens</a>
-    <h1>2026年プロ野球 順位・残り試合</h1>
-    <p>順位表を基準に、残り何試合あるか、どの球団との対戦を多く残しているか、今季その相手にどう戦っているかまで一緒に確認できます。</p>
+    <h1 id="standingsPageHeading">2026年プロ野球 最終順位・対戦成績</h1>
+    <p id="standingsPageDescription">2026年の最終順位と、同一リーグ・交流戦の対戦成績を球団ごとに確認できます。</p>
   </header>
   <nav class="site-nav" aria-label="サイト内メニュー">
     <a href="./">ランキング</a>
@@ -53,13 +58,13 @@
     <a href="./about">このサイトについて</a>
   </nav>
 
-  <main class="shell standings-shell">
+  <main class="shell standings-shell" id="standingsMain" data-season-year="2026">
     <section class="intro-band standings-intro">
       <div>
-        <p class="eyebrow">Standings &amp; Remaining Games</p>
-        <h2>順位だけでなく「ここから誰と戦うか」を見る</h2>
-        <p>順位・勝敗・勝率・ゲーム差に加え、球団ごとの残り試合と今季対戦成績をまとめます。順位が入れ替わってCSVの行順が変わっても、球団名を基準に毎回データを取得します。</p>
-        <p class="small-note">勝率・ゲーム差・勝利数シミュレーションはCSVの勝敗と残り試合からPlayer Lens側で計算しています。</p>
+        <p class="eyebrow" id="standingsIntroEyebrow">Final Standings &amp; Matchups</p>
+        <h2 id="standingsIntroHeading">2026年の公式戦最終成績を振り返る</h2>
+        <p id="standingsIntroText">セ・パ12球団の最終順位と、各球団の対戦成績をまとめています。</p>
+        <p class="small-note" id="standingsIntroNote">勝率・ゲーム差は勝敗から算出しています。対象は2026年公式戦（交流戦を含む）です。</p>
       </div>
       <div class="standings-updated" id="standingsUpdated">更新日を確認中</div>
     </section>
@@ -73,7 +78,7 @@
         <div class="section-heading"><div><p class="eyebrow">Central League</p><h2>セ・リーグ</h2></div></div>
         <div class="compact-table-wrap standings-table-wrap">
           <table class="compact-table standings-table">
-            <thead><tr><th>順位</th><th>球団</th><th>試合</th><th>勝</th><th>敗</th><th>分</th><th>勝率</th><th>差</th><th>残り</th></tr></thead>
+            <thead><tr><th>順位</th><th>球団</th><th>試合</th><th>勝</th><th>敗</th><th>分</th><th>勝率</th><th>差</th><th data-remaining-heading>残り</th></tr></thead>
             <tbody id="centralStandings"><tr><td colspan="9">データ読込中</td></tr></tbody>
           </table>
         </div>
@@ -82,7 +87,7 @@
         <div class="section-heading"><div><p class="eyebrow">Pacific League</p><h2>パ・リーグ</h2></div></div>
         <div class="compact-table-wrap standings-table-wrap">
           <table class="compact-table standings-table">
-            <thead><tr><th>順位</th><th>球団</th><th>試合</th><th>勝</th><th>敗</th><th>分</th><th>勝率</th><th>差</th><th>残り</th></tr></thead>
+            <thead><tr><th>順位</th><th>球団</th><th>試合</th><th>勝</th><th>敗</th><th>分</th><th>勝率</th><th>差</th><th data-remaining-heading>残り</th></tr></thead>
             <tbody id="pacificStandings"><tr><td colspan="9">データ読込中</td></tr></tbody>
           </table>
         </div>
@@ -91,36 +96,36 @@
 
     <section class="content-card standings-team-control" aria-labelledby="team-detail-title">
       <div class="section-heading">
-        <div><p class="eyebrow">Team Detail</p><h2 id="team-detail-title">球団ごとの残り試合を見る</h2></div>
+        <div><p class="eyebrow">Team Detail</p><h2 id="team-detail-title">球団ごとの最終成績を見る</h2></div>
         <label class="standings-team-select"><span>球団</span><select id="standingsTeamSelect"></select></label>
       </div>
       <div class="standings-team-buttons" id="standingsTeamButtons" aria-label="球団を切り替える"></div>
     </section>
 
-    <section class="summary-grid standings-team-summary" id="standingsTeamSummary" aria-label="選択球団の現在地"></section>
+    <section class="summary-grid standings-team-summary" id="standingsTeamSummary" aria-label="選択球団の成績"></section>
 
     <section class="standings-detail-grid">
       <article class="content-card">
         <div class="section-heading">
-          <div><p class="eyebrow">Remaining Matchups</p><h2 id="remainingTitle">対球団別の残り試合</h2></div>
+          <div><p class="eyebrow" id="opponentEyebrow">Final Matchups</p><h2 id="remainingTitle">対球団別の最終対戦成績</h2></div>
         </div>
-        <p class="small-note">残り試合数と、ここまでの今季対戦成績を同時に確認できます。</p>
+        <p class="small-note" id="opponentNote">同一リーグの公式戦と交流戦の対戦結果です。</p>
         <div class="compact-table-wrap standings-opponent-wrap">
           <table class="compact-table standings-opponent-table">
-            <thead><tr><th>相手</th><th>残り</th><th>今季対戦成績</th><th>消化</th></tr></thead>
+            <thead><tr id="opponentTableHead"><th>相手</th><th>区分</th><th>最終対戦成績</th><th>試合</th></tr></thead>
             <tbody id="remainingOpponents"><tr><td colspan="4">データ読込中</td></tr></tbody>
           </table>
         </div>
       </article>
 
-      <article class="content-card standings-simulation-card">
+      <article class="content-card standings-simulation-card" id="winTargetsSection" hidden>
         <div class="section-heading"><div><p class="eyebrow">Win Targets</p><h2>目標勝利数まで</h2></div></div>
         <p class="small-note">引き分けは未確定のため、残り試合を勝敗のみで考えた単純計算です。</p>
         <div class="standings-goal-grid" id="winTargets"></div>
       </article>
     </section>
 
-    <section class="content-card">
+    <section class="content-card" id="paceSimulationSection" hidden>
       <div class="section-heading"><div><p class="eyebrow">Pace Simulation</p><h2>残り勝率別の最終勝利数</h2></div></div>
       <p class="small-note">残り試合を各勝率で進んだ場合の目安です。予測や優勝確率ではありません。</p>
       <div class="compact-table-wrap">
@@ -133,7 +138,7 @@
 
     <section class="content-card soft-callout">
       <div class="section-heading"><div><p class="eyebrow">Explore</p><h2>順位から選手データへ</h2></div></div>
-      <p>順位や残りカードを確認したあと、月別成績や直近6試合、投手登板状況を見ると、現在のチーム状態をさらに細かく確認できます。</p>
+      <p id="standingsExploreText">最終順位や対戦成績とあわせて、月別成績や投手登板状況を確認すると、シーズン全体を振り返れます。</p>
       <div class="resource-grid compact-links">
         <a href="./pennant-race">優勝・CS進出状況</a>
         <a href="./teams">球団別データ</a>
@@ -158,6 +163,6 @@
     <a href="./contact">お問い合わせ</a><a href="https://wavebox.me/wave/ehqzbh48r9dg0ivi/" target="_blank" rel="noopener">匿名でひとこと</a>
   </footer>
   <script src="./assets/site-data.js?v=20260904-pennant-race"></script>
-  <script src="./assets/standings.js?v=20260811-standings"></script>
+  <script src="./assets/standings.js?v=20261101-season-final"></script>
 </body>
 </html>
