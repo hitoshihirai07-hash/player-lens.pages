@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="NPB12球団の2026年終了時点の通算成績。野手・投手の記録を比較し、安打・本塁打・勝利・セーブなど節目までの残りを確認できます。">
+  <title>通算成績・節目の記録 | Player Lens</title>
+  <link rel="canonical" href="https://player-lens-pages.pages.dev/career">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="通算成績・節目の記録 | Player Lens">
+  <meta property="og:description" content="通算安打・通算本塁打・通算勝利などと、節目の記録までの残りを確認。">
+  <meta property="og:url" content="https://player-lens-pages.pages.dev/career">
+  <meta property="og:image" content="https://player-lens-pages.pages.dev/assets/player-lens-ogp.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="./assets/player-lens-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/styles.css?v=20260921-wavebox">
+  <link rel="stylesheet" href="./assets/career.css?v=20261102">
+  <script src="./assets/career-data.js?v=20261102" defer></script>
+  <script src="./assets/career.js?v=20261102" defer></script>
+</head>
+<body>
+  <header class="page-header">
+    <a class="brand-mini" href="./"><img src="./assets/player-lens-icon.svg" alt="">Player Lens</a>
+    <h1>通算成績・節目の記録</h1>
+    <p>NPB一軍公式戦の通算記録を野手・投手別に比較。次の節目が近い選手も確認できます。</p>
+  </header>
+  <nav class="site-nav" aria-label="サイト内メニュー">
+    <a href="./">ランキング</a><a href="./career" aria-current="page">通算成績</a><a href="./japan">日本代表</a><a href="./farm">ファーム</a>
+    <a href="./teams">球団別</a><a href="./standings">順位・残り試合</a><a href="./pennant-race">ペナントレース</a><a href="./award-race">アワードレース</a>
+    <a href="./insights">注目データ</a><a href="./transactions">入退団</a><a href="./roster">登録状況</a>
+    <a href="./starting-lineup">スタメン作成</a><a href="./defense">守備</a><a href="./starter-battery">先発バッテリー</a>
+    <a href="./batter-streaks">野手試合状況</a><a href="./pitcher-usage">投手登板状況</a><a href="./monthly-stats">月別成績</a>
+    <a href="./opponent-watch">対球団別</a><a href="./data-question">データに質問</a><a href="./draft">ドラフト</a>
+    <a href="./articles">読み物</a><a href="./updates">更新履歴</a><a href="./about">このサイトについて</a>
+  </nav>
+  <main class="content-shell career-shell">
+    <section class="content-card career-summary" aria-labelledby="careerMilestoneTitle">
+      <div class="section-heading"><div><p class="eyebrow">Milestone Watch</p><h2 id="careerMilestoneTitle">節目の記録が近い選手</h2></div><span id="careerAsOf" class="career-asof">2026年終了時点</span></div>
+      <p class="small-note">あらかじめ決めた範囲に近づいた記録だけを表示します。日米通算ではなくNPB一軍公式戦の通算です。</p>
+      <div class="career-milestone-controls"><label>記録 <select id="milestoneType"><option value="batter">野手</option><option value="pitcher">投手</option></select></label><label>球団 <select id="milestoneTeam"><option value="all">全12球団</option></select></label></div>
+      <div id="milestoneCards" class="career-milestone-grid" aria-live="polite"><p>通算成績を読み込んでいます。</p></div>
+    </section>
+
+    <section class="content-card career-ranking" aria-labelledby="careerRankingTitle">
+      <div class="section-heading"><div><p class="eyebrow">Career Rankings</p><h2 id="careerRankingTitle">通算記録ランキング</h2></div><span id="careerCount" class="career-asof"></span></div>
+      <div class="career-switch" role="group" aria-label="選手区分">
+        <button type="button" id="careerBatter" aria-pressed="true">野手</button>
+        <button type="button" id="careerPitcher" aria-pressed="false">投手</button>
+      </div>
+      <div class="career-filters">
+        <label>選手名検索<input id="careerSearch" type="search" autocomplete="off" placeholder="例：坂本 勇人"></label>
+        <label>球団<select id="careerTeam"><option value="all">全12球団</option></select></label>
+        <label>並び順<select id="careerSort"></select></label>
+        <label>集計時点<select id="careerYear"><option value="latest">最新</option><option value="2026">2026年終了時点</option></select></label>
+      </div>
+      <div class="career-table-wrap"><table class="career-table"><thead id="careerHead"></thead><tbody id="careerBody"><tr><td>読み込み中…</td></tr></tbody></table></div>
+      <div class="career-pager"><button type="button" id="careerPrev">前へ</button><span id="careerPageLabel"></span><button type="button" id="careerNext">次へ</button></div>
+      <p class="small-note">選手名をクリックすると選手個人ページを開きます。通算打率・出塁率などはランキング用の独自スコアではなく実際の成績です。</p>
+    </section>
+    <section class="content-card">
+      <h2>通算成績の対象</h2>
+      <p>2026年終了時点でNPBに所属した選手を基準にしています。2026年以降にNPBへ初めて入った選手は年度別成績が追加された時点から表示します。</p>
+      <p class="small-note">日本シリーズ、クライマックスシリーズ、ファーム公式戦、海外リーグの成績は含みません。成績が記録されていない項目は「—」と表示します。</p>
+    </section>
+  </main>
+  <footer class="site-footer"><a href="./">ランキング</a><a href="./career">通算成績</a><a href="./farm">ファーム</a><a href="./teams">球団別</a><a href="./updates">更新履歴</a><a href="./privacy">プライバシーポリシー</a><a href="./contact">お問い合わせ</a></footer>
+</body>
+</html>

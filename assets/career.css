@@ -1,0 +1,48 @@
+.career-shell {max-width:1160px; margin:0 auto;}
+.career-shell .content-card {margin-bottom:22px;}
+.career-asof {font-size:.83rem;color:#596c70;white-space:nowrap;}
+.career-switch {display:flex;gap:8px;margin:18px 0 14px;}
+.career-switch button {border:1px solid #bfd5dc;color:#284b54;background:#fff;border-radius:12px;padding:10px 23px;cursor:pointer;font:inherit;font-weight:700;}
+.career-switch button[aria-pressed="true"] {background:#137c87;color:#fff;border-color:#137c87;}
+.career-filters,.career-milestone-controls {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:15px 0 18px;}
+.career-milestone-controls {grid-template-columns:repeat(2,minmax(150px,230px));}
+.career-filters label,.career-milestone-controls label {display:flex;flex-direction:column;gap:5px;font-size:.84rem;font-weight:700;color:#455a63;}
+.career-filters select,.career-filters input,.career-milestone-controls select {display:block;width:100%;box-sizing:border-box;min-width:0;padding:11px 12px;background:white;border:1px solid #bacdd3;border-radius:10px;color:#18353c;font:inherit;}
+.career-filters :focus-visible,.career-milestone-controls :focus-visible,.career-switch :focus-visible,.career-pager :focus-visible {outline:3px solid #61b9c5;outline-offset:3px;}
+.career-table-wrap {overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch;}
+.career-table {width:100%;border-collapse:collapse;white-space:nowrap;font-size:.9rem;}
+.career-table th {background:#f0f7f8;color:#36505b;text-align:right;padding:12px 10px;border-bottom:2px solid #d5e6e9;cursor:pointer;}
+.career-table th:first-child,.career-table td:first-child,.career-table th:nth-child(2),.career-table td:nth-child(2) {text-align:left;}
+.career-table th:first-child {cursor:default;}
+.career-table td {border-bottom:1px solid #e6eef0;text-align:right;padding:12px 10px;font-variant-numeric:tabular-nums;}
+.career-table tbody tr:hover {background:#f6fbfb;}
+.career-table .career-name {font-weight:700;color:#187c89;text-decoration:none;}
+.career-table .career-team {display:block;font-size:.76rem;font-weight:400;color:#687a83;}
+.career-table .career-empty {text-align:center;padding:28px;color:#657b82;}
+.career-pager {display:flex;align-items:center;justify-content:center;gap:18px;margin:18px 0 8px;}
+.career-pager button {font:inherit;border:1px solid #b9d5db;background:#fff;border-radius:9px;padding:8px 16px;color:#285765;cursor:pointer;}
+.career-pager button:disabled {opacity:.38;cursor:default;}
+.career-milestone-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:12px;margin-top:14px;}
+.career-milestone-card {background:#f4faf9;border:1px solid #dfebea;border-radius:13px;padding:16px;}
+.career-milestone-card a {font-weight:700;color:#197a87;text-decoration:none;}
+.career-milestone-card small {color:#657e80;display:block;margin:4px 0 12px;}
+.career-milestone-card .record {font-size:.88rem;color:#425962;}
+.career-milestone-card strong {display:block;font-size:1.5rem;color:#174d55;margin:3px 0 6px;}
+.career-progress {height:7px;background:#d8e6e7;border-radius:99px;overflow:hidden;}
+.career-progress > span {display:block;height:100%;background:#2f9e8c;border-radius:99px;}
+.career-milestone-card .career-progress-text {margin:6px 0 0;font-size:.78rem;color:#596e74;}
+.career-player-section .metric-grid {margin-top:12px;}
+.career-player-section .career-player-links {margin-top:16px;}
+.career-personal-milestones {margin:16px 0 0;padding:15px;border-radius:12px;background:#f2faf8;border:1px solid #dceee9;}
+.career-personal-milestones h3 {margin:0 0 10px;font-size:1rem;color:#285360;}
+.career-personal-milestones ul {list-style:none;padding:0;margin:0;display:grid;gap:8px;}
+.career-personal-milestones li {display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap;}
+.career-personal-milestones strong {color:#117a7e;}
+@media(max-width:760px){
+ .career-filters {grid-template-columns:repeat(2,minmax(0,1fr));}
+ .career-milestone-controls {grid-template-columns:repeat(2,minmax(0,1fr));}
+ .career-table {font-size:.82rem;}
+ .career-table th,.career-table td {padding:10px 9px;}
+ .career-shell .section-heading {flex-wrap:wrap;gap:10px;}
+}
+@media(max-width:440px){.career-milestone-grid {grid-template-columns:1fr 1fr;gap:8px;}.career-milestone-card{padding:11px;}.career-milestone-card strong{font-size:1.24rem;}}
