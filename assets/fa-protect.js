@@ -73,29 +73,32 @@
   function renderTable() {
     const rows = visibleRows(), remaining = MAX - state.selected.size;
     $('protectResultCount').textContent = '表示 ' + rows.length + '人 / 選択対象 ' + eligible().length + '人';
-    let body = '';
+    let content = '';
     for (const position of POSITIONS.concat(['その他'])) {
       const group = rows.filter(p => POSITIONS.includes(p.ポジション) ? p.ポジション === position : position === 'その他');
       if (!group.length) continue;
-      body += '<tr class="protect-group-row"><th colspan="5" scope="rowgroup">' + position + ' <small>' + group.length + '人</small></th></tr>';
-      body += group.map(p => {
+      content += '<section class="protect-position-block" aria-label="' + esc(position) + '">'
+        + '<h3>' + esc(position) + ' <small>' + group.length + '人</small></h3>'
+        + '<div class="protect-player-grid">';
+      content += group.map(p => {
         const chosen = state.selected.has(p.選手ID), id = esc(p.選手ID);
-        return '<tr class="protect-row' + (chosen ? ' is-picked' : '') + '" data-id="' + id + '">'
-          + '<td class="protect-check-cell"><input class="protect-row-check" type="checkbox" data-id="' + id + '" aria-label="'
-          + esc(p.選手名) + 'をプロテクトする"' + (chosen ? ' checked' : '') + (!chosen && remaining === 0 ? ' disabled' : '') + '></td>'
-          + '<td class="protect-number">' + esc(p.背番号 || '—') + '</td>'
-          + '<td class="protect-name">' + esc(p.選手名) + '</td>'
-          + '<td class="protect-position">' + esc(p.ポジション) + '</td>'
-          + '<td class="protect-exclude-cell"><button type="button" class="protect-exclude-btn" data-exclude="' + id
-          + '" aria-label="' + esc(p.選手名) + 'を対象外にする">除外</button></td></tr>';
+        return '<div class="protect-player-row' + (chosen ? ' is-picked' : '') + '" data-id="' + id + '">'
+          + '<label class="protect-player-label">'
+          + '<input class="protect-row-check" type="checkbox" data-id="' + id + '" aria-label="'
+          + esc(p.選手名) + 'をプロテクトする"' + (chosen ? ' checked' : '') + (!chosen && remaining === 0 ? ' disabled' : '') + '>'
+          + '<span class="protect-number">' + esc(p.背番号 || '—') + '</span>'
+          + '<span class="protect-name">' + esc(p.選手名) + '</span></label>'
+          + '<button type="button" class="protect-exclude-btn" data-exclude="' + id + '" aria-label="' + esc(p.選手名) + 'を一覧から除外する" title="一覧から除外">×</button>'
+          + '</div>';
       }).join('');
+      content += '</div></section>';
     }
-    $('protectRows').innerHTML = body;
+    $('protectRows').innerHTML = content;
     $('protectEmpty').hidden = rows.length !== 0;
   }
   function updateTableChecks() {
     const remaining = MAX - state.selected.size;
-    $('protectRows').querySelectorAll('tr.protect-row').forEach(row => {
+    $('protectRows').querySelectorAll('.protect-player-row').forEach(row => {
       const chosen = state.selected.has(row.dataset.id);
       row.classList.toggle('is-picked', chosen);
       const input = row.querySelector('input.protect-row-check');
@@ -219,8 +222,8 @@
   $('protectRows').addEventListener('click', e => {
     const restore = e.target.closest('button[data-exclude]');
     if (restore) { excludePlayer(restore.dataset.exclude); return; }
-    if (e.target.matches('input.protect-row-check')) return;
-    const row = e.target.closest('tr.protect-row');
+    if (e.target.closest('label.protect-player-label')) return;
+    const row = e.target.closest('.protect-player-row');
     if (row) changeSelection(row.dataset.id, !state.selected.has(row.dataset.id));
   });
   $('protectRows').addEventListener('change', e => {

@@ -13,9 +13,9 @@
 <meta property="og:image" content="https://player-lens-pages.pages.dev/assets/player-lens-ogp.png">
 <link rel="icon" href="./assets/player-lens-icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="./assets/styles.css?v=20260921-wavebox">
-<link rel="stylesheet" href="./assets/fa-pages.css?v=20261113-list">
+<link rel="stylesheet" href="./assets/fa-pages.css?v=20261113-grid">
 <script src="./assets/fa-data.js?v=20261113" defer></script>
-<script src="./assets/fa-protect.js?v=20261113-list" defer></script>
+<script src="./assets/fa-protect.js?v=20261113-grid" defer></script>
 </head>
 <body>
 <header class="page-header">
@@ -52,7 +52,7 @@
 <main class="shell fa-shell">
 <section class="intro-band fa-intro"><div><p class="eyebrow">PROTECTED ROSTER LAB</p><h2>自分なら、誰を28人に選ぶ？</h2><p>球団を選び、支配下選手を28人までプロテクトする参考シミュレーション。選択した選手とプロテクト外の選手を一覧で確認できます。</p><p id="protectStatus" class="fa-status" aria-live="polite">読み込み中</p></div><a class="text-link" href="./fa">FA動向を見る</a></section>
 <nav class="fa-bridge" aria-label="FA関連ページ"><a href="./fa">FA動向・進展</a><a href="./fa-protect" aria-current="page">28人プロテクトを考える</a></nav>
-<p class="fa-note"><strong>28人の予想用ツールです。</strong>育成選手などデータ上で対象外と確認できる選手は表示しません。外国人区分は一部未判定のため、一覧に残る対象外選手は「除外」で非表示にできます。実際に提出される名簿ではありません。</p>
+<p class="fa-note"><strong>選手名を押して、28人を選択できます。</strong>育成選手などデータ上で対象外と確認できる選手は表示しません。外国人区分は一部未判定のため、一覧に残る対象外選手は「除外」で非表示にできます。実際に提出される名簿ではありません。</p>
 <section class="control-band" id="protectControls" hidden>
 <div class="fa-controls">
 <label>プロテクトする球団<select id="protectTeam"></select></label>
@@ -65,8 +65,8 @@
 <div class="fa-summary" id="protectSummary" aria-label="プロテクト人数集計"></div>
 <div class="protect-workspace" style="margin-top:16px">
 <section class="content-card">
-<div class="fa-section-title"><div><h2>球団の選手一覧</h2><p class="fa-muted" id="protectResultCount"></p></div><div class="protect-counter" id="protectCounter" aria-live="polite">0 / 28人</div></div>
-<div class="protect-table-scroll"><table class="protect-table" aria-label="プロテクト選択可能な選手一覧"><thead><tr><th scope="col">選択</th><th scope="col">背番号</th><th scope="col">選手名</th><th scope="col">守備</th><th scope="col">対象外</th></tr></thead><tbody id="protectRows"></tbody></table></div><p id="protectEmpty" class="fa-empty" hidden>条件に一致する選手はいません。</p>
+<div class="fa-section-title"><div><h2>球団別・ポジション別 選手一覧</h2><p class="fa-muted" id="protectResultCount"></p></div><div class="protect-counter" id="protectCounter" aria-live="polite">0 / 28人</div></div>
+<div id="protectRows" class="protect-groups" aria-label="プロテクト選択可能な選手一覧"></div><p id="protectEmpty" class="fa-empty" hidden>条件に一致する選手はいません。</p>
 </section>
 <aside class="protect-selection" aria-label="選択した選手"><h2>選択中の28人</h2><div id="protectPicks"></div>
 <button id="protectImage" type="button" disabled>選択結果を画像で保存（PNG）</button>

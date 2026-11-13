@@ -20,7 +20,7 @@
     return '<ol class="fa-timeline">'+records.map(h=>
       '<li><span class="fa-date">'+esc(date(h.発生日))+'</span><strong>'+esc(h.イベント||'進展')+'</strong>'
       +'<p>'+esc(h.詳細||'')+'</p>'
-      +(h.出典URL&&/^https:\/\//.test(h.出典URL)?'<a href="'+esc(h.出典URL)+'" target="_blank" rel="noopener noreferrer">情報源を見る</a>':'')+'</li>'
+      +'</li>'
     ).join('')+'</ol>';
   }
   function render(){
@@ -35,13 +35,13 @@
     $('faCards').innerHTML=rows.map(row=>{
       const id='fa-h-'+esc(row.FAケースID);
       const dest=row.移籍先?' / 移籍先：'+row.移籍先:'';
-      const link=row.出典URL&&/^https:\/\//.test(row.出典URL)?'<a href="'+esc(row.出典URL)+'" target="_blank" rel="noopener noreferrer">出典を見る</a>':'';
+
       return '<article class="fa-person" data-case="'+esc(row.FAケースID)+'">'
         +'<div class="fa-person-top"><div><p class="fa-muted">'+esc(row.公示時球団)+' · '+esc(row.FA権区分)+'</p><h3>'+esc(row.選手名)+'</h3></div>'
         +'<span class="fa-pill">'+esc(row.動向ステータス)+'</span></div>'
         +'<dl class="fa-dl"><div><dt>最新動向</dt><dd>'+esc(date(row.最新動向日))+'</dd></div><div><dt>確認状況</dt><dd>'+esc(row.確認状況)+'</dd></div></dl>'
         +'<p class="fa-description">'+esc(row.最新の内容||'進展情報は未登録です。')+esc(dest)+'</p>'
-        +'<div class="fa-card-actions">'+link+'<button type="button" class="fa-history-button" aria-expanded="false" aria-controls="'+id+'">進展履歴を表示（'+historyFor(row).length+'件）</button></div>'
+        +'<div class="fa-card-actions"><button type="button" class="fa-history-button" aria-expanded="false" aria-controls="'+id+'">進展履歴を表示（'+historyFor(row).length+'件）</button></div>'
         +'<div class="fa-history" id="'+id+'" hidden><h4>これまでの進展</h4>'+renderHistory(row)+'</div></article>';
     }).join('');
     $('faEmpty').hidden=rows.length!==0;
@@ -50,8 +50,8 @@
     $('faError').hidden=true;$('faStatus').textContent='FA動向を読み込んでいます。';
     try{
       const [players,history]=await Promise.all([
-        D.loadCsv('./data/fa/fa_players_2026.csv',['FAケースID','公示時球団','選手名','動向ステータス','最新動向日','出典URL']),
-        D.loadCsv('./data/fa/fa_history_2026.csv',['FAケースID','発生日','イベント','詳細','出典URL'])
+        D.loadCsv('./data/fa/fa_players_2026.csv',['FAケースID','公示時球団','選手名','動向ステータス','最新動向日']),
+        D.loadCsv('./data/fa/fa_history_2026.csv',['FAケースID','発生日','イベント','詳細'])
       ]);
       state.players=players.filter(r=>eligibleStatus.has(r.動向ステータス)&&r.選手名&&r.FAケースID);
       state.history=history;
