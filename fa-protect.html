@@ -13,9 +13,9 @@
 <meta property="og:image" content="https://player-lens-pages.pages.dev/assets/player-lens-ogp.png">
 <link rel="icon" href="./assets/player-lens-icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="./assets/styles.css?v=20260921-wavebox">
-<link rel="stylesheet" href="./assets/fa-pages.css?v=20261113">
+<link rel="stylesheet" href="./assets/fa-pages.css?v=20261113-list">
 <script src="./assets/fa-data.js?v=20261113" defer></script>
-<script src="./assets/fa-protect.js?v=20261113" defer></script>
+<script src="./assets/fa-protect.js?v=20261113-list" defer></script>
 </head>
 <body>
 <header class="page-header">
@@ -52,13 +52,13 @@
 <main class="shell fa-shell">
 <section class="intro-band fa-intro"><div><p class="eyebrow">PROTECTED ROSTER LAB</p><h2>自分なら、誰を28人に選ぶ？</h2><p>球団を選び、支配下選手を28人までプロテクトする参考シミュレーション。選択した選手とプロテクト外の選手を一覧で確認できます。</p><p id="protectStatus" class="fa-status" aria-live="polite">読み込み中</p></div><a class="text-link" href="./fa">FA動向を見る</a></section>
 <nav class="fa-bridge" aria-label="FA関連ページ"><a href="./fa">FA動向・進展</a><a href="./fa-protect" aria-current="page">28人プロテクトを考える</a></nav>
-<p class="fa-note"><strong>参考用の予想ツールです。</strong>実際の球団提出名簿ではありません。外国人区分は未判定のため、外国人選手などを「対象外として扱う」で除外してください。育成選手は最初から対象外にしています。28人枠は自動判定されますが、補償規則の最終的な適用可否を保証するものではありません。</p>
+<p class="fa-note"><strong>28人の予想用ツールです。</strong>育成選手などデータ上で対象外と確認できる選手は表示しません。外国人区分は一部未判定のため、一覧に残る対象外選手は「除外」で非表示にできます。実際に提出される名簿ではありません。</p>
 <section class="control-band" id="protectControls" hidden>
 <div class="fa-controls">
 <label>プロテクトする球団<select id="protectTeam"></select></label>
 <label>守備位置<select id="protectPosition"><option value="all">全ポジション</option><option value="投手">投手</option><option value="捕手">捕手</option><option value="内野手">内野手</option><option value="外野手">外野手</option></select></label>
 <label>選手名・背番号<input id="protectSearch" type="search" placeholder="選手名・番号で検索"></label>
-<label>表示<select id="protectView"><option value="all">全選手</option><option value="プロテクト">プロテクト</option><option value="プロテクト外">プロテクト外</option><option value="対象外">対象外</option></select></label>
+<label>表示<select id="protectView"><option value="all">全選手</option><option value="selected">プロテクト</option><option value="unselected">プロテクト外</option></select></label>
 </div></section>
 <section id="protectError" class="fa-error" role="alert" hidden><h2>選手名簿を読み込めませんでした</h2><p id="protectErrorText"></p><button type="button" id="protectRetry">再読み込み</button></section>
 <div id="protectWorkspace" hidden>
@@ -66,14 +66,16 @@
 <div class="protect-workspace" style="margin-top:16px">
 <section class="content-card">
 <div class="fa-section-title"><div><h2>球団の選手一覧</h2><p class="fa-muted" id="protectResultCount"></p></div><div class="protect-counter" id="protectCounter" aria-live="polite">0 / 28人</div></div>
-<div id="protectCards" class="fa-cards"></div><p id="protectEmpty" class="fa-empty" hidden>条件に一致する選手はいません。</p>
+<div class="protect-table-scroll"><table class="protect-table" aria-label="プロテクト選択可能な選手一覧"><thead><tr><th scope="col">選択</th><th scope="col">背番号</th><th scope="col">選手名</th><th scope="col">守備</th><th scope="col">対象外</th></tr></thead><tbody id="protectRows"></tbody></table></div><p id="protectEmpty" class="fa-empty" hidden>条件に一致する選手はいません。</p>
 </section>
 <aside class="protect-selection" aria-label="選択した選手"><h2>選択中の28人</h2><div id="protectPicks"></div>
-<button id="protectCopy" type="button" disabled>選択結果をコピー</button>
-<button id="protectCsv" type="button" disabled>選択結果をCSVで保存</button>
+<button id="protectImage" type="button" disabled>選択結果を画像で保存（PNG）</button>
+<button id="protectShare" type="button" disabled>共有リンクをコピー</button>
+<input id="protectShareUrl" class="protect-share-url" type="text" readonly aria-label="共有リンク" hidden>
 <button id="protectReset" type="button">この球団の選択をリセット</button>
+<details id="protectRestoreBox" class="protect-restores" hidden><summary>除外した選手を戻す</summary><ul id="protectExcludedList"></ul></details>
 <p id="protectNotice" class="fa-muted" aria-live="polite"></p>
-<p class="fa-muted">選択内容は、このブラウザー内に球団別で保存されます。別端末には引き継がれません。</p>
+<p class="fa-muted">選択内容はこのブラウザーに保存されます。ほかの端末には共有リンクから選択結果を引き継げます。</p>
 </aside>
 </div></div>
 <noscript><p class="content-card">28人プロテクトの操作にはJavaScriptを有効にしてください。</p></noscript>

@@ -68,3 +68,39 @@
 @media(max-width:1100px){.protect-workspace{grid-template-columns:minmax(0,1fr) 240px}.protect-workspace .fa-cards{grid-template-columns:1fr}}
 @media(max-width:760px){.fa-controls{grid-template-columns:1fr 1fr}.fa-controls label:last-of-type{grid-column:1/-1}.fa-controls button{grid-column:1/-1}.fa-summary{grid-template-columns:1fr 1fr}.fa-cards{grid-template-columns:1fr}.protect-workspace{grid-template-columns:1fr}.protect-selection{position:static}.fa-shell .content-card,.fa-shell .control-band{padding:14px}}
 @media(max-width:450px){.fa-controls{grid-template-columns:1fr}.fa-controls label:last-of-type{grid-column:auto}.fa-section-title h2{font-size:19px}.fa-bridge a{flex:1;justify-content:center}}
+
+/* 28人の選択を一覧で見渡すためのコンパクト表示 */
+.protect-workspace{grid-template-columns:minmax(0,1fr) 260px;gap:12px}
+.protect-workspace>section{padding:15px}
+.protect-table-scroll{width:100%;overflow-x:auto}
+.protect-table{width:100%;border-collapse:collapse;font-size:14px}
+.protect-table thead th{text-align:left;padding:9px 8px;background:#eaf4f2;color:#28514a;border-bottom:2px solid #b9d7d2;white-space:nowrap}
+.protect-table thead th:first-child{width:52px}
+.protect-table thead th:nth-child(2){width:68px}
+.protect-table thead th:nth-child(4){width:90px}
+.protect-table thead th:last-child{width:64px}
+.protect-table tbody td{padding:6px 8px;border-bottom:1px solid #e3e9ec;line-height:1.35}
+.protect-table .protect-row{cursor:pointer;transition:background .12s ease}
+.protect-table .protect-row:nth-child(odd){background:#fbfcfc}
+.protect-table .protect-row:hover{background:#edf7f5}
+.protect-table .protect-row.is-picked{background:#daf2eb}
+.protect-table .protect-group-row th{padding:8px 10px;background:#f0f4f7;color:#344256;text-align:left;font-size:13px}
+.protect-table .protect-group-row small{font-size:11px;color:var(--muted);font-weight:400}
+.protect-name{font-weight:700;white-space:nowrap}
+.protect-number{font-variant-numeric:tabular-nums;color:#556675}
+.protect-position{font-size:12px;color:#657385;white-space:nowrap}
+.protect-check-cell{text-align:center}
+.protect-table .protect-row-check{width:19px;height:19px;accent-color:#0f766e;cursor:pointer}
+.protect-table .protect-exclude-cell{text-align:center}
+.protect-table .protect-exclude-btn{font-size:11px;min-height:28px;padding:4px 6px;border:1px solid #d4dfe5;background:#f7fafb;color:#596b74}
+.protect-table .protect-exclude-btn:hover{background:#fff2e5;color:#80512d}
+.protect-selection{top:12px}
+.protect-selection ol{columns:1}
+.protect-share-url{display:block;width:100%;margin:9px 0;padding:8px;border-radius:6px;border:1px solid #a6c8c3;font-size:12px}
+.protect-restores{margin:12px 0;border-top:1px solid var(--line);padding-top:10px}
+.protect-restores summary{cursor:pointer;font-size:12px;font-weight:700}
+.protect-restores ul{padding:0;list-style:none;max-height:185px;overflow:auto;margin:8px 0}
+.protect-restores li{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px}
+.protect-restores button{width:auto;font-size:11px;min-height:28px;margin:1px 0;padding:3px 8px}
+@media(max-width:1100px){.protect-workspace{grid-template-columns:minmax(0,1fr) 235px}}
+@media(max-width:760px){.protect-workspace{grid-template-columns:1fr}.protect-selection{position:static}.protect-table tbody td{padding:7px 5px}.protect-name{font-size:13px}.protect-table thead th{padding:9px 5px;font-size:12px}.protect-table .protect-group-row th{padding:7px 6px}}
