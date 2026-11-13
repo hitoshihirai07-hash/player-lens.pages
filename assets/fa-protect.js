@@ -6,10 +6,13 @@
   const POSITIONS = ['投手', '捕手', '内野手', '外野手'];
   const state = { all: [], team: '', position: 'all', view: 'all', search: '', selected: new Set(), excluded: new Set() };
   const key = team => 'player-lens-fa-protect-2026-v1-' + team;
-  const baseExcluded = p => p.契約区分 !== '支配下'
-    || p.プロテクト候補判定 === '対象外'
-    || ['外国人', '外国人選手', '対象外'].includes(p.外国人区分);
-  const teamRows = () => state.all.filter(p => p.球団名 === state.team && !baseExcluded(p));
+  // The source roster determines eligibility. Names and spellings are not used to guess nationality.
+  const isForeignPlayer = p => ['外国人', '外国人選手', '外国人扱い', '外国籍', '外国籍選手']
+    .includes(String(p.外国人区分 ?? '').normalize('NFKC').trim());
+  const isSelectablePlayer = p => String(p.契約区分 ?? '').trim() === '支配下'
+    && String(p.プロテクト候補判定 ?? '').trim() !== '対象外'
+    && !isForeignPlayer(p);
+  const teamRows = () => state.all.filter(p => p.球団名 === state.team);
   const eligible = () => teamRows().filter(p => !state.excluded.has(p.選手ID));
   const order = (a, b) => (POSITIONS.indexOf(a.ポジション) + 1 || 99) - (POSITIONS.indexOf(b.ポジション) + 1 || 99)
     || (Number(a.背番号) || 999) - (Number(b.背番号) || 999)
@@ -201,7 +204,9 @@
     try {
       const rows = await D.loadCsv('./data/fa/fa_protect_roster_2026.csv',
         ['選手ID', '球団名', '選手名', '背番号', 'ポジション', '契約区分', 'プロテクト候補判定', '外国人区分', '基準日']);
-      state.all = rows.filter(p => p.選手ID && p.球団名 && p.選手名);
+      // Filter once on load: list, 28 selections, saved picks, shared picks, and exports
+      // all use the same eligible roster. Foreign and developmental players never enter it.
+      state.all = rows.filter(p => p.選手ID && p.球団名 && p.選手名 && isSelectablePlayer(p));
       if (!state.all.length) throw new Error('選手名簿に登録選手がいません。');
       const teams = [...new Set(state.all.map(p => p.球団名))];
       $('protectTeam').innerHTML = teams.map(t => '<option value="' + esc(t) + '">' + esc(t) + '</option>').join('');
