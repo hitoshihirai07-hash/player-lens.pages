@@ -156,38 +156,90 @@
     }
   }
   function drawImage() {
-    const players = picks();
-    if (!players.length) return;
+    const protectedPlayers = picks();
+    if (!protectedPlayers.length) return;
+    const unprotectedPlayers = ordered(eligible().filter(p => !state.selected.has(p.選手ID)));
+    const groupPlayers = players => POSITIONS.concat(['その他']).map(position => ({
+      position,
+      players: players.filter(p => POSITIONS.includes(p.ポジション)
+        ? p.ポジション === position : position === 'その他')
+    })).filter(group => group.players.length);
+
+    const leftGroups = groupPlayers(protectedPlayers), rightGroups = groupPlayers(unprotectedPlayers);
+    const width = 1600, margin = 44, gap = 24;
+    const columnWidth = (width - margin * 2 - gap) / 2;
+    const rowHeight = 44, positionHeight = 42, groupGap = 12;
+    const groupHeight = groups => groups.reduce((sum, group) =>
+      sum + positionHeight + group.players.length * rowHeight + groupGap, 0);
+    const cardsTop = 308;
+    const cardsHeight = 118 + Math.max(groupHeight(leftGroups), groupHeight(rightGroups)) + 28;
+    const footerTop = cardsTop + cardsHeight;
     const canvas = document.createElement('canvas');
-    canvas.width = 1200; canvas.height = 1370;
+    canvas.width = width;
+    canvas.height = footerTop + (protectedPlayers.length < MAX ? 148 : 114);
     const ctx = canvas.getContext('2d');
     if (!ctx) { $('protectNotice').textContent = 'このブラウザーでは画像を作成できません。'; return; }
-    ctx.fillStyle = '#f5f8f8'; ctx.fillRect(0, 0, 1200, 1370);
-    ctx.fillStyle = '#0f766e'; ctx.fillRect(0, 0, 1200, 16);
-    ctx.fillStyle = '#183b40'; ctx.font = 'bold 30px "Yu Gothic", Meiryo, sans-serif';
-    ctx.fillText('Player Lens  |  MY PROTECTED 28', 64, 82);
-    ctx.font = 'bold 47px "Yu Gothic", Meiryo, sans-serif'; ctx.fillText(state.team, 64, 167, 1080);
-    ctx.fillStyle = '#0f766e'; ctx.font = 'bold 30px "Yu Gothic", Meiryo, sans-serif';
-    ctx.fillText('2026年オフ  28人プロテクト案', 64, 226);
-    ctx.fillStyle = '#5b6b74'; ctx.font = '24px "Yu Gothic", Meiryo, sans-serif';
-    ctx.fillText(players.length + ' / 28人  |  基準日 ' + (teamRows()[0]?.基準日 || '未登録'), 64, 270);
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(40, 306, 1120, 944);
-    ctx.strokeStyle = '#d9e5e3'; ctx.lineWidth = 2; ctx.strokeRect(40, 306, 1120, 944);
-    const colWidth = 540, startY = 366, rowHeight = 60;
-    for (let i = 0; i < players.length; i++) {
-      const col = Math.floor(i / 14), row = i % 14;
-      const x = 66 + col * colWidth, y = startY + row * rowHeight;
-      if (row % 2 === 0) { ctx.fillStyle = '#f5faf9'; ctx.fillRect(x - 9, y - 34, 516, 52); }
-      ctx.fillStyle = '#0f766e'; ctx.font = 'bold 23px "Yu Gothic", Meiryo, sans-serif';
-      ctx.fillText(String(i + 1).padStart(2, '0'), x, y);
-      ctx.fillStyle = '#1b2d35'; ctx.font = 'bold 26px "Yu Gothic", Meiryo, sans-serif';
-      ctx.fillText(players[i].選手名, x + 56, y, 286);
-      ctx.fillStyle = '#61717c'; ctx.font = '20px "Yu Gothic", Meiryo, sans-serif';
-      ctx.fillText(players[i].ポジション, x + 352, y, 140);
+
+    const font = (weight, size) => weight + ' ' + size + 'px "Yu Gothic", Meiryo, sans-serif';
+    ctx.fillStyle = '#f5f8f8'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#0f766e'; ctx.fillRect(0, 0, width, 15);
+    ctx.fillStyle = '#183b40'; ctx.font = font('bold', 31);
+    ctx.fillText('Player Lens  |  PROTECT ROSTER', 56, 79);
+    ctx.font = font('bold', 48);
+    ctx.fillText(state.team, 56, 157, width - 112);
+    ctx.fillStyle = '#0f766e'; ctx.font = font('bold', 31);
+    ctx.fillText('2026年オフ  28人プロテクト予想', 56, 221);
+    ctx.fillStyle = '#52636d'; ctx.font = font('normal', 23);
+    ctx.fillText('選択 ' + protectedPlayers.length + ' / 28人  ・  プロテクト漏れ ' + unprotectedPlayers.length
+      + '人  ・  基準日 ' + (teamRows()[0]?.基準日 || '未登録'), 56, 270, width - 112);
+
+    function drawColumn(x, title, countLabel, groups, selected) {
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(x, cardsTop, columnWidth, cardsHeight);
+      ctx.strokeStyle = '#d7e4e3'; ctx.lineWidth = 2; ctx.strokeRect(x, cardsTop, columnWidth, cardsHeight);
+      ctx.fillStyle = selected ? '#0f766e' : '#687b85';
+      ctx.fillRect(x, cardsTop, columnWidth, 9);
+      ctx.font = font('bold', 31);
+      ctx.fillText(title, x + 24, cardsTop + 56, columnWidth - 48);
+      ctx.fillStyle = '#52636d'; ctx.font = font('normal', 21);
+      ctx.fillText(countLabel, x + 24, cardsTop + 92, columnWidth - 48);
+
+      let y = cardsTop + 118;
+      if (!groups.length) {
+        ctx.font = font('normal', 24);
+        ctx.fillText('該当する選手はいません', x + 26, y + 38, columnWidth - 52);
+        return;
+      }
+      for (const group of groups) {
+        ctx.fillStyle = selected ? '#e3f3ee' : '#eaf0f2';
+        ctx.fillRect(x + 18, y, columnWidth - 36, 35);
+        ctx.fillStyle = '#244f51'; ctx.font = font('bold', 22);
+        ctx.fillText(group.position + '  ' + group.players.length + '人', x + 28, y + 26, columnWidth - 56);
+        y += positionHeight;
+        group.players.forEach((player, index) => {
+          if (index % 2 === 0) {
+            ctx.fillStyle = '#f7fafb';
+            ctx.fillRect(x + 18, y, columnWidth - 36, rowHeight - 2);
+          }
+          ctx.fillStyle = '#687981'; ctx.font = font('normal', 21);
+          ctx.fillText(player.背番号 || '—', x + 30, y + 31, 68);
+          ctx.fillStyle = '#1b2d35'; ctx.font = font('bold', 25);
+          ctx.fillText(player.選手名, x + 116, y + 31, columnWidth - 156);
+          y += rowHeight;
+        });
+        y += groupGap;
+      }
     }
-    ctx.fillStyle = '#647380'; ctx.font = '21px "Yu Gothic", Meiryo, sans-serif';
-    ctx.fillText('個人の予想です。球団が提出した正式なプロテクト名簿ではありません。', 60, 1300, 1080);
-    ctx.fillText('Player Lens  /  pro-baseball-watch-guide.com', 60, 1337);
+
+    drawColumn(margin, 'プロテクト', protectedPlayers.length + '人 / 最大28人', leftGroups, true);
+    drawColumn(margin + columnWidth + gap, 'プロテクト漏れ', unprotectedPlayers.length + '人', rightGroups, false);
+    ctx.fillStyle = '#52636d'; ctx.font = font('normal', 20);
+    ctx.fillText('個人の予想です。球団が提出した正式なプロテクト名簿ではありません。', 56, footerTop + 38, width - 112);
+    ctx.fillText('対象は選択可能な支配下選手です（育成・外国人・個別除外は含みません）。', 56, footerTop + 73, width - 112);
+    if (protectedPlayers.length < MAX) {
+      ctx.fillStyle = '#9a5b00'; ctx.font = font('normal', 20);
+      ctx.fillText('※ 28人未満のため、右側には今後プロテクトする可能性がある未選択選手も含まれます。', 56, footerTop + 108, width - 112);
+    }
+
     canvas.toBlob(blob => {
       if (!blob) { $('protectNotice').textContent = '画像を作成できませんでした。'; return; }
       const objectUrl = URL.createObjectURL(blob);
@@ -195,7 +247,7 @@
       a.download = '28人プロテクト_' + state.team + '_2026.png';
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
-      $('protectNotice').textContent = '選択した選手の一覧をPNG画像として保存しました。';
+      $('protectNotice').textContent = 'プロテクトとプロテクト漏れを左右に並べたPNG画像を保存しました。';
     }, 'image/png');
   }
   async function init() {
