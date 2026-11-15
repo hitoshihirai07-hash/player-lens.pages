@@ -44,7 +44,7 @@
       '<div class="japan-score-wrap"><table class="japan-score-table"><caption>日本代表の試合結果（スコアは日本－対戦相手の順）</caption><thead><tr><th scope="col">日付</th><th scope="col">区分</th><th scope="col">対戦相手</th><th scope="col">結果</th></tr></thead><tbody>' + scores + '</tbody></table></div>' +
       '<div class="japan-result-highlights">' +
         '<div><h4>大会MVP</h4><p><strong>' + e(result.mvp.name) + '</strong>（' + e(result.mvp.team) + '）</p><p>' + e(result.mvp.note) + '</p></div>' +
-        '<div><h4>正木智也の記録</h4><p><strong>' + e(result.feature.name) + '</strong>（' + e(result.feature.team) + '）</p><p>' + e(result.feature.description) + '</p></div>' +
+        '<div><h4>気になった記録</h4><p><strong>' + e(result.feature.name) + '</strong>（' + e(result.feature.team) + '）</p><p>' + e(result.feature.description) + '</p></div>' +
       '</div></section>';
   }
   function renderOverview() {
