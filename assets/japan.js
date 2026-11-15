@@ -28,10 +28,24 @@
         <p class="small-note">${e([event.location, event.venue].filter(Boolean).join(' / ') || '開催地・会場未設定')}</p>
         <div class="japan-event-counts"><span>選手 ${event.players}名</span><span>監督・コーチ ${event.staff}名</span></div>
         <p>${e(event.description || '大会情報は準備中です。登録メンバーを確認できます。')}</p>
+        ${event.result ? '<p class="japan-event-finish">' + e([event.result.finish, event.result.summary].filter(Boolean).join('｜')) + '</p>' : ''}
         <p class="small-note">${e(event.rosterNote || '')}</p>
         <a class="text-link" href="${e(detailUrl(event))}">大会詳細・代表メンバーを見る →</a>
       </article>`).join('');
     $('japanStatus').textContent = `${state.events.length}大会を掲載しています。`;
+  }
+  function renderResults(event) {
+    const result = event.result;
+    if (!result) return '';
+    const scores = (result.matches || []).map(match => '<tr><td>' + e(dateLabel(match.date)) + '</td><td>' + e(match.stage) + '</td><td>' + e(match.opponent) + '</td><td><strong>' + e(match.score) + '</strong>' + (match.note ? '<span class="japan-score-note">' + e(match.note) + '</span>' : '') + '</td></tr>').join('');
+    return '<section class="japan-results" aria-label="大会結果">' +
+      '<h3>大会結果</h3>' +
+      '<p class="japan-result-finish"><strong>' + e(result.finish) + '</strong><span>' + e(result.summary) + '</span></p>' +
+      '<div class="japan-score-wrap"><table class="japan-score-table"><caption>日本代表の試合結果（スコアは日本－対戦相手の順）</caption><thead><tr><th scope="col">日付</th><th scope="col">区分</th><th scope="col">対戦相手</th><th scope="col">結果</th></tr></thead><tbody>' + scores + '</tbody></table></div>' +
+      '<div class="japan-result-highlights">' +
+        '<div><h4>大会MVP</h4><p><strong>' + e(result.mvp.name) + '</strong>（' + e(result.mvp.team) + '）</p><p>' + e(result.mvp.note) + '</p></div>' +
+        '<div><h4>正木智也の記録</h4><p><strong>' + e(result.feature.name) + '</strong>（' + e(result.feature.team) + '）</p><p>' + e(result.feature.description) + '</p></div>' +
+      '</div></section>';
   }
   function renderOverview() {
     const { event, season, players, staff } = state.data;
@@ -51,6 +65,7 @@
         <div><dt>代表メンバー</dt><dd>選手 ${players.length}名 / 監督・コーチ ${staff.length}名</dd></div></dl>
       <p>${e(event.description || '大会概要は未設定です。')}</p>
       ${event.rosterNote ? `<p class="small-note">${e(event.rosterNote)}</p>` : ''}
+      ${renderResults(event)}
       <div class="japan-source-links">${(event.sources || []).filter(source => safeUrl(source.url)).map(source => `<a href="${e(source.url)}" target="_blank" rel="noopener noreferrer">${e(source.label)}</a>`).join('')}</div>
       ${event.sourceCheckedAt ? `<p class="small-note">大会情報の公式確認日：${e(dateLabel(event.sourceCheckedAt))}</p>` : ''}`;
     $('japanAgeNote').textContent = event.startDate ? `年齢は大会開始日（${dateLabel(event.startDate)}）時点の満年齢です。${season ? `プロ年数・成績は${season.year}年シーズン時点。` : ''}成績はNPBシーズンの記録です。` : '大会開始日が未設定のため年齢は表示できません。';

@@ -20,13 +20,60 @@
       "location": "日本・東京都",
       "venue": "東京ドーム",
       "description": "日本、オーストラリア、チャイニーズ・タイペイ、韓国が出場。アジアの若手選手が国際経験を積む大会です。",
-      "rosterNote": "2026年10月7日発表の出場予定選手。最終公式ロースターは10月中旬に大会側から発表予定です。",
+      "rosterNote": "代表メンバーは2026年10月7日発表の出場予定選手を基に掲載しています。",
       "dataSeason": 2026,
-      "sourceCheckedAt": "2026-10-08",
+      "sourceCheckedAt": "2026-11-15",
       "sources": [
-        { "label": "侍ジャパン公式・大会概要", "url": "https://www.japan-baseball.jp/jp/games/apbc2026/" },
-        { "label": "侍ジャパン公式・出場予定選手発表", "url": "https://www.japan-baseball.jp/jp/news/press/20261007_1.html" }
-      ]
+        {
+          "label": "侍ジャパン公式・大会概要",
+          "url": "https://www.japan-baseball.jp/jp/games/apbc2026/"
+        },
+        {
+          "label": "侍ジャパン公式・出場予定選手発表",
+          "url": "https://www.japan-baseball.jp/jp/news/press/20261007_1.html"
+        }
+      ],
+      "result": {
+        "finish": "優勝",
+        "summary": "4戦全勝・3大会連続優勝",
+        "matches": [
+          {
+            "date": "2026-11-12",
+            "stage": "予選",
+            "opponent": "チャイニーズ・タイペイ",
+            "score": "5－0"
+          },
+          {
+            "date": "2026-11-13",
+            "stage": "予選",
+            "opponent": "韓国",
+            "score": "9－5"
+          },
+          {
+            "date": "2026-11-14",
+            "stage": "予選",
+            "opponent": "オーストラリア",
+            "score": "16－1",
+            "note": "7回コールド"
+          },
+          {
+            "date": "2026-11-15",
+            "stage": "決勝",
+            "opponent": "韓国",
+            "score": "5－1"
+          }
+        ],
+        "mvp": {
+          "name": "宗山 塁",
+          "team": "楽天",
+          "note": "大会4本塁打・11打点"
+        },
+        "feature": {
+          "name": "正木 智也",
+          "team": "ソフトバンク",
+          "description": "4試合連続本塁打。大会通算5本塁打・11打点。決勝の韓国戦では5回に3ランを放った。"
+        }
+      }
     }
   ]
 }

@@ -51,3 +51,20 @@
 @media (max-width: 1000px) { .japan-player-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .japan-staff-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .japan-shell { width: calc(100% - 24px); margin-top: 14px; } .japan-events, .japan-overview-list { grid-template-columns: 1fr; } .japan-staff-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .japan-positions button { flex: 1 0 auto; padding: 8px 10px; } .japan-search { flex-direction: column; align-items: stretch; gap: 5px; } .japan-search input { width: 100%; } }
 @media (max-width: 540px) { .japan-player-grid { grid-template-columns: 1fr; } .japan-staff-card { padding: 10px; gap: 7px; } .japan-staff-card .japan-number { flex-basis: 30px; width: 30px; height: 34px; font-size: 17px; } .japan-staff-card h3 { font-size: 14px; } .japan-pagination { gap: 8px; font-size: 12px; } .japan-player-card { padding: 16px; } }
+.japan-event-finish { margin: 8px 0; font-weight: 700; color: var(--accent-dark); }
+.japan-results { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+.japan-results h3 { margin: 0 0 10px; font-size: 19px; }
+.japan-result-finish { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin: 0 0 14px; }
+.japan-result-finish strong { font-size: 21px; color: var(--accent-dark); }
+.japan-result-finish span { font-weight: 700; }
+.japan-score-wrap { overflow-x: auto; max-width: 100%; }
+.japan-score-table { width: 100%; min-width: 530px; border-collapse: collapse; font-size: 14px; text-align: left; }
+.japan-score-table caption { text-align: left; color: var(--muted); font-size: 12px; margin-bottom: 7px; }
+.japan-score-table th, .japan-score-table td { padding: 10px 9px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.japan-score-table th { background: var(--accent-soft); color: var(--accent-dark); }
+.japan-score-note { margin-left: 7px; font-size: 12px; color: var(--muted); }
+.japan-result-highlights { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+.japan-result-highlights > div { border: 1px solid var(--line); border-radius: 10px; padding: 14px; background: #f5f8f9; }
+.japan-result-highlights h4 { margin: 0 0 8px; color: var(--accent-dark); font-size: 14px; }
+.japan-result-highlights p { margin: 4px 0; font-size: 14px; }
+@media (max-width: 760px) { .japan-result-highlights { grid-template-columns: 1fr; } }
